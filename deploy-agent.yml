@@ -1,0 +1,126 @@
+---
+# ServerCTL Agent — Bulk deploy with per-server token registration
+#
+# Usage:
+#   ansible-playbook -i inventory/hosts.yml deploy-agent.yml --ask-pass
+#   ansible-playbook -i inventory/hosts.yml deploy-agent.yml --ask-pass --limit lin3-demo-05
+
+- name: Deploy ServerCTL Agent
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  vars:
+    backend_url: "http://192.168.1.100:9090"
+    backend_token: "91ab58d25a77eeb1ad8965f03549f1f95d26c943bfd6e0ca1e9605e5d6fab390"
+    serverctl_ws_url: "ws://192.168.1.100:9090/ws/agent"
+
+  tasks:
+    - name: Register server in backend and get agent token
+      delegate_to: localhost
+      become: no
+      uri:
+        url: "{{ backend_url }}/api/servers"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+          X-Session-Token: "{{ backend_token }}"
+        body_format: json
+        body:
+          host: "{{ ansible_host | default(inventory_hostname) }}"
+          name: "{{ inventory_hostname }}"
+          group: "{{ group_names[0] | default('ansible') }}"
+        status_code: [200, 201]
+      register: register_result
+
+    - name: Set agent token from registration
+      set_fact:
+        agent_token: "{{ register_result.json.agent_token }}"
+
+    - name: Ensure Python3 and curl are installed
+      package:
+        name:
+          - python3
+          - python3-pip
+          - curl
+        state: present
+
+    - name: Create agent directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - /opt/serverctl-agent
+        - /etc/serverctl
+        - /etc/serverctl/logs
+
+    - name: Download latest agent script
+      get_url:
+        url: "{{ backend_url }}/api/agent/script"
+        dest: /opt/serverctl-agent/agent.py
+        mode: '0755'
+        force: yes
+
+    - name: Install Python dependencies
+      pip:
+        name:
+          - "websockets>=12.0"
+          - "pyyaml>=6.0"
+          - "psutil>=5.9"
+        state: present
+        extra_args: "--break-system-packages"
+      ignore_errors: yes
+
+    - name: Write agent config
+      copy:
+        content: |
+          server_url: "{{ serverctl_ws_url }}"
+          api_token: {{ agent_token }}
+          log_level: "info"
+          log_file: "/etc/serverctl/logs/agent.log"
+          report_interval: 60
+        dest: /etc/serverctl/config.yml
+        mode: '0600'
+
+    - name: Create systemd service
+      copy:
+        content: |
+          [Unit]
+          Description=ServerCTL Agent
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=simple
+          ExecStart=/usr/bin/python3 /opt/serverctl-agent/agent.py
+          Restart=always
+          RestartSec=10
+          StandardOutput=append:/etc/serverctl/logs/agent.log
+          StandardError=append:/etc/serverctl/logs/agent.log
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/serverctl-agent.service
+        mode: '0644'
+
+    - name: Enable and restart agent
+      systemd:
+        name: serverctl-agent
+        daemon_reload: yes
+        state: restarted
+        enabled: yes
+
+    - name: Wait 3s for agent to connect
+      pause:
+        seconds: 3
+
+    - name: Check agent status
+      command: systemctl is-active serverctl-agent
+      register: svc_status
+      changed_when: false
+      failed_when: false
+
+    - name: Result
+      debug:
+        msg: "{{ inventory_hostname }} ({{ ansible_host | default(inventory_hostname) }}) — agent {{ svc_status.stdout }} | token: {{ agent_token[:16] }}..."

@@ -1,0 +1,64 @@
+---
+# ServerCTL — Update agent token on existing installations
+#
+# Use this when tokens have been rotated (e.g. migrated to per-server tokens).
+# This playbook ONLY updates the token in config.yml and restarts the agent.
+# It does NOT reinstall Python, the agent script, or the systemd service.
+#
+# Usage:
+#   python3 gen-inventory.py -o inventory --user administrator
+#   ansible-playbook -i inventory update-token.yml
+#
+# Options:
+#   --limit 192.168.1.201          # single server
+#   --limit lin3-demo-01.tera*     # by name pattern
+#   -e "ansible_user=root"         # override SSH user
+#   --check                        # dry run
+
+- name: Update ServerCTL agent token
+  hosts: all
+  become: yes
+  gather_facts: no
+
+  tasks:
+    - name: Check if agent config exists
+      ansible.builtin.stat:
+        path: /etc/serverctl/config.yml
+      register: cfg_stat
+
+    - name: Skip if agent not installed
+      ansible.builtin.meta: end_host
+      when: not cfg_stat.stat.exists
+
+    - name: Update api_token in config.yml
+      ansible.builtin.lineinfile:
+        path: /etc/serverctl/config.yml
+        regexp: '^api_token:.*'
+        line: "api_token: {{ agent_token }}"
+        backup: yes
+
+    - name: Update server_url in config.yml
+      ansible.builtin.lineinfile:
+        path: /etc/serverctl/config.yml
+        regexp: '^server_url:.*'
+        line: "server_url: {{ serverctl_url }}"
+
+    - name: Restart serverctl-agent
+      ansible.builtin.systemd:
+        name: serverctl-agent
+        state: restarted
+      register: restart_result
+
+    - name: Wait for agent to connect (3s)
+      ansible.builtin.pause:
+        seconds: 3
+
+    - name: Check agent status
+      ansible.builtin.command: systemctl is-active serverctl-agent
+      register: svc_status
+      changed_when: false
+      failed_when: false
+
+    - name: Report result
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} — agent {{ svc_status.stdout }} (token: {{ agent_token[:12] }}...)"

@@ -1,0 +1,7 @@
+# Ansible Inventory
+# Replace agent_token with actual tokens from dashboard
+
+[agents]
+# Example servers - replace with your actual IPs and tokens
+#192.168.1.10 agent_token=abc123...
+#192.168.1.11 agent_token=def456...

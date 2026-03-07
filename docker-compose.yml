@@ -1,0 +1,47 @@
+services:
+
+  # ── Backend ───────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+    container_name: serverctl-backend
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      BACKEND_PORT: 9090
+      DASHBOARD_TOKEN: ${DASHBOARD_TOKEN}
+      AGENT_TOKEN: ${AGENT_TOKEN}
+      PROMETHEUS_URL: ${PROMETHEUS_URL:-http://localhost:9090}
+      CORS_ORIGINS: "http://localhost,http://localhost:80,http://localhost:5173,${FRONTEND_URL:-}"
+      SECRET_KEY: ${SECRET_KEY}
+    volumes:
+      - ./backend/servers.json:/app/servers.json
+      - ./backend/users.json:/app/users.json
+      - ./agent/agent.py:/app/agent.py:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    # network_mode: host exposes all ports directly on the host — no explicit port mapping needed.
+    # Ports used by this stack:
+    #   9090 — ServerCTL backend API / agent WebSocket
+    #   10050 — Zabbix passive agent (agents on remote servers listen here)
+    #   10051 — Zabbix server / proxy (Zabbix agents push active checks here)
+
+  # ── Frontend ──────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ""
+        VITE_DASHBOARD_TOKEN: ${DASHBOARD_TOKEN}
+    container_name: serverctl-frontend
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      backend:
+        condition: service_healthy

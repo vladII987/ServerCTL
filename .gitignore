@@ -1,0 +1,27 @@
+# Claude Code local settings
+.claude/
+
+# Environment — never commit secrets
+.env
+.env.prod
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Node
+node_modules/
+dist/
+
+# Logs
+*.log
+
+# Runtime data — generated on first run, not for version control
+backend/servers.json
+backend/users.json
+
+# Archives
+*.tgz
+*.tar.gz
+*.zip
