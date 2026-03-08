@@ -37,6 +37,9 @@ services:
       args:
         VITE_API_URL: ""
         VITE_DASHBOARD_TOKEN: ${DASHBOARD_TOKEN}
+        BACKEND_PORT: ${BACKEND_PORT:-8765}
+    environment:
+      BACKEND_PORT: ${BACKEND_PORT:-8765}
     container_name: serverctl-frontend
     restart: unless-stopped
     extra_hosts:
