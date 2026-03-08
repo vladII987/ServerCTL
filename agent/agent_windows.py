@@ -241,10 +241,14 @@ def run_command(command: str, target: str = None) -> dict:
             return {"status": "error", "output": str(e), "returncode": 1}
 
     if command == "upgradable_packages":
+        if not ps("Get-Command winget -ErrorAction SilentlyContinue"):
+            return {"status": "error", "output": "winget is not available on this system.", "returncode": 1}
         out = ps("winget upgrade --include-unknown 2>$null | Out-String", timeout=60)
         return {"status": "completed", "output": out, "returncode": 0}
 
-    if command == "update":
+    if command in ("update", "upgrade"):
+        if not ps("Get-Command winget -ErrorAction SilentlyContinue"):
+            return {"status": "error", "output": "winget is not available on this system. Install App Installer from Microsoft Store or use Windows Update manually.", "returncode": 1}
         out = ps("winget upgrade --all --accept-package-agreements --accept-source-agreements 2>&1 | Out-String", timeout=300)
         return {"status": "completed", "output": out, "returncode": 0}
 
