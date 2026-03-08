@@ -8,18 +8,18 @@ services:
     restart: unless-stopped
     network_mode: host
     environment:
-      BACKEND_PORT: 9090
+      BACKEND_PORT: ${BACKEND_PORT:-8765}
       DASHBOARD_TOKEN: ${DASHBOARD_TOKEN}
       AGENT_TOKEN: ${AGENT_TOKEN}
       PROMETHEUS_URL: ${PROMETHEUS_URL:-http://localhost:9090}
-      CORS_ORIGINS: "http://localhost,http://localhost:80,http://localhost:5173,${FRONTEND_URL:-}"
+      CORS_ORIGINS: "http://localhost,http://localhost:${FRONTEND_PORT:-8090},http://localhost:5173,${FRONTEND_URL:-}"
       SECRET_KEY: ${SECRET_KEY}
     volumes:
       - ./backend/servers.json:/app/servers.json
       - ./backend/users.json:/app/users.json
       - ./agent/agent.py:/app/agent.py:ro
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9090/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT:-8765}/health"]
       interval: 15s
       timeout: 5s
       retries: 3

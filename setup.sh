@@ -150,8 +150,6 @@ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
         err "docker compose plugin not found. Install 'docker-compose-plugin'."
     fi
 
-    sed -i "s/BACKEND_PORT: .*/BACKEND_PORT: ${BACKEND_PORT}/" "$DIR/docker-compose.yml"
-
     info "Running: docker compose up --build -d"
     echo ""
     cd "$DIR"
