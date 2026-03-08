@@ -19,6 +19,7 @@ services:
       - ./backend/servers.json:/app/servers.json
       - ./backend/users.json:/app/users.json
       - ./agent/agent.py:/app/agent.py:ro
+      - ./agent/agent_windows.py:/app/agent_windows.py:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT:-8765}/health"]
       interval: 10s

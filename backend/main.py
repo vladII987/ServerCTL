@@ -621,6 +621,106 @@ echo "=========================================="
     return PlainTextResponse(script, media_type="text/plain")
 
 
+@app.get("/api/agent/script-windows")
+async def agent_script_windows():
+    """Serve the Windows agent script for download."""
+    script_path = os.path.join(os.path.dirname(__file__), "agent_windows.py")
+    if not os.path.exists(script_path):
+        raise HTTPException(404, "Windows agent script not found on server")
+    with open(script_path) as f:
+        content = f.read()
+    return PlainTextResponse(content, media_type="text/plain")
+
+
+@app.get("/api/agent/install-windows-command", dependencies=[Depends(verify)])
+async def agent_install_windows_command(request: Request, server_id: str = Query("")):
+    """Return the PowerShell one-liner install command for Windows."""
+    server = registry.get(server_id) if server_id else None
+    if not server:
+        raise HTTPException(404, "Server not found — add the server first")
+    token = server["agent_token"]
+    backend_host = os.environ.get("PUBLIC_HOST", "")
+    if not backend_host:
+        req_host = request.headers.get("x-forwarded-host") or request.headers.get("host", "")
+        backend_host = req_host.split(":")[0] if req_host else "localhost"
+    cmd = f'powershell -Command "irm \'http://{backend_host}:{settings.BACKEND_PORT}/api/agent/install-windows?token={token}\' | iex"'
+    return {"command": cmd}
+
+
+@app.get("/api/agent/install-windows")
+async def agent_install_windows(request: Request, token: str = Query(...)):
+    """Return a PowerShell install script for Windows."""
+    if not registry.get_by_token(token):
+        raise HTTPException(403, "Invalid token")
+
+    backend_host = os.environ.get("PUBLIC_HOST", "")
+    if not backend_host:
+        req_host = request.headers.get("x-forwarded-host") or request.headers.get("host", "")
+        backend_host = req_host.split(":")[0] if req_host else "localhost"
+
+    ws_url  = f"ws://{backend_host}:{settings.BACKEND_PORT}/ws/agent"
+    dl_url  = f"http://{backend_host}:{settings.BACKEND_PORT}/api/agent/script-windows"
+
+    script = f"""# ServerCTL Agent Installer — Windows
+# Run as Administrator in PowerShell
+
+Write-Host "==========================================" -ForegroundColor Cyan
+Write-Host " ServerCTL Agent Installer (Windows)"      -ForegroundColor Cyan
+Write-Host "==========================================" -ForegroundColor Cyan
+
+# Check admin
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {{
+    Write-Error "Run this script as Administrator."; exit 1
+}}
+
+# Install Python if missing
+if (-not (Get-Command python -ErrorAction SilentlyContinue)) {{
+    Write-Host "[*] Installing Python via winget..." -ForegroundColor Yellow
+    winget install Python.Python.3.12 --accept-package-agreements --accept-source-agreements -h
+    $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH","User")
+}}
+
+# Install pip dependencies
+Write-Host "[*] Installing Python packages..." -ForegroundColor Yellow
+python -m pip install --quiet pyyaml psutil "websockets>=12.0"
+
+# Create directories
+New-Item -ItemType Directory -Force -Path "C:\\ServerCTL\\logs" | Out-Null
+
+# Download agent
+Write-Host "[*] Downloading agent..." -ForegroundColor Yellow
+Invoke-WebRequest -Uri "{dl_url}" -OutFile "C:\\ServerCTL\\agent.py" -UseBasicParsing
+
+# Write config
+Write-Host "[*] Writing config..." -ForegroundColor Yellow
+@"
+server_url: {ws_url}
+api_token: {token}
+log_file: C:\\ServerCTL\\logs\\agent.log
+report_interval: 60
+"@ | Out-File -FilePath "C:\\ServerCTL\\config.yml" -Encoding UTF8
+
+# Install as Scheduled Task (runs as SYSTEM, restarts on failure)
+Write-Host "[*] Installing Scheduled Task..." -ForegroundColor Yellow
+$action   = New-ScheduledTaskAction -Execute "python" -Argument "C:\\ServerCTL\\agent.py"
+$trigger  = New-ScheduledTaskTrigger -AtStartup
+$settings = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit (New-TimeSpan -Hours 0)
+$principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+Unregister-ScheduledTask -TaskName "ServerCTL Agent" -Confirm:$false -ErrorAction SilentlyContinue
+Register-ScheduledTask -TaskName "ServerCTL Agent" -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null
+Start-ScheduledTask -TaskName "ServerCTL Agent"
+
+Write-Host ""
+Write-Host "==========================================" -ForegroundColor Green
+Write-Host " ServerCTL Agent installed successfully!" -ForegroundColor Green
+Write-Host " Task:   ServerCTL Agent (Task Scheduler)" -ForegroundColor Green
+Write-Host " Config: C:\\ServerCTL\\config.yml"        -ForegroundColor Green
+Write-Host " Logs:   C:\\ServerCTL\\logs\\agent.log"   -ForegroundColor Green
+Write-Host "==========================================" -ForegroundColor Green
+"""
+    return PlainTextResponse(script, media_type="text/plain")
+
+
 if __name__ == "__main__":
     print(f"[Backend] Port {settings.BACKEND_PORT}")
     print(f"[Backend] Prometheus: {settings.PROMETHEUS_URL}")
