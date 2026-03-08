@@ -628,7 +628,10 @@ const Dashboard = () => {
     setWizardInstallCmdLoading(true);
     setWizardInstallCmd('');
     try {
-      const r = await fetch(`/api/agent/install-command?server_id=${encodeURIComponent(server_id)}`, { headers: authHeader });
+      const endpoint = wizardOS === 'windows'
+        ? `/api/agent/install-windows-command?server_id=${encodeURIComponent(server_id)}`
+        : `/api/agent/install-command?server_id=${encodeURIComponent(server_id)}`;
+      const r = await fetch(endpoint, { headers: authHeader });
       const d = await r.json();
       setWizardInstallCmd(d.command || '');
     } catch {
@@ -3306,18 +3309,22 @@ const Dashboard = () => {
             {activeTab === 'actions' && (
               <div>
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '20px', padding: '4px', background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', borderRadius: '12px' }}>
-                  {[
-                    { label: 'System Info', cmd: 'system_info', icon: '🖥' },
-                    { label: 'Disk Usage', cmd: 'disk_usage', icon: '💾' },
-                    { label: 'Memory', cmd: 'memory', icon: '⚡' },
-                    { label: 'CPU Info', cmd: 'cpu_info', icon: '🔧' },
-                    { label: 'Processes', cmd: 'top_processes', icon: '📋' },
-                    { label: 'Netstat', cmd: 'netstat', icon: '🌐' },
-                    ...(isAdmin ? [
+                  {(() => {
+                    const isWindows = String(selectedServer?.platform || '').toLowerCase().includes('windows');
+                    const commonActions = [
+                      { label: 'System Info', cmd: 'system_info', icon: '🖥' },
+                      { label: 'Disk Usage', cmd: 'disk_usage', icon: '💾' },
+                      { label: 'Memory', cmd: 'memory', icon: '⚡' },
+                      { label: 'CPU Info', cmd: 'cpu_info', icon: '🔧' },
+                      { label: 'Processes', cmd: 'top_processes', icon: '📋' },
+                      { label: 'Netstat', cmd: 'netstat', icon: '🌐' },
+                    ];
+                    const adminActions = isAdmin ? [
                       { label: 'Check Updates', cmd: 'upgradable_packages', icon: '🔄' },
-                      { label: 'Upgrade Now', cmd: '__upgrade__', icon: '⬆', danger: false, green: true },
-                    ] : []),
-                  ].map(({ label, cmd, icon, green }) => {
+                      { label: isWindows ? 'Upgrade (winget)' : 'Upgrade Now', cmd: '__upgrade__', icon: '⬆', green: true },
+                    ] : [];
+                    return [...commonActions, ...adminActions];
+                  })().map(({ label, cmd, icon, green }) => {
                     const isActive = activeAction === cmd;
                     const isHover = actionBtnHover === cmd;
                     const isUpgrade = cmd === '__upgrade__';
@@ -3462,7 +3469,7 @@ const Dashboard = () => {
         const osOptions = [
           { id: 'linux', label: 'Linux', icon: '🐧', desc: 'Ubuntu, Debian, CentOS, RHEL, Fedora...' },
           { id: 'freebsd', label: 'FreeBSD', icon: '😈', desc: 'FreeBSD / TrueNAS (coming soon)', disabled: true },
-          { id: 'windows', label: 'Windows', icon: '🪟', desc: 'Windows Server (coming soon)', disabled: true },
+          { id: 'windows', label: 'Windows', icon: '🪟', desc: 'Windows Server 2016, 2019, 2022, Windows 10/11' },
         ];
         return (
           <div style={styles.modal} onClick={closeWizard}>
@@ -3563,7 +3570,11 @@ const Dashboard = () => {
                   }
                   return (
                     <div>
-                      <div style={{ fontSize: '14px', color: c.textMuted, marginBottom: '16px' }}>Run this command on <strong style={{ color: c.text }}>{wizardName || 'your server'}</strong> as root or with sudo:</div>
+                      <div style={{ fontSize: '14px', color: c.textMuted, marginBottom: '16px' }}>
+                        {wizardOS === 'windows'
+                          ? <>Run this command on <strong style={{ color: c.text }}>{wizardName || 'your server'}</strong> in <strong style={{ color: '#60a5fa' }}>PowerShell as Administrator</strong>:</>
+                          : <>Run this command on <strong style={{ color: c.text }}>{wizardName || 'your server'}</strong> as root or with sudo:</>}
+                      </div>
                       <div style={{ background: 'rgba(0,0,0,0.35)', borderRadius: '8px', padding: '14px 16px', fontFamily: 'monospace', fontSize: '12px', color: '#86efac', wordBreak: 'break-all', position: 'relative', border: '1px solid rgba(34,197,94,0.2)', minHeight: '52px' }}>
                         {wizardInstallCmdLoading ? <span style={{ color: '#60a5fa' }}>Loading...</span> : wizardInstallCmd}
                         {wizardInstallCmd && (
