@@ -174,6 +174,10 @@ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
         err "docker compose plugin not found. Install 'docker-compose-plugin'."
     fi
 
+    # Ensure data files exist as files (not directories)
+    [[ -f "$DIR/backend/servers.json" ]] || echo "[]" > "$DIR/backend/servers.json"
+    [[ -f "$DIR/backend/users.json"   ]] || echo "[]" > "$DIR/backend/users.json"
+
     info "Running: docker compose up --build -d"
     echo ""
     cd "$DIR"

@@ -20,9 +20,10 @@ services:
       - ./agent/agent.py:/app/agent.py:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT:-8765}/health"]
-      interval: 15s
+      interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 30s
     # network_mode: host exposes all ports directly on the host — no explicit port mapping needed.
     # Ports used by this stack:
     #   9090 — ServerCTL backend API / agent WebSocket
