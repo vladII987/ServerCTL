@@ -172,8 +172,20 @@ def run_command(command: str, target: str = None) -> dict:
 
     if command == "check_reboot":
         try:
-            out = ps("(Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update\\RebootRequired' -ErrorAction SilentlyContinue) -ne $null")
-            reboot = out.strip().lower() == "true"
+            out = ps("""
+$keys = @(
+    'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update\\RebootRequired',
+    'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Component Based Servicing\\RebootPending',
+    'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager'
+)
+$reboot = $false
+if (Test-Path $keys[0]) { $reboot = $true }
+if (Test-Path $keys[1]) { $reboot = $true }
+$cbsKey = Get-ItemProperty $keys[2] -ErrorAction SilentlyContinue
+if ($cbsKey.PendingFileRenameOperations) { $reboot = $true }
+if ($reboot) { "1" } else { "0" }
+""")
+            reboot = out.strip() == "1"
             return {"status": "completed", "output": "1" if reboot else "0", "returncode": 0 if reboot else 1}
         except Exception:
             return {"status": "completed", "output": "0", "returncode": 1}
@@ -241,16 +253,34 @@ def run_command(command: str, target: str = None) -> dict:
             return {"status": "error", "output": str(e), "returncode": 1}
 
     if command == "upgradable_packages":
-        if not ps("Get-Command winget -ErrorAction SilentlyContinue"):
-            return {"status": "error", "output": "winget is not available on this system.", "returncode": 1}
-        out = ps("winget upgrade --include-unknown 2>$null | Out-String", timeout=60)
-        return {"status": "completed", "output": out, "returncode": 0}
+        out = ps("""
+$s = New-Object -ComObject Microsoft.Update.Session
+$q = $s.CreateUpdateSearcher().Search("IsInstalled=0 and Type='Software' and IsHidden=0")
+if ($q.Updates.Count -eq 0) { "No pending updates." }
+else {
+    $q.Updates | ForEach-Object {
+        $size = if ($_.MaxDownloadSize -gt 0) { " ($([math]::Round($_.MaxDownloadSize/1MB,1)) MB)" } else { "" }
+        "$($_.Title)$size"
+    } | Out-String
+}
+""", timeout=60)
+        return {"status": "completed", "output": out.strip() or "No pending updates.", "returncode": 0}
 
     if command in ("update", "upgrade"):
-        if not ps("Get-Command winget -ErrorAction SilentlyContinue"):
-            return {"status": "error", "output": "winget is not available on this system. Install App Installer from Microsoft Store or use Windows Update manually.", "returncode": 1}
-        out = ps("winget upgrade --all --accept-package-agreements --accept-source-agreements 2>&1 | Out-String", timeout=300)
-        return {"status": "completed", "output": out, "returncode": 0}
+        out = ps("""
+$s = New-Object -ComObject Microsoft.Update.Session
+$q = $s.CreateUpdateSearcher().Search("IsInstalled=0 and Type='Software' and IsHidden=0")
+if ($q.Updates.Count -eq 0) { "System is up to date. No updates to install."; exit }
+Write-Output "Found $($q.Updates.Count) update(s). Downloading and installing..."
+$dl = $s.CreateUpdateDownloader(); $dl.Updates = $q.Updates; $dl.Download() | Out-Null
+$inst = $s.CreateUpdateInstaller(); $inst.Updates = $q.Updates
+$result = $inst.Install()
+$q.Updates | ForEach-Object { "  [OK] $($_.Title)" }
+Write-Output ""
+Write-Output "Installation result: $($result.ResultCode) (0=NotStarted,1=InProgress,2=Succeeded,3=SucceededWithErrors,4=Failed)"
+if ($result.RebootRequired) { Write-Output "REBOOT REQUIRED to complete updates." }
+""", timeout=600)
+        return {"status": "completed", "output": out.strip(), "returncode": 0}
 
     if command in ("ping", "ping_count"):
         target_host = target or "8.8.8.8"
