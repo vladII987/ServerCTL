@@ -21,25 +21,25 @@ echo -e "${W}║${NC}      ${B}ServerCTL — Setup & Launch${NC}           ${W}�
 echo -e "${W}╚══════════════════════════════════════════╝${NC}"
 echo ""
 
-# ── Odabir načina pokretanja ───────────────────────────────────
-echo -e "  Odaberi način pokretanja:"
+# ── Select deployment mode ─────────────────────────────────────
+echo -e "  Select deployment mode:"
 echo -e "  ${W}1)${NC} Docker"
-echo -e "  ${W}2)${NC} Native (Python venv + nginx, bez Dockera)"
+echo -e "  ${W}2)${NC} Native (Python venv + nginx, no Docker required)"
 echo ""
-read -rp "  Odabir [1/2]: " MODE_CHOICE
+read -rp "  Choice [1/2]: " MODE_CHOICE
 case "$MODE_CHOICE" in
     1) MODE="docker" ;;
     2) MODE="native" ;;
-    *) err "Nepoznat odabir." ;;
+    *) err "Unknown choice." ;;
 esac
 echo ""
 
-# ── Odabir portova ─────────────────────────────────────────────
-ask "Unesi frontend port [8090]: "
+# ── Select ports ───────────────────────────────────────────────
+ask "Frontend port [8090]: "
 read -rp "  → " FRONTEND_PORT_IN
 FRONTEND_PORT="${FRONTEND_PORT_IN:-8090}"
 
-ask "Unesi backend port [8765]: "
+ask "Backend port [8765]: "
 read -rp "  → " BACKEND_PORT_IN
 BACKEND_PORT="${BACKEND_PORT_IN:-8765}"
 
@@ -47,32 +47,33 @@ ok "Frontend port: ${FRONTEND_PORT}"
 ok "Backend port:  ${BACKEND_PORT}"
 echo ""
 
-# ── Generisanje ili učitavanje tokena ─────────────────────────
+# ── openssl ────────────────────────────────────────────────────
 command -v openssl >/dev/null 2>&1 || {
-    info "Instalacija openssl-a..."
-    apt-get install -y openssl -qq || err "Ne mogu instalirati openssl."
+    info "Installing openssl..."
+    apt-get install -y openssl -qq || err "Cannot install openssl."
 }
 
+# ── .env handling ──────────────────────────────────────────────
 SKIP_GEN=false
 if [[ -f "$ENV" ]]; then
-    warn ".env već postoji."
-    echo -e "  ${W}1)${NC} Koristi postojeći"
-    echo -e "  ${W}2)${NC} Generiši nove tokene"
-    echo -e "  ${W}3)${NC} Odustani"
+    warn ".env already exists."
+    echo -e "  ${W}1)${NC} Use existing .env"
+    echo -e "  ${W}2)${NC} Generate new tokens"
+    echo -e "  ${W}3)${NC} Cancel"
     echo ""
-    read -rp "  Odabir [1/2/3]: " C
+    read -rp "  Choice [1/2/3]: " C
     case "$C" in
         1) SKIP_GEN=true ;;
         2) SKIP_GEN=false ;;
         3) exit 0 ;;
-        *) err "Nepoznat odabir." ;;
+        *) err "Unknown choice." ;;
     esac
 fi
 
 echo ""
 
 if [[ "$SKIP_GEN" == "false" ]]; then
-    info "Generišem tokene..."
+    info "Generating tokens..."
     AGENT_TOKEN=$(openssl rand -hex 32)
     DASHBOARD_TOKEN=$(openssl rand -hex 32)
     SECRET_KEY=$(openssl rand -hex 32)
@@ -94,17 +95,16 @@ PROMETHEUS_URL=${PROMETHEUS_URL}
 FRONTEND_PORT=${FRONTEND_PORT}
 BACKEND_PORT=${BACKEND_PORT}
 EOF
-    ok ".env kreiran"
+    ok ".env created"
     grep -q "^\.env$" "$DIR/.gitignore" 2>/dev/null || echo ".env" >> "$DIR/.gitignore"
 fi
 
 set -a; source "$ENV"; set +a
-# Override ports from user input (mogu se razlikovati od onih u .env)
 FRONTEND_PORT="${FRONTEND_PORT}"
 BACKEND_PORT="${BACKEND_PORT}"
 
 echo ""
-info "Konfiguracija:"
+info "Configuration:"
 echo -e "  AGENT_TOKEN     = ${W}${AGENT_TOKEN:0:16}...${NC}"
 echo -e "  DASHBOARD_TOKEN = ${W}${DASHBOARD_TOKEN:0:16}...${NC}"
 echo -e "  PROMETHEUS_URL  = ${W}${PROMETHEUS_URL}${NC}"
@@ -118,7 +118,7 @@ echo ""
 if [[ "$MODE" == "docker" ]]; then
 
     if ! command -v docker >/dev/null 2>&1; then
-        warn "Docker nije instaliran. Instaliram..."
+        warn "Docker is not installed. Installing..."
         if command -v apt-get >/dev/null 2>&1; then
             apt-get update -qq
             apt-get install -y ca-certificates curl gnupg lsb-release -qq
@@ -131,40 +131,38 @@ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
             apt-get update -qq
             apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin -qq
             systemctl enable docker --now
-            ok "Docker instaliran."
+            ok "Docker installed."
         elif command -v yum >/dev/null 2>&1 || command -v dnf >/dev/null 2>&1; then
             PKG_MGR=$(command -v dnf || command -v yum)
             $PKG_MGR install -y yum-utils
             yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
             $PKG_MGR install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
             systemctl enable docker --now
-            ok "Docker instaliran."
+            ok "Docker installed."
         else
-            err "Ne mogu automatski instalirati Docker. Instaliraj ručno: https://docs.docker.com/engine/install/"
+            err "Cannot auto-install Docker. Install manually: https://docs.docker.com/engine/install/"
         fi
     else
-        ok "Docker je dostupan."
+        ok "Docker is available."
     fi
 
-    # Provjeri docker compose
     if ! docker compose version >/dev/null 2>&1; then
-        err "docker compose plugin nije dostupan. Instaliraj 'docker-compose-plugin'."
+        err "docker compose plugin not found. Install 'docker-compose-plugin'."
     fi
 
-    # Ažuriraj BACKEND_PORT u docker-compose ako se razlikuje
     sed -i "s/BACKEND_PORT: .*/BACKEND_PORT: ${BACKEND_PORT}/" "$DIR/docker-compose.yml"
 
-    info "Pokretam: docker compose up --build -d"
+    info "Running: docker compose up --build -d"
     echo ""
     cd "$DIR"
     FRONTEND_PORT="$FRONTEND_PORT" BACKEND_PORT="$BACKEND_PORT" docker compose up --build -d
 
     echo ""
-    ok "Sve usluge pokrenute!"
+    ok "All services started!"
     echo ""
     echo -e "  ${W}Dashboard:${NC}  http://$(hostname -I | awk '{print $1}'):${FRONTEND_PORT}"
     echo -e "  ${W}Backend:${NC}    http://$(hostname -I | awk '{print $1}'):${BACKEND_PORT}/health"
-    echo -e "  ${W}Logovi:${NC}     docker compose logs -f"
+    echo -e "  ${W}Logs:${NC}       docker compose logs -f"
     echo -e "  ${W}Stop:${NC}       docker compose down"
 
 fi
@@ -174,7 +172,6 @@ fi
 # ══════════════════════════════════════════════════════════════
 if [[ "$MODE" == "native" ]]; then
 
-    # Provjeri/instaliraj sistemske pakete
     _install_pkg() {
         if command -v apt-get >/dev/null 2>&1; then
             apt-get update -qq && apt-get install -y "$@" -qq
@@ -183,27 +180,26 @@ if [[ "$MODE" == "native" ]]; then
         elif command -v yum >/dev/null 2>&1; then
             yum install -y "$@"
         else
-            err "Nepoznat package manager. Instaliraj ručno: $*"
+            err "Unknown package manager. Install manually: $*"
         fi
     }
 
     # Python
     if ! command -v python3 >/dev/null 2>&1; then
-        info "Instaliram Python3..."
+        info "Installing Python3..."
         _install_pkg python3 python3-pip python3-venv
     else
-        ok "Python3 dostupan: $(python3 --version)"
+        ok "Python3 available: $(python3 --version)"
     fi
 
-    # python3-venv
     if ! python3 -m venv --help >/dev/null 2>&1; then
-        info "Instaliram python3-venv..."
+        info "Installing python3-venv..."
         _install_pkg python3-venv
     fi
 
     # Node.js / npm
     if ! command -v npm >/dev/null 2>&1; then
-        info "Instaliram Node.js i npm..."
+        info "Installing Node.js and npm..."
         if command -v apt-get >/dev/null 2>&1; then
             curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >/dev/null 2>&1
             _install_pkg nodejs
@@ -211,42 +207,42 @@ if [[ "$MODE" == "native" ]]; then
             _install_pkg nodejs npm
         fi
     else
-        ok "Node.js dostupan: $(node --version)"
+        ok "Node.js available: $(node --version)"
     fi
 
     # nginx
     if ! command -v nginx >/dev/null 2>&1; then
-        info "Instaliram nginx..."
+        info "Installing nginx..."
         _install_pkg nginx
     else
-        ok "nginx dostupan."
+        ok "nginx available."
     fi
 
-    # ── Python venv za backend ────────────────────────────────
+    # ── Python venv for backend ───────────────────────────────
     VENV="$DIR/backend/.venv"
     if [[ ! -d "$VENV" ]]; then
-        info "Kreiram Python venv..."
+        info "Creating Python venv..."
         python3 -m venv "$VENV"
     fi
-    info "Instaliram Python zavisnosti..."
+    info "Installing Python dependencies..."
     "$VENV/bin/pip" install -q --upgrade pip
     "$VENV/bin/pip" install -q -r "$DIR/backend/requirements.txt"
-    ok "Backend zavisnosti instalirane."
+    ok "Backend dependencies installed."
 
     # ── Build frontend ────────────────────────────────────────
-    info "Instaliram frontend zavisnosti (npm)..."
+    info "Installing frontend dependencies (npm)..."
     cd "$DIR/frontend"
     npm install --silent
 
-    info "Buildujem frontend..."
+    info "Building frontend..."
     VITE_API_URL="http://$(hostname -I | awk '{print $1}'):${BACKEND_PORT}" \
     VITE_DASHBOARD_TOKEN="${DASHBOARD_TOKEN}" \
         npm run build -- --logLevel silent
-    ok "Frontend build završen → frontend/dist/"
+    ok "Frontend built → frontend/dist/"
 
-    # ── nginx konfiguracija ───────────────────────────────────
+    # ── nginx config ──────────────────────────────────────────
     NGINX_CONF="/etc/nginx/sites-available/serverctl"
-    info "Konfiguriram nginx (port ${FRONTEND_PORT} → frontend, /api/ → :${BACKEND_PORT})..."
+    info "Configuring nginx (port ${FRONTEND_PORT} → frontend, /api/ and /ws/ → :${BACKEND_PORT})..."
     cat > "$NGINX_CONF" << NGINXEOF
 server {
     listen ${FRONTEND_PORT};
@@ -255,19 +251,16 @@ server {
     root ${DIR}/frontend/dist;
     index index.html;
 
-    # Frontend SPA fallback
     location / {
         try_files \$uri \$uri/ /index.html;
     }
 
-    # Backend API proxy
     location /api/ {
         proxy_pass http://127.0.0.1:${BACKEND_PORT};
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
     }
 
-    # WebSocket proxy
     location /ws/ {
         proxy_pass http://127.0.0.1:${BACKEND_PORT};
         proxy_http_version 1.1;
@@ -279,16 +272,15 @@ server {
 }
 NGINXEOF
 
-    # Ukloni default site ako postoji, dodaj serverctl
     rm -f /etc/nginx/sites-enabled/default
     ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/serverctl
 
-    nginx -t && systemctl reload nginx || err "nginx konfiguracija nije validna."
-    ok "nginx konfigurisan i reloadovan."
+    nginx -t && systemctl reload nginx || err "nginx config is invalid."
+    ok "nginx configured and reloaded."
 
-    # ── systemd servis za backend ─────────────────────────────
+    # ── systemd service for backend ───────────────────────────
     SVCFILE="/etc/systemd/system/serverctl-backend.service"
-    info "Kreiram systemd servis za backend..."
+    info "Creating systemd service for backend..."
     cat > "$SVCFILE" << SVCEOF
 [Unit]
 Description=ServerCTL Backend
@@ -314,27 +306,26 @@ SVCEOF
 
     systemctl daemon-reload
     systemctl enable serverctl-backend --now
-    ok "serverctl-backend servis pokrenut."
+    ok "serverctl-backend service started."
 
-    # Provjera
     sleep 2
     if systemctl is-active --quiet serverctl-backend; then
-        ok "Backend radi na portu ${BACKEND_PORT}."
+        ok "Backend running on port ${BACKEND_PORT}."
     else
-        warn "Backend možda nije startovao. Provjeri: journalctl -u serverctl-backend -n 30"
+        warn "Backend may not have started. Check: journalctl -u serverctl-backend -n 30"
     fi
 
     echo ""
-    ok "Instalacija završena!"
+    ok "Setup complete!"
     echo ""
-    echo -e "  ${W}Dashboard:${NC}  http://$(hostname -I | awk '{print $1}'):${FRONTEND_PORT}"
-    echo -e "  ${W}Backend:${NC}    http://$(hostname -I | awk '{print $1}'):${BACKEND_PORT}/health"
+    echo -e "  ${W}Dashboard:${NC}   http://$(hostname -I | awk '{print $1}'):${FRONTEND_PORT}"
+    echo -e "  ${W}Backend:${NC}     http://$(hostname -I | awk '{print $1}'):${BACKEND_PORT}/health"
     echo -e "  ${W}Backend log:${NC} journalctl -u serverctl-backend -f"
-    echo -e "  ${W}Stop:${NC}       systemctl stop serverctl-backend"
-    echo -e "  ${W}Restart:${NC}    systemctl restart serverctl-backend"
+    echo -e "  ${W}Stop:${NC}        systemctl stop serverctl-backend"
+    echo -e "  ${W}Restart:${NC}     systemctl restart serverctl-backend"
 
 fi
 
 echo ""
-echo -e "  ${Y}Default login: admin / admin — promijeni odmah!${NC}"
+echo -e "  ${Y}Default login: admin / admin — change it immediately!${NC}"
 echo ""
