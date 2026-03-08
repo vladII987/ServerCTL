@@ -175,8 +175,8 @@ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
     fi
 
     # Ensure data files exist as files (not directories)
-    [[ -f "$DIR/backend/servers.json" ]] || echo "[]" > "$DIR/backend/servers.json"
-    [[ -f "$DIR/backend/users.json"   ]] || echo "[]" > "$DIR/backend/users.json"
+    [[ -f "$DIR/backend/servers.json" ]] || echo '{"servers":[]}' > "$DIR/backend/servers.json"
+    [[ -f "$DIR/backend/users.json"   ]] || echo '[]'             > "$DIR/backend/users.json"
 
     info "Running: docker compose up --build -d"
     echo ""
