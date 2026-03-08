@@ -706,12 +706,8 @@ Invoke-WebRequest -Uri "{dl_url}" -OutFile "C:\\ServerCTL\\agent.py" -UseBasicPa
 
 # Write config
 Write-Host "[*] Writing config..." -ForegroundColor Yellow
-@"
-server_url: {ws_url}
-api_token: {token}
-log_file: C:\\ServerCTL\\logs\\agent.log
-report_interval: 60
-"@ | Out-File -FilePath "C:\\ServerCTL\\config.yml" -Encoding UTF8
+$cfgContent = "server_url: {ws_url}`napi_token: {token}`nlog_file: C:\\ServerCTL\\logs\\agent.log`nreport_interval: 60"
+[System.IO.File]::WriteAllText("C:\\ServerCTL\\config.yml", $cfgContent, [System.Text.UTF8Encoding]::new($false))
 
 # Install as Scheduled Task (runs as SYSTEM, restarts on failure)
 Write-Host "[*] Installing Scheduled Task..." -ForegroundColor Yellow
