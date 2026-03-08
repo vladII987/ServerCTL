@@ -675,9 +675,22 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 
 # Install Python if missing
 if (-not (Get-Command python -ErrorAction SilentlyContinue)) {{
-    Write-Host "[*] Installing Python via winget..." -ForegroundColor Yellow
-    winget install Python.Python.3.12 --accept-package-agreements --accept-source-agreements -h
+    if (Get-Command winget -ErrorAction SilentlyContinue) {{
+        Write-Host "[*] Installing Python via winget..." -ForegroundColor Yellow
+        winget install Python.Python.3.12 --accept-package-agreements --accept-source-agreements -h
+    }} else {{
+        Write-Host "[*] Downloading Python 3.12 installer..." -ForegroundColor Yellow
+        $pyInstaller = "$env:TEMP\\python-3.12-installer.exe"
+        Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.12.9/python-3.12.9-amd64.exe" -OutFile $pyInstaller -UseBasicParsing
+        Write-Host "[*] Installing Python silently..." -ForegroundColor Yellow
+        Start-Process -FilePath $pyInstaller -ArgumentList "/quiet InstallAllUsers=1 PrependPath=1 Include_test=0" -Wait
+        Remove-Item $pyInstaller -Force
+    }}
     $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH","User")
+}}
+
+if (-not (Get-Command python -ErrorAction SilentlyContinue)) {{
+    Write-Error "Python installation failed. Install Python 3.x manually from https://www.python.org and re-run."; exit 1
 }}
 
 # Install pip dependencies
