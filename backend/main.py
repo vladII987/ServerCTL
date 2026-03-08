@@ -661,8 +661,10 @@ async def agent_install_windows(request: Request, token: str = Query(...)):
     ws_url  = f"ws://{backend_host}:{settings.BACKEND_PORT}/ws/agent"
     dl_url  = f"http://{backend_host}:{settings.BACKEND_PORT}/api/agent/script-windows"
 
-    script = f"""# ServerCTL Agent Installer — Windows
+    script = f"""# ServerCTL Agent Installer — Windows (Embedded Python)
 # Run as Administrator in PowerShell
+
+$ErrorActionPreference = "Stop"
 
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host " ServerCTL Agent Installer (Windows)"      -ForegroundColor Cyan
@@ -673,47 +675,58 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     Write-Error "Run this script as Administrator."; exit 1
 }}
 
-# Install Python if missing
-if (-not (Get-Command python -ErrorAction SilentlyContinue)) {{
-    if (Get-Command winget -ErrorAction SilentlyContinue) {{
-        Write-Host "[*] Installing Python via winget..." -ForegroundColor Yellow
-        winget install Python.Python.3.12 --accept-package-agreements --accept-source-agreements -h
-    }} else {{
-        Write-Host "[*] Downloading Python 3.12 installer..." -ForegroundColor Yellow
-        $pyInstaller = "$env:TEMP\\python-3.12-installer.exe"
-        Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.12.9/python-3.12.9-amd64.exe" -OutFile $pyInstaller -UseBasicParsing
-        Write-Host "[*] Installing Python silently..." -ForegroundColor Yellow
-        Start-Process -FilePath $pyInstaller -ArgumentList "/quiet InstallAllUsers=1 PrependPath=1 Include_test=0" -Wait
-        Remove-Item $pyInstaller -Force
-    }}
-    $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH","User")
-}}
-
-if (-not (Get-Command python -ErrorAction SilentlyContinue)) {{
-    Write-Error "Python installation failed. Install Python 3.x manually from https://www.python.org and re-run."; exit 1
-}}
-
-# Install pip dependencies
-Write-Host "[*] Installing Python packages..." -ForegroundColor Yellow
-python -m pip install --quiet pyyaml psutil "websockets>=12.0"
+# Paths
+$baseDir  = "C:\\ServerCTL"
+$pyDir    = "$baseDir\\python"
+$pyExe    = "$pyDir\\python.exe"
+$agentPy  = "$baseDir\\agent.py"
+$cfgFile  = "$baseDir\\config.yml"
+$logDir   = "$baseDir\\logs"
 
 # Create directories
-New-Item -ItemType Directory -Force -Path "C:\\ServerCTL\\logs" | Out-Null
+New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+
+# Download embedded Python if not present
+if (-not (Test-Path $pyExe)) {{
+    Write-Host "[*] Downloading Python 3.12 embedded..." -ForegroundColor Yellow
+    $pyZip = "$env:TEMP\\python-embed.zip"
+    Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.12.9/python-3.12.9-embed-amd64.zip" -OutFile $pyZip -UseBasicParsing
+    Write-Host "[*] Extracting Python..." -ForegroundColor Yellow
+    Expand-Archive -Path $pyZip -DestinationPath $pyDir -Force
+    Remove-Item $pyZip -Force
+
+    # Enable site-packages (required for pip installs)
+    $pthFile = Get-ChildItem "$pyDir\\python*._pth" | Select-Object -First 1
+    if ($pthFile) {{
+        (Get-Content $pthFile.FullName) -replace '#import site','import site' | Set-Content $pthFile.FullName
+    }}
+
+    # Download and install pip
+    Write-Host "[*] Installing pip..." -ForegroundColor Yellow
+    $getPip = "$env:TEMP\\get-pip.py"
+    Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile $getPip -UseBasicParsing
+    & $pyExe $getPip --quiet
+    Remove-Item $getPip -Force
+}}
+
+# Install dependencies
+Write-Host "[*] Installing Python packages..." -ForegroundColor Yellow
+& $pyExe -m pip install --quiet pyyaml psutil "websockets>=12.0"
 
 # Download agent
 Write-Host "[*] Downloading agent..." -ForegroundColor Yellow
-Invoke-WebRequest -Uri "{dl_url}" -OutFile "C:\\ServerCTL\\agent.py" -UseBasicParsing
+Invoke-WebRequest -Uri "{dl_url}" -OutFile $agentPy -UseBasicParsing
 
-# Write config
+# Write config (UTF-8 without BOM)
 Write-Host "[*] Writing config..." -ForegroundColor Yellow
 $cfgContent = "server_url: {ws_url}`napi_token: {token}`nlog_file: C:\\ServerCTL\\logs\\agent.log`nreport_interval: 60"
-[System.IO.File]::WriteAllText("C:\\ServerCTL\\config.yml", $cfgContent, [System.Text.UTF8Encoding]::new($false))
+[System.IO.File]::WriteAllText($cfgFile, $cfgContent, [System.Text.UTF8Encoding]::new($false))
 
-# Install as Scheduled Task (runs as SYSTEM, restarts on failure)
+# Install as Scheduled Task
 Write-Host "[*] Installing Scheduled Task..." -ForegroundColor Yellow
-$action   = New-ScheduledTaskAction -Execute "python" -Argument "C:\\ServerCTL\\agent.py"
-$trigger  = New-ScheduledTaskTrigger -AtStartup
-$settings = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit (New-TimeSpan -Hours 0)
+$action    = New-ScheduledTaskAction -Execute $pyExe -Argument $agentPy
+$trigger   = New-ScheduledTaskTrigger -AtStartup
+$settings  = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit (New-TimeSpan -Hours 0)
 $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
 Unregister-ScheduledTask -TaskName "ServerCTL Agent" -Confirm:$false -ErrorAction SilentlyContinue
 Register-ScheduledTask -TaskName "ServerCTL Agent" -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null
@@ -722,9 +735,10 @@ Start-ScheduledTask -TaskName "ServerCTL Agent"
 Write-Host ""
 Write-Host "==========================================" -ForegroundColor Green
 Write-Host " ServerCTL Agent installed successfully!" -ForegroundColor Green
-Write-Host " Task:   ServerCTL Agent (Task Scheduler)" -ForegroundColor Green
-Write-Host " Config: C:\\ServerCTL\\config.yml"        -ForegroundColor Green
-Write-Host " Logs:   C:\\ServerCTL\\logs\\agent.log"   -ForegroundColor Green
+Write-Host " Task:    ServerCTL Agent (Task Scheduler)" -ForegroundColor Green
+Write-Host " Python:  C:\\ServerCTL\\python\\python.exe" -ForegroundColor Green
+Write-Host " Config:  C:\\ServerCTL\\config.yml"         -ForegroundColor Green
+Write-Host " Logs:    C:\\ServerCTL\\logs\\agent.log"    -ForegroundColor Green
 Write-Host "==========================================" -ForegroundColor Green
 """
     return PlainTextResponse(script, media_type="text/plain")
