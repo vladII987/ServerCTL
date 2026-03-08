@@ -119,6 +119,28 @@ if [[ "$MODE" == "docker" ]]; then
 
     if ! command -v docker >/dev/null 2>&1; then
         warn "Docker is not installed. Installing..."
+
+        # Sync system clock if out of sync (fixes apt 'not valid yet' errors)
+        info "Syncing system clock..."
+        timedatectl set-ntp true 2>/dev/null
+        systemctl restart systemd-timesyncd 2>/dev/null
+        # Wait up to 10s for sync
+        for i in {1..10}; do
+            if timedatectl status 2>/dev/null | grep -q "synchronized: yes"; then
+                ok "Clock synchronized."
+                break
+            fi
+            sleep 1
+        done
+        # Fallback: ntpdate
+        if ! timedatectl status 2>/dev/null | grep -q "synchronized: yes"; then
+            warn "NTP sync pending, trying ntpdate fallback..."
+            if ! command -v ntpdate >/dev/null 2>&1; then
+                apt-get install -y ntpdate -qq 2>/dev/null
+            fi
+            ntpdate pool.ntp.org 2>/dev/null && ok "Clock synced via ntpdate." || warn "Clock sync failed — continuing anyway."
+        fi
+
         if command -v apt-get >/dev/null 2>&1; then
             apt-get update -qq
             apt-get install -y ca-certificates curl gnupg lsb-release -qq || err "Failed to install prerequisites."
