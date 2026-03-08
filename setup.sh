@@ -121,7 +121,7 @@ if [[ "$MODE" == "docker" ]]; then
         warn "Docker is not installed. Installing..."
         if command -v apt-get >/dev/null 2>&1; then
             apt-get update -qq
-            apt-get install -y ca-certificates curl gnupg lsb-release -qq
+            apt-get install -y ca-certificates curl gnupg lsb-release -qq || err "Failed to install prerequisites."
             install -m 0755 -d /etc/apt/keyrings
             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
             chmod a+r /etc/apt/keyrings/docker.gpg
@@ -129,19 +129,21 @@ if [[ "$MODE" == "docker" ]]; then
 https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
                 | tee /etc/apt/sources.list.d/docker.list > /dev/null
             apt-get update -qq
-            apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin -qq
-            systemctl enable docker --now
-            ok "Docker installed."
+            apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin -qq \
+                || err "Docker installation failed. If you see 'not valid yet' errors, your system clock may be out of sync. Run: sudo timedatectl set-ntp true && sudo systemctl restart systemd-timesyncd"
+            systemctl enable docker --now || err "Failed to start Docker service."
         elif command -v yum >/dev/null 2>&1 || command -v dnf >/dev/null 2>&1; then
             PKG_MGR=$(command -v dnf || command -v yum)
-            $PKG_MGR install -y yum-utils
+            $PKG_MGR install -y yum-utils || err "Failed to install yum-utils."
             yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-            $PKG_MGR install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-            systemctl enable docker --now
-            ok "Docker installed."
+            $PKG_MGR install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin \
+                || err "Docker installation failed."
+            systemctl enable docker --now || err "Failed to start Docker service."
         else
             err "Cannot auto-install Docker. Install manually: https://docs.docker.com/engine/install/"
         fi
+        command -v docker >/dev/null 2>&1 || err "Docker installation failed. Install manually: https://docs.docker.com/engine/install/"
+        ok "Docker installed."
     else
         ok "Docker is available."
     fi
