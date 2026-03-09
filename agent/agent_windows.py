@@ -368,16 +368,17 @@ if ($result.RebootRequired) { Write-Output "REBOOT REQUIRED to complete updates.
     if command == "repo_speedtest":
         import time, urllib.request
         repos = [
-            ("Microsoft CDN",    "https://download.microsoft.com/download/robots.txt"),
-            ("Winget source",    "https://cdn.winget.microsoft.com/cache/source.msix"),
-            ("Cloudflare",       "https://speed.cloudflare.com/__down?bytes=524288"),
+            ("Microsoft Update CDN", "https://download.microsoft.com/download/9/5/A/95A9616B-7A37-4AF6-BC36-D6EA96C8DAAE/dotNetFx40_Full_x86_x64.exe"),
+            ("Winget CDN",           "https://cdn.winget.microsoft.com/cache/source.msix"),
+            ("Cloudflare",           "https://speed.cloudflare.com/__down?bytes=524288"),
         ]
-        lines = ["[Package manager: winget]"]
+        lines = ["[Windows CDN Speed Test]"]
         for name, url in repos:
             try:
                 start = time.time()
-                req = urllib.request.urlopen(url, timeout=10)
-                data = req.read(512 * 1024)
+                req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+                resp = urllib.request.urlopen(req, timeout=10)
+                data = resp.read(512 * 1024)
                 elapsed = time.time() - start
                 speed = round(len(data) / elapsed / 1024 / 1024 * 8, 2)
                 lines.append(f"{name}: {speed} Mbps ({round(len(data)/1024)} KB in {round(elapsed,2)}s)")

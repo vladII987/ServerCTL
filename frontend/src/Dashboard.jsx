@@ -2559,8 +2559,20 @@ const Dashboard = () => {
 
             {/* Repo Speed Test card */}
             <div style={{ background: c.card, borderRadius: '14px', padding: '20px', border: `1px solid ${c.border}` }}>
-              <div style={{ fontWeight: '700', fontSize: '13px', marginBottom: '4px', color: c.text }}>Ubuntu Repository Speed Test</div>
-              <div style={{ fontSize: '11px', color: c.textMuted, marginBottom: '12px' }}>Tests download speed to Ubuntu archive / security / updates repos. Run from a specific server (requires updated agent) or from the backend host.</div>
+              {(() => {
+                const selSrv = servers.find(s => s.id === repoTestServer);
+                const isWin = selSrv ? String(selSrv.platform || '').toLowerCase().includes('windows') : false;
+                return <>
+                  <div style={{ fontWeight: '700', fontSize: '13px', marginBottom: '4px', color: c.text }}>
+                    {isWin ? 'Windows CDN Speed Test' : 'Ubuntu Repository Speed Test'}
+                  </div>
+                  <div style={{ fontSize: '11px', color: c.textMuted, marginBottom: '12px' }}>
+                    {isWin
+                      ? 'Tests download speed to Microsoft Update CDN, Winget CDN and Cloudflare from this server.'
+                      : 'Tests download speed to Ubuntu archive / security / updates repos. Run from a specific server (requires updated agent) or from the backend host.'}
+                  </div>
+                </>;
+              })()}
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <select value={repoTestServer} onChange={e => setRepoTestServer(e.target.value)} style={{ ...styles.input, minWidth: '220px' }}>
                   <option value="">From backend server</option>
