@@ -619,6 +619,7 @@ const Dashboard = () => {
     setWizardConnected(false);
     setWizardNewServer(null);
     setWizardServerId('');
+    setWizardInstallCmd('');
     wizardServerIdRef.current = '';
     wizardPreServersRef.current = servers.map(s => s.id);
     setShowWizard(true);
