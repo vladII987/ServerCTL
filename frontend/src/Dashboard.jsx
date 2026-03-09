@@ -330,8 +330,9 @@ const Dashboard = () => {
   const [repoTestLoading, setRepoTestLoading] = useState(false);
   const [repoTestResult, setRepoTestResult] = useState('');
   const [pingInterval, setPingInterval] = useState('1');
-  const [pingResults, setPingResults] = useState({}); // { serverId: { latency, status, ts } }
+  const [pingResults, setPingResults] = useState({});
   const [pingRunning, setPingRunning] = useState(false);
+  const [pingSelected, setPingSelected] = useState([]);
   const pingTimerRef = useRef(null);
   const [networkTool, setNetworkTool] = useState('ping');
   const [networkTarget, setNetworkTarget] = useState('');
@@ -1409,15 +1410,14 @@ const Dashboard = () => {
     setRepoTestLoading(false);
   };
 
-  const doPingAll = async () => {
-    const online = servers.filter(s => s.online);
-    const results = await Promise.all(online.map(async srv => {
+  const doPingAll = async (ids) => {
+    const targets = servers.filter(s => ids.includes(s.id));
+    const results = await Promise.all(targets.map(async srv => {
       const start = Date.now();
       try {
         const r = await fetch(`/api/servers/${srv.id}/status`, { headers: authHeader });
         const latency = Date.now() - start;
-        const ok = r.ok;
-        return { id: srv.id, latency: ok ? latency : null, status: ok ? 'up' : 'error', ts: new Date().toLocaleTimeString() };
+        return { id: srv.id, latency: r.ok ? latency : null, status: r.ok ? 'up' : 'error', ts: new Date().toLocaleTimeString() };
       } catch {
         return { id: srv.id, latency: null, status: 'error', ts: new Date().toLocaleTimeString() };
       }
@@ -1433,8 +1433,8 @@ const Dashboard = () => {
     if (pingTimerRef.current) clearInterval(pingTimerRef.current);
     setPingResults({});
     setPingRunning(true);
-    doPingAll();
-    pingTimerRef.current = setInterval(doPingAll, parseInt(pingInterval) * 60 * 1000);
+    doPingAll(pingSelected);
+    pingTimerRef.current = setInterval(() => doPingAll(pingSelected), parseInt(pingInterval) * 60 * 1000);
   };
 
   const stopPingMonitor = () => {
@@ -2591,46 +2591,6 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Ping Monitor card */}
-            <div style={{ background: c.card, borderRadius: '14px', padding: '20px', border: `1px solid ${c.border}` }}>
-              <div style={{ fontWeight: '700', fontSize: '13px', marginBottom: '4px', color: c.text }}>Ping Monitor</div>
-              <div style={{ fontSize: '11px', color: c.textMuted, marginBottom: '12px' }}>Pings all online servers at the selected interval and shows response time.</div>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '14px' }}>
-                <select value={pingInterval} onChange={e => { setPingInterval(e.target.value); if (pingRunning) { stopPingMonitor(); } }} style={{ ...styles.input, width: '100px' }}>
-                  <option value="1">1 min</option>
-                  <option value="3">3 min</option>
-                  <option value="5">5 min</option>
-                  <option value="10">10 min</option>
-                </select>
-                {!pingRunning
-                  ? <button onClick={startPingMonitor} style={{ ...styles.btn, ...styles.btnPrimary }}>▶ Start</button>
-                  : <button onClick={stopPingMonitor} style={{ ...styles.btn, background: '#ef444420', color: '#ef4444', border: '1px solid #ef444440' }}>■ Stop</button>}
-                {pingRunning && <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#22c55e' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 1s infinite' }} /> Running — every {pingInterval}m
-                </div>}
-              </div>
-              {servers.filter(s => s.online).length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  {servers.filter(s => s.online).map(srv => {
-                    const r = pingResults[srv.id];
-                    return (
-                      <div key={srv.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 10px', borderRadius: '7px', background: darkMode ? '#0f172a' : '#f8fafc', border: `1px solid ${c.border}` }}>
-                        <div style={{ width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0,
-                          background: !r ? '#94a3b8' : r.status === 'up' ? '#22c55e' : '#ef4444',
-                          boxShadow: r?.status === 'up' ? '0 0 5px #22c55e80' : 'none' }} />
-                        <div style={{ flex: 1, fontSize: '12px', fontWeight: '500', color: c.text, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{srv.name} <span style={{ color: c.textMuted, fontWeight: '400' }}>({srv.host})</span></div>
-                        <div style={{ fontSize: '11px', fontFamily: 'monospace', color: !r ? c.textMuted : r.status === 'up' ? '#22c55e' : '#ef4444', whiteSpace: 'nowrap' }}>
-                          {!r ? '—' : r.status === 'up' ? `${r.latency} ms` : 'error'}
-                        </div>
-                        {r?.ts && <div style={{ fontSize: '10px', color: c.textMuted, whiteSpace: 'nowrap' }}>{r.ts}</div>}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              {servers.filter(s => s.online).length === 0 && <div style={{ fontSize: '12px', color: c.textMuted }}>No online servers.</div>}
-            </div>
-
             {/* Servers needing updates */}
             {needsUpdate > 0 && (
               <div style={{ background: c.card, borderRadius: '14px', padding: '20px', border: `1px solid ${c.border}` }}>
@@ -2705,17 +2665,69 @@ const Dashboard = () => {
             )}
           </div>
 
+          {/* Ping Monitor */}
           <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, padding: '20px' }}>
-            <h3 style={{ ...styles.cardTitle, marginBottom: '12px' }}>Registered Servers by IP</h3>
-            {servers.map(s => (
-              <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: `1px solid ${c.border}20` }}>
-                <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>{s.host}</span>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', color: c.textMuted }}>{String(s.name||'')}</span>
-                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: s.online ? '#22c55e' : '#ef4444', display: 'inline-block' }} />
-                </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+              <h3 style={{ ...styles.cardTitle, margin: 0 }}>Ping Monitor</h3>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <select value={pingInterval} onChange={e => setPingInterval(e.target.value)} style={{ ...styles.input, width: '90px', fontSize: '12px', padding: '5px 8px' }}>
+                  <option value="1">1 min</option>
+                  <option value="3">3 min</option>
+                  <option value="5">5 min</option>
+                  <option value="10">10 min</option>
+                </select>
+                <button onClick={() => {
+                  const allIds = servers.map(s => s.id);
+                  setPingSelected(prev => prev.length === allIds.length ? [] : allIds);
+                }} style={{ ...styles.btn, ...styles.btnSecondary, fontSize: '12px', padding: '5px 10px' }}>
+                  {pingSelected.length === servers.length ? 'Deselect All' : 'Select All'}
+                </button>
+                {!pingRunning
+                  ? <button onClick={startPingMonitor} disabled={pingSelected.length === 0} style={{ ...styles.btn, ...styles.btnPrimary, fontSize: '12px', padding: '5px 12px', opacity: pingSelected.length === 0 ? 0.5 : 1 }}>▶ Start</button>
+                  : <button onClick={stopPingMonitor} style={{ ...styles.btn, background: '#ef444420', color: '#ef4444', border: '1px solid #ef444440', fontSize: '12px', padding: '5px 12px' }}>■ Stop</button>}
+                {pingRunning && <span style={{ fontSize: '11px', color: '#22c55e', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 1s infinite' }} /> every {pingInterval}m
+                </span>}
               </div>
-            ))}
+            </div>
+
+            {servers.length === 0 && <div style={{ fontSize: '12px', color: c.textMuted }}>No servers registered.</div>}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {servers.map(srv => {
+                const r = pingResults[srv.id];
+                const selected = pingSelected.includes(srv.id);
+                const statusColor = !r ? '#94a3b8' : r.status === 'up' ? '#22c55e' : '#ef4444';
+                return (
+                  <div key={srv.id} onClick={() => setPingSelected(prev => prev.includes(srv.id) ? prev.filter(x => x !== srv.id) : [...prev, srv.id])}
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', borderRadius: '10px', cursor: 'pointer',
+                      background: selected ? (darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)') : (darkMode ? '#0f172a' : '#f8fafc'),
+                      border: `1px solid ${selected ? c.primary + '60' : c.border}`, transition: 'all 0.15s' }}>
+                    {/* Checkbox */}
+                    <div style={{ width: '16px', height: '16px', borderRadius: '4px', border: `2px solid ${selected ? c.primary : c.border}`, background: selected ? c.primary : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {selected && <div style={{ width: '8px', height: '6px', borderLeft: '2px solid #fff', borderBottom: '2px solid #fff', transform: 'rotate(-45deg) translate(1px,-1px)' }} />}
+                    </div>
+                    {/* Status dot */}
+                    <div style={{ position: 'relative', flexShrink: 0 }}>
+                      <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: statusColor, boxShadow: r?.status === 'up' ? `0 0 6px ${statusColor}80` : 'none' }} />
+                      {pingRunning && selected && !r && <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: `2px solid ${c.primary}`, animation: 'spin 1s linear infinite' }} />}
+                    </div>
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '13px', fontWeight: '600', color: c.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(srv.name || srv.host)}</div>
+                      <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: 'monospace' }}>{srv.host}</div>
+                    </div>
+                    {/* Latency */}
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontSize: '13px', fontWeight: '700', fontFamily: 'monospace', color: statusColor }}>
+                        {!r ? '—' : r.status === 'up' ? `${r.latency} ms` : 'timeout'}
+                      </div>
+                      {r?.ts && <div style={{ fontSize: '10px', color: c.textMuted }}>{r.ts}</div>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
