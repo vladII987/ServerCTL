@@ -1094,6 +1094,11 @@ const Dashboard = () => {
     setUpgradeLoading(false);
   };
 
+  const handleUpdateAgent = async () => {
+    if (!window.confirm('Update agent on this server to the latest version?')) return;
+    runAction('update_agent');
+  };
+
   const killProcess = async (pid) => {
     if (!window.confirm(`Kill process PID ${pid}?`)) return;
     try {
@@ -3337,11 +3342,8 @@ const Dashboard = () => {
                     const handleClick = () => {
                       setActiveAction(cmd);
                       if (isUpgrade) handleUpgrade();
-                      else if (isUpdateAgent) {
-                        if (window.confirm('Update agent on this server to the latest version?')) {
-                          runAction('update_agent');
-                        }
-                      } else {
+                      else if (isUpdateAgent) handleUpdateAgent();
+                      else {
                         runAction(cmd);
                       }
                     };
