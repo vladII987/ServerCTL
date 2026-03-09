@@ -560,6 +560,14 @@ else
     PKG=unknown
 fi
 
+# Fix interrupted dpkg if needed (apt only)
+if [ "$PKG" = "apt" ]; then
+    if dpkg --audit 2>/dev/null | grep -q .; then
+        echo "[*] Detected interrupted dpkg — running dpkg --configure -a first..."
+        dpkg --configure -a
+    fi
+fi
+
 # Install Python3 if missing
 if ! command -v python3 &>/dev/null; then
     echo "[*] Installing python3..."
