@@ -2953,8 +2953,8 @@ const Dashboard = () => {
           <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid ${c.border}`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <div style={{ padding: '12px 14px', borderBottom: `1px solid ${c.border}`, fontSize: '12px', fontWeight: '700', color: c.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Servers</div>
             <div style={{ overflowY: 'auto', flex: 1 }}>
-              {servers.length === 0 && <div style={{ padding: '20px', fontSize: '13px', color: c.textMuted }}>No servers</div>}
-              {servers.map(s => (
+              {servers.filter(s => !String(s.platform || '').toLowerCase().includes('windows')).length === 0 && <div style={{ padding: '20px', fontSize: '13px', color: c.textMuted }}>No Linux servers</div>}
+              {servers.filter(s => !String(s.platform || '').toLowerCase().includes('windows')).map(s => (
                 <div key={s.id} onClick={() => { setShellServer(s); setShellConnected(false); setShellSessionKey(0); }}
                   style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: `1px solid ${c.border}20`, background: shellServer?.id === s.id ? (darkMode ? '#1e3a5f' : '#dbeafe') : 'transparent', borderLeft: `3px solid ${shellServer?.id === s.id ? c.primary : 'transparent'}`, transition: 'all 0.1s', opacity: s.online ? 1 : 0.5 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
