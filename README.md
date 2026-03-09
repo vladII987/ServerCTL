@@ -2,7 +2,7 @@
 
 A self-hosted server management dashboard. Monitor, manage, and update your Linux servers from a single web interface — no VPN, no open inbound ports required.
 
-![ServerCTL Dashboard](wall.jpg)
+![ServerCTL Logo](frontend/public/logo.png)
 
 ---
 
