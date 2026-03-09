@@ -465,6 +465,158 @@ async def network_scan(websocket: WebSocket):
     await handle_scan_websocket(websocket, settings.DASHBOARD_TOKEN, registry, _validate_ws_token)
 
 
+# ─── Probe endpoint ───────────────────────────────────────────────
+class ProbeRequest(BaseModel):
+    type: str          # ping | tcp | udp | http | db
+    host: str
+    port: Optional[int] = None
+    url: Optional[str] = None
+    db_type: Optional[str] = None   # mysql | postgres | mssql | redis | mongo
+    timeout: Optional[float] = 3.0
+
+DB_PORTS = {
+    "mysql":    3306,
+    "postgres": 5432,
+    "mssql":    1433,
+    "redis":    6379,
+    "mongo":    27017,
+}
+
+@app.post("/api/probe", dependencies=[Depends(verify)])
+async def probe(req: ProbeRequest):
+    import socket, time, subprocess, platform
+
+    host    = req.host.strip()
+    timeout = min(float(req.timeout or 3.0), 10.0)
+    ts      = datetime.utcnow().isoformat() + "Z"
+
+    # ── PING ──────────────────────────────────────────────────────
+    if req.type == "ping":
+        flag = "-n" if platform.system().lower() == "windows" else "-c"
+        try:
+            t0 = time.monotonic()
+            result = subprocess.run(
+                ["ping", flag, "1", "-W", "2", host],
+                capture_output=True, text=True, timeout=5
+            )
+            latency_ms = round((time.monotonic() - t0) * 1000)
+            if result.returncode == 0:
+                # Try to extract real RTT from ping output
+                import re
+                m = re.search(r"time[=<]([\d.]+)\s*ms", result.stdout)
+                if m:
+                    latency_ms = round(float(m.group(1)))
+                return {"status": "up", "latency_ms": latency_ms, "ts": ts}
+            else:
+                return {"status": "timeout", "latency_ms": None, "ts": ts}
+        except Exception as e:
+            return {"status": "error", "error": str(e), "ts": ts}
+
+    # ── TCP ───────────────────────────────────────────────────────
+    if req.type == "tcp":
+        port = req.port
+        if not port:
+            return {"status": "error", "error": "Port required", "ts": ts}
+        try:
+            t0 = time.monotonic()
+            conn = asyncio.open_connection(host, port)
+            reader, writer = await asyncio.wait_for(conn, timeout=timeout)
+            latency_ms = round((time.monotonic() - t0) * 1000)
+            writer.close()
+            try:
+                await writer.wait_closed()
+            except Exception:
+                pass
+            return {"status": "open", "latency_ms": latency_ms, "ts": ts}
+        except asyncio.TimeoutError:
+            return {"status": "timeout", "latency_ms": None, "ts": ts}
+        except ConnectionRefusedError:
+            return {"status": "refused", "latency_ms": None, "ts": ts}
+        except Exception as e:
+            return {"status": "error", "error": str(e), "ts": ts}
+
+    # ── UDP ───────────────────────────────────────────────────────
+    if req.type == "udp":
+        port = req.port
+        if not port:
+            return {"status": "error", "error": "Port required", "ts": ts}
+        try:
+            loop = asyncio.get_event_loop()
+            def _udp_probe():
+                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                sock.settimeout(timeout)
+                t0 = time.monotonic()
+                try:
+                    sock.sendto(b"\x00", (host, port))
+                    sock.recvfrom(64)
+                    latency = round((time.monotonic() - t0) * 1000)
+                    return {"status": "open", "latency_ms": latency}
+                except socket.timeout:
+                    # No ICMP unreachable received — port is likely open/filtered
+                    return {"status": "open|filtered", "latency_ms": None}
+                except ConnectionResetError:
+                    # ICMP port unreachable — port is closed
+                    return {"status": "closed", "latency_ms": None}
+                except Exception as e:
+                    return {"status": "error", "error": str(e)}
+                finally:
+                    sock.close()
+            result = await loop.run_in_executor(None, _udp_probe)
+            result["ts"] = ts
+            return result
+        except Exception as e:
+            return {"status": "error", "error": str(e), "ts": ts}
+
+    # ── HTTP ──────────────────────────────────────────────────────
+    if req.type == "http":
+        url = req.url or f"http://{host}"
+        if not url.startswith("http"):
+            url = f"http://{url}"
+        try:
+            t0 = time.monotonic()
+            async with httpx.AsyncClient(timeout=timeout, follow_redirects=False, verify=False) as client:
+                r = await client.get(url)
+            latency_ms = round((time.monotonic() - t0) * 1000)
+            redirect = str(r.headers.get("location", "")) or None
+            return {
+                "status": "ok",
+                "http_status": r.status_code,
+                "latency_ms": latency_ms,
+                "redirect": redirect,
+                "ts": ts,
+            }
+        except httpx.ConnectTimeout:
+            return {"status": "timeout", "ts": ts}
+        except httpx.ConnectError:
+            return {"status": "unreachable", "ts": ts}
+        except Exception as e:
+            return {"status": "error", "error": str(e), "ts": ts}
+
+    # ── DB ────────────────────────────────────────────────────────
+    if req.type == "db":
+        db  = (req.db_type or "mysql").lower()
+        port = DB_PORTS.get(db, req.port or 3306)
+        try:
+            t0 = time.monotonic()
+            conn = asyncio.open_connection(host, port)
+            reader, writer = await asyncio.wait_for(conn, timeout=timeout)
+            latency_ms = round((time.monotonic() - t0) * 1000)
+            writer.close()
+            try:
+                await writer.wait_closed()
+            except Exception:
+                pass
+            return {"status": "open", "latency_ms": latency_ms, "port": port, "ts": ts}
+        except asyncio.TimeoutError:
+            return {"status": "timeout", "latency_ms": None, "port": port, "ts": ts}
+        except ConnectionRefusedError:
+            return {"status": "refused", "latency_ms": None, "port": port, "ts": ts}
+        except Exception as e:
+            return {"status": "error", "error": str(e), "port": port, "ts": ts}
+
+    return {"status": "error", "error": f"Unknown probe type: {req.type}", "ts": ts}
+
+
 # ─── Agent installer endpoints ────────────────────────────────
 @app.post("/api/speedtest", dependencies=[Depends(verify)])
 async def backend_speedtest():

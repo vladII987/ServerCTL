@@ -332,6 +332,11 @@ const Dashboard = () => {
   const [pingResults, setPingResults] = useState({});
   const [pingRunning, setPingRunning] = useState(false);
   const [pingSelected, setPingSelected] = useState([]);
+  const [probeType, setProbeType] = useState('ping');
+  const [probePort, setProbePort] = useState('');
+  const [probeProto, setProbeProto] = useState('tcp');
+  const [probeUrl, setProbeUrl] = useState('');
+  const [probeDb, setProbeDb] = useState('mysql');
   const [networkTool, setNetworkTool] = useState('ping');
   const [networkTarget, setNetworkTarget] = useState('');
   const [networkOutput, setNetworkOutput] = useState('');
@@ -1412,13 +1417,17 @@ const Dashboard = () => {
   const doPingAll = async (ids) => {
     const targets = servers.filter(s => ids.includes(s.id));
     const results = await Promise.all(targets.map(async srv => {
-      const start = Date.now();
       try {
-        const r = await fetch(`/api/servers/${srv.id}/status`, { headers: authHeader });
-        const latency = Date.now() - start;
-        return { id: srv.id, latency: r.ok ? latency : null, status: r.ok ? 'up' : 'error', ts: new Date().toLocaleTimeString() };
-      } catch {
-        return { id: srv.id, latency: null, status: 'error', ts: new Date().toLocaleTimeString() };
+        const body = { type: probeType, host: srv.host };
+        if (probeType === 'tcp') { body.port = parseInt(probePort) || 80; body.proto = 'tcp'; }
+        if (probeType === 'udp') { body.port = parseInt(probePort) || 53; body.type = 'udp'; }
+        if (probeType === 'http') { body.url = probeUrl || `http://${srv.host}`; }
+        if (probeType === 'db')  { body.db_type = probeDb; }
+        const r = await fetch('/api/probe', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeader }, body: JSON.stringify(body) });
+        const data = await r.json();
+        return { id: srv.id, ...data };
+      } catch (e) {
+        return { id: srv.id, status: 'error', error: e.message, ts: new Date().toLocaleTimeString() };
       }
     }));
     setPingResults(prev => {
@@ -2032,6 +2041,8 @@ const Dashboard = () => {
     <div style={{ display: 'flex', minHeight: '100vh', color: c.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', transition: 'all 0.3s' }}>
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .probe-info-wrap:hover .probe-info-icon { background: #3b82f6 !important; color: #fff !important; }
+        .probe-info-wrap:hover .probe-tooltip { display: block !important; }
         @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
@@ -2663,57 +2674,162 @@ const Dashboard = () => {
           {/* Ping Monitor — full width */}
           <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-              <h3 style={{ ...styles.cardTitle, margin: 0 }}>Ping Monitor</h3>
+              <h3 style={{ ...styles.cardTitle, margin: 0 }}>Probe Monitor</h3>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <button onClick={() => {
-                  const allIds = servers.map(s => s.id);
-                  setPingSelected(prev => prev.length === allIds.length ? [] : allIds);
-                }} style={{ ...styles.btn, ...styles.btnSecondary, fontSize: '12px', padding: '5px 10px' }}>
+                {/* Probe type */}
+                <select value={probeType} onChange={e => { setProbeType(e.target.value); setPingResults({}); }}
+                  style={{ ...styles.input, width: 'auto', fontSize: '12px', padding: '5px 8px' }}>
+                  <option value="ping">Ping (ICMP)</option>
+                  <option value="tcp">TCP Port</option>
+                  <option value="udp">UDP Port</option>
+                  <option value="http">HTTP</option>
+                  <option value="db">DB Port</option>
+                </select>
+                {/* TCP/UDP port input */}
+                {(probeType === 'tcp' || probeType === 'udp') && (
+                  <input type="number" value={probePort} onChange={e => setProbePort(e.target.value)}
+                    placeholder="Port" min="1" max="65535"
+                    style={{ ...styles.input, width: '80px', fontSize: '12px', padding: '5px 8px' }} />
+                )}
+                {/* HTTP URL input */}
+                {probeType === 'http' && (
+                  <input type="text" value={probeUrl} onChange={e => setProbeUrl(e.target.value)}
+                    placeholder="http://host/path (leave blank = host root)"
+                    style={{ ...styles.input, width: '260px', fontSize: '12px', padding: '5px 8px' }} />
+                )}
+                {/* DB preset */}
+                {probeType === 'db' && (
+                  <select value={probeDb} onChange={e => setProbeDb(e.target.value)}
+                    style={{ ...styles.input, width: 'auto', fontSize: '12px', padding: '5px 8px' }}>
+                    <option value="mysql">MySQL (3306)</option>
+                    <option value="postgres">PostgreSQL (5432)</option>
+                    <option value="mssql">MSSQL (1433)</option>
+                    <option value="redis">Redis (6379)</option>
+                    <option value="mongo">MongoDB (27017)</option>
+                  </select>
+                )}
+                <button onClick={() => { const allIds = servers.map(s => s.id); setPingSelected(prev => prev.length === allIds.length ? [] : allIds); }}
+                  style={{ ...styles.btn, ...styles.btnSecondary, fontSize: '12px', padding: '5px 10px' }}>
                   {pingSelected.length === servers.length ? 'Deselect All' : 'Select All'}
                 </button>
-                <button onClick={startPingMonitor} disabled={pingSelected.length === 0 || pingRunning} style={{ ...styles.btn, ...styles.btnPrimary, fontSize: '12px', padding: '5px 12px' }}>
-                  {pingRunning ? '⟳ Pinging...' : '▶ Ping'}
+                <button onClick={startPingMonitor} disabled={pingSelected.length === 0 || pingRunning}
+                  style={{ ...styles.btn, ...styles.btnPrimary, fontSize: '12px', padding: '5px 12px' }}>
+                  {pingRunning ? '⟳ Probing...' : '▶ Run'}
                 </button>
               </div>
             </div>
 
             {servers.length === 0 && <div style={{ fontSize: '12px', color: c.textMuted }}>No servers registered.</div>}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {servers.map(srv => {
-                const r = pingResults[srv.id];
-                const selected = pingSelected.includes(srv.id);
-                const statusColor = !r ? '#94a3b8' : r.status === 'up' ? '#22c55e' : '#ef4444';
-                return (
-                  <div key={srv.id} onClick={() => setPingSelected(prev => prev.includes(srv.id) ? prev.filter(x => x !== srv.id) : [...prev, srv.id])}
-                    style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', borderRadius: '10px', cursor: 'pointer',
-                      background: selected ? (darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)') : (darkMode ? '#0f172a' : '#f8fafc'),
-                      border: `1px solid ${selected ? c.primary + '60' : c.border}`, transition: 'all 0.15s' }}>
-                    {/* Checkbox */}
-                    <div style={{ width: '16px', height: '16px', borderRadius: '4px', border: `2px solid ${selected ? c.primary : c.border}`, background: selected ? c.primary : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      {selected && <div style={{ width: '8px', height: '6px', borderLeft: '2px solid #fff', borderBottom: '2px solid #fff', transform: 'rotate(-45deg) translate(1px,-1px)' }} />}
-                    </div>
-                    {/* Status dot */}
-                    <div style={{ position: 'relative', flexShrink: 0 }}>
-                      <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: statusColor, boxShadow: r?.status === 'up' ? `0 0 6px ${statusColor}80` : 'none' }} />
-                      {pingRunning && selected && !r && <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: `2px solid ${c.primary}`, animation: 'spin 1s linear infinite' }} />}
-                    </div>
-                    {/* Info */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '13px', fontWeight: '600', color: c.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(srv.name || srv.host)}</div>
-                      <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: 'monospace' }}>{srv.host}</div>
-                    </div>
-                    {/* Latency */}
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontSize: '13px', fontWeight: '700', fontFamily: 'monospace', color: statusColor }}>
-                        {!r ? '—' : r.status === 'up' ? `${r.latency} ms` : 'timeout'}
+            {(() => {
+              // ── Tooltip descriptions ──────────────────────────────────
+              const probeTooltip = (r) => {
+                if (!r) return null;
+                // HTTP status codes
+                const httpDesc = {
+                  200: 'OK — Zahtjev uspješan.',
+                  201: 'Created — Resurs uspješno kreiran.',
+                  204: 'No Content — Zahtjev uspješan, nema tijela odgovora.',
+                  301: 'Moved Permanently — Resurs trajno premješten na novu URL adresu.',
+                  302: 'Found — Privremeni redirect na drugu URL adresu.',
+                  304: 'Not Modified — Resurs nije promijenjen od zadnjeg zahtjeva (cache).',
+                  400: 'Bad Request — Server nije razumio zahtjev (loša sintaksa ili parametri).',
+                  401: 'Unauthorized — Autentifikacija je obavezna. Niste prijavljeni ili token nije validan.',
+                  403: 'Forbidden — Pristup zabranjen. Server razumije zahtjev ali odbija da ga izvrši.',
+                  404: 'Not Found — Traženi resurs ne postoji na serveru.',
+                  405: 'Method Not Allowed — HTTP metoda nije podržana za ovaj endpoint.',
+                  408: 'Request Timeout — Server nije dobio kompletan zahtjev na vrijeme.',
+                  409: 'Conflict — Zahtjev je u konfliktu sa trenutnim stanjem resursa.',
+                  429: 'Too Many Requests — Prekoračen limit zahtjeva (rate limiting).',
+                  500: 'Internal Server Error — Neočekivana greška na serveru.',
+                  502: 'Bad Gateway — Server je primio nevažeći odgovor od upstream servera (reverse proxy problem).',
+                  503: 'Service Unavailable — Server privremeno nedostupan (preopterećen ili u maintenance).',
+                  504: 'Gateway Timeout — Upstream server nije odgovorio na vrijeme (proxy timeout).',
+                  505: 'HTTP Version Not Supported — Server ne podržava korištenu HTTP verziju.',
+                };
+                // TCP/UDP/Ping status
+                const statusDesc = {
+                  up:            'Ping uspješan — host odgovara na ICMP echo zahtjev.',
+                  timeout:       'Timeout — host nije odgovorio u zadanom roku. Firewall može blokirati ICMP/TCP/UDP.',
+                  refused:       'Connection Refused — port je zatvoren, servis ne radi ili firewall aktivno odbija vezu (TCP RST).',
+                  'open|filtered': 'Open ili Filtered — UDP port nije vratio ICMP "port unreachable". Port je vjerovatno otvoren ali ne šalje odgovor, ili ga firewall filtrira.',
+                  closed:        'Closed — Primljen ICMP "port unreachable". UDP port je zatvoren.',
+                  open:          'Open — veza uspješno uspostavljena. Port je otvoren i servis prima konekcije.',
+                  unreachable:   'Unreachable — host nije dostupan. Provjeri IP adresu, routing i firewall pravila.',
+                  error:         r.error ? `Greška: ${r.error}` : 'Nepoznata greška tokom probe-a.',
+                };
+                if (r.http_status) {
+                  const code = r.http_status;
+                  return httpDesc[code] || `HTTP ${code} — ${code < 400 ? 'Uspješan odgovor.' : code < 500 ? 'Client greška.' : 'Server greška.'}`;
+                }
+                return statusDesc[r.status] || null;
+              };
+
+              // ── Result label ─────────────────────────────────────────
+              const resultLabel = (r) => {
+                if (!r) return '—';
+                if (r.http_status) return `${r.http_status}${r.latency_ms != null ? ` · ${r.latency_ms}ms` : ''}`;
+                if (r.latency_ms != null) return `${r.latency_ms} ms`;
+                return r.status;
+              };
+
+              // ── Status color ─────────────────────────────────────────
+              const resultColor = (r) => {
+                if (!r) return '#94a3b8';
+                if (r.http_status) {
+                  if (r.http_status < 300) return '#22c55e';
+                  if (r.http_status < 400) return '#f59e0b';
+                  return '#ef4444';
+                }
+                if (r.status === 'up' || r.status === 'open') return '#22c55e';
+                if (r.status === 'open|filtered') return '#f59e0b';
+                return '#ef4444';
+              };
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {servers.map(srv => {
+                    const r = pingResults[srv.id];
+                    const selected = pingSelected.includes(srv.id);
+                    const color = resultColor(r);
+                    const tip = probeTooltip(r);
+                    return (
+                      <div key={srv.id} onClick={() => setPingSelected(prev => prev.includes(srv.id) ? prev.filter(x => x !== srv.id) : [...prev, srv.id])}
+                        style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', borderRadius: '10px', cursor: 'pointer',
+                          background: selected ? (darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)') : (darkMode ? '#0f172a' : '#f8fafc'),
+                          border: `1px solid ${selected ? c.primary + '60' : c.border}`, transition: 'all 0.15s' }}>
+                        {/* Checkbox */}
+                        <div style={{ width: '16px', height: '16px', borderRadius: '4px', border: `2px solid ${selected ? c.primary : c.border}`, background: selected ? c.primary : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          {selected && <div style={{ width: '8px', height: '6px', borderLeft: '2px solid #fff', borderBottom: '2px solid #fff', transform: 'rotate(-45deg) translate(1px,-1px)' }} />}
+                        </div>
+                        {/* Status dot */}
+                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: color, boxShadow: (r?.status === 'up' || r?.status === 'open') ? `0 0 6px ${color}80` : 'none', flexShrink: 0 }} />
+                        {/* Server info */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '13px', fontWeight: '600', color: c.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(srv.name || srv.host)}</div>
+                          <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: 'monospace' }}>{srv.host}{probeType === 'db' ? ` · ${probeDb}` : probeType === 'tcp' || probeType === 'udp' ? ` · ${probeType.toUpperCase()}:${probePort || '?'}` : ''}</div>
+                        </div>
+                        {/* Result + tooltip */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '13px', fontWeight: '700', fontFamily: 'monospace', color }}>{resultLabel(r)}</div>
+                            {r?.ts && <div style={{ fontSize: '10px', color: c.textMuted }}>{r.ts}</div>}
+                          </div>
+                          {tip && (
+                            <div className="probe-info-wrap" style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
+                              <div className="probe-info-icon" style={{ width: '16px', height: '16px', borderRadius: '50%', background: darkMode ? '#334155' : '#e2e8f0', color: c.textMuted, fontSize: '10px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'help', userSelect: 'none' }}>ⓘ</div>
+                              <div className="probe-tooltip" style={{ display: 'none', position: 'absolute', right: 0, bottom: '22px', width: '260px', background: darkMode ? '#1e293b' : '#fff', border: `1px solid ${c.border}`, borderRadius: '8px', padding: '10px 12px', fontSize: '12px', color: c.text, lineHeight: '1.5', boxShadow: '0 8px 24px rgba(0,0,0,0.2)', zIndex: 100 }}>
+                                {tip}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      {r?.ts && <div style={{ fontSize: '10px', color: c.textMuted }}>{r.ts}</div>}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
