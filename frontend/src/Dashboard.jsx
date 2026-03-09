@@ -2673,6 +2673,38 @@ const Dashboard = () => {
               <button onClick={() => { setShowScan(true); }} style={{ ...styles.btn, ...styles.btnPrimary, alignSelf: 'flex-end' }}>Start Scan</button>
             </div>
           </div>
+
+          {/* Speed Test */}
+          <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, padding: '20px', marginBottom: '16px' }}>
+            {(() => {
+              const selSrv = servers.find(s => s.id === repoTestServer);
+              const isWin = selSrv ? String(selSrv.platform || '').toLowerCase().includes('windows') : false;
+              return <>
+                <h3 style={{ ...styles.cardTitle, marginBottom: '4px' }}>{isWin ? 'Windows CDN Speed Test' : 'Repository Speed Test'}</h3>
+                <div style={{ fontSize: '11px', color: c.textMuted, marginBottom: '12px' }}>
+                  {isWin
+                    ? 'Tests download speed to Microsoft Update CDN, Winget CDN and Cloudflare from the selected server.'
+                    : 'Tests download speed to Ubuntu archive / security / updates repos from a server or from the backend host.'}
+                </div>
+              </>;
+            })()}
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <select value={repoTestServer} onChange={e => setRepoTestServer(e.target.value)} style={{ ...styles.input, minWidth: '220px' }}>
+                <option value="">From backend server</option>
+                {servers.filter(s => s.online).map(s => <option key={s.id} value={s.id}>{String(s.name||'')} ({s.host})</option>)}
+              </select>
+              <button onClick={() => runRepoTest(!repoTestServer)} disabled={repoTestLoading} style={{ ...styles.btn, ...styles.btnPrimary }}>
+                {repoTestLoading ? 'Testing...' : '▶ Run Test'}
+              </button>
+              {repoTestLoading && <div style={{ width: '14px', height: '14px', border: `2px solid ${c.primary}40`, borderTopColor: c.primary, borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />}
+            </div>
+            {repoTestResult && (
+              <div style={{ marginTop: '12px', background: darkMode ? '#0f172a' : '#f8fafc', borderRadius: '8px', padding: '10px 14px', fontFamily: 'monospace', fontSize: '12px', color: c.text, whiteSpace: 'pre-wrap', border: `1px solid ${c.border}` }}>
+                {repoTestResult}
+              </div>
+            )}
+          </div>
+
           <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, padding: '20px' }}>
             <h3 style={{ ...styles.cardTitle, marginBottom: '12px' }}>Registered Servers by IP</h3>
             {servers.map(s => (
