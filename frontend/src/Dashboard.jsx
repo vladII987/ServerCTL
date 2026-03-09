@@ -799,20 +799,24 @@ const Dashboard = () => {
     setLogsSelectedItem(null);
     setLogsContent('');
     setLogsListLoading(true);
-    try {
-      const [filesData, servicesData] = await Promise.all([
-        runAgentAction(server.id, 'list_logs'),
-        runAgentAction(server.id, 'list_services'),
-      ]);
-      const files = JSON.parse(filesData.output || '[]');
-      setLogsFiles(files);
-      const isWindows = String(server?.platform || '').toLowerCase().includes('windows');
-      const lines = (servicesData.output || '').trim().split('\n');
+    const isWindows = String(server?.platform || '').toLowerCase().includes('windows');
+    const [filesData, servicesData] = await Promise.allSettled([
+      runAgentAction(server.id, 'list_logs'),
+      runAgentAction(server.id, 'list_services'),
+    ]);
+    if (filesData.status === 'fulfilled') {
+      const raw = filesData.value?.output || '';
+      try {
+        setLogsFiles(raw.startsWith('[') ? JSON.parse(raw) : []);
+      } catch { setLogsFiles([]); }
+    }
+    if (servicesData.status === 'fulfilled') {
+      const lines = (servicesData.value?.output || '').trim().split('\n');
       const svcs = isWindows
         ? lines.map(l => l.trim()).filter(s => s.length > 0)
         : lines.map(l => l.trim().split(/\s+/)[0]).filter(s => s.endsWith('.service')).map(s => s.replace('.service', ''));
       setLogsServices(svcs);
-    } catch {}
+    }
     setLogsListLoading(false);
   };
 
@@ -1118,8 +1122,12 @@ const Dashboard = () => {
     setLogsOutput('');
     try {
       const data = await agentAction('list_logs');
-      const logs = JSON.parse(data.output || '[]');
-      setAvailableLogs(logs);
+      const raw = data.output || '';
+      if (raw.startsWith('[')) {
+        setAvailableLogs(JSON.parse(raw));
+      } else {
+        setLogsOutput(raw.includes('Unknown command') ? 'Log listing not supported on this agent. Update the agent to enable this feature.' : raw);
+      }
     } catch (err) {
       setLogsOutput('Error: ' + err.message);
     }
