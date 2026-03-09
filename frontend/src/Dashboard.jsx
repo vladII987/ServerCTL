@@ -624,11 +624,11 @@ const Dashboard = () => {
     if (wizardPollRef.current) { clearInterval(wizardPollRef.current); wizardPollRef.current = null; }
   };
 
-  const fetchWizardInstallCmd = async (server_id) => {
+  const fetchWizardInstallCmd = async (server_id, os) => {
     setWizardInstallCmdLoading(true);
     setWizardInstallCmd('');
     try {
-      const endpoint = wizardOS === 'windows'
+      const endpoint = os === 'windows'
         ? `/api/agent/install-windows-command?server_id=${encodeURIComponent(server_id)}`
         : `/api/agent/install-command?server_id=${encodeURIComponent(server_id)}`;
       const r = await fetch(endpoint, { headers: authHeader });
@@ -3585,7 +3585,7 @@ const Dashboard = () => {
                 {/* Step 3: Copy Command */}
                 {wizardStep === 3 && (() => {
                   if (!wizardInstallCmd && !wizardInstallCmdLoading) {
-                    if (wizardServerId) fetchWizardInstallCmd(wizardServerId);
+                    if (wizardServerId) fetchWizardInstallCmd(wizardServerId, wizardOS);
                   }
                   return (
                     <div>
@@ -3594,6 +3594,11 @@ const Dashboard = () => {
                           ? <>Run this command on <strong style={{ color: c.text }}>{wizardName || 'your server'}</strong> in <strong style={{ color: '#60a5fa' }}>PowerShell as Administrator</strong>:</>
                           : <>Run this command on <strong style={{ color: c.text }}>{wizardName || 'your server'}</strong> as root or with sudo:</>}
                       </div>
+                      {wizardOS === 'windows' && (
+                        <div style={{ marginBottom: '10px', padding: '8px 12px', borderRadius: '6px', background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.3)', fontSize: '12px', color: '#60a5fa' }}>
+                          ⊞ PowerShell — Run as Administrator (right-click → Run as Administrator)
+                        </div>
+                      )}
                       <div style={{ background: 'rgba(0,0,0,0.35)', borderRadius: '8px', padding: '14px 16px', fontFamily: 'monospace', fontSize: '12px', color: '#86efac', wordBreak: 'break-all', position: 'relative', border: '1px solid rgba(34,197,94,0.2)', minHeight: '52px' }}>
                         {wizardInstallCmdLoading ? <span style={{ color: '#60a5fa' }}>Loading...</span> : wizardInstallCmd}
                         {wizardInstallCmd && (
@@ -3604,7 +3609,9 @@ const Dashboard = () => {
                         )}
                       </div>
                       <div style={{ marginTop: '12px', fontSize: '12px', color: c.textMuted }}>
-                        The script will install Python3, download the agent, configure it, and start it as a systemd service.
+                        {wizardOS === 'windows'
+                          ? 'The script will download Python (embedded), install the agent, and register it as a Windows Service (visible in services.msc).'
+                          : 'The script will install Python3, download the agent, configure it, and start it as a systemd service.'}
                       </div>
                       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between' }}>
                         <button onClick={() => { setWizardStep(2); setWizardInstallCmd(''); }} style={{ ...styles.btn, ...styles.btnSecondary }}>← Back</button>
