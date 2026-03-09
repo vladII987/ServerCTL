@@ -330,16 +330,6 @@ const Dashboard = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [groupFilter, setGroupFilter] = useState('all');
   const [serverQuickFilter, setServerQuickFilter] = useState('all');
-  // Set wallpaper on body so it covers full page including horizontal scroll
-  React.useEffect(() => {
-    document.body.style.backgroundImage = 'url(/wall.jpg)';
-    document.body.style.backgroundSize = 'cover';
-    document.body.style.backgroundPosition = 'center';
-    document.body.style.backgroundAttachment = 'fixed';
-    document.body.style.backgroundRepeat = 'no-repeat';
-    document.body.style.minHeight = '100vh';
-    return () => { document.body.style.backgroundImage = ''; };
-  }, []);
   const [selectedServers, setSelectedServers] = useState([]);
   const [bulkActionOutput, setBulkActionOutput] = useState('');
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
@@ -2102,8 +2092,9 @@ const Dashboard = () => {
       <nav style={{ width: '210px', position: 'fixed', top: 0, bottom: 0, left: 0, background: darkMode ? 'rgba(13,24,32,0.96)' : 'rgba(230,238,242,0.96)', backdropFilter: 'blur(16px)', borderRight: `1px solid ${darkMode ? '#1e3d4f' : '#b8cdd6'}`, display: 'flex', flexDirection: 'column', zIndex: 200, overflowY: 'auto' }}>
         {/* Logo */}
         <div style={{ padding: '14px 16px 12px', borderBottom: `1px solid ${darkMode ? '#1e3d4f' : '#b8cdd6'}`, textAlign: 'center' }}>
-          <img src={customLogo || '/logo.png'} alt="logo" style={{ maxWidth: '130px', maxHeight: '64px', objectFit: 'contain', marginBottom: '6px', filter: darkMode ? 'drop-shadow(0 0 8px rgba(168,152,124,0.3))' : 'none' }} />
-          <div style={{ fontSize: '9px', color: '#467885', letterSpacing: '0.2em', textTransform: 'uppercase' }}>◈ Control Interface</div>
+          <img src={customLogo || '/logo.png'} alt="logo" style={{ maxWidth: '160px', maxHeight: '80px', objectFit: 'contain', marginBottom: '8px', filter: darkMode ? 'drop-shadow(0 0 10px rgba(168,152,124,0.35))' : 'none' }} />
+          <div style={{ fontSize: '13px', fontWeight: '800', letterSpacing: '0.12em', color: '#A8987C', textShadow: darkMode ? '0 0 16px rgba(168,152,124,0.3)' : 'none' }}>ServerCTL</div>
+          <div style={{ fontSize: '9px', color: '#467885', marginTop: '3px', letterSpacing: '0.18em', textTransform: 'uppercase' }}>Intelligence Control</div>
         </div>
         {/* Nav items */}
         <div style={{ flex: 1, padding: '6px 0' }}>
@@ -3581,11 +3572,10 @@ const Dashboard = () => {
                       { label: 'Disk Usage', cmd: 'disk_usage', icon: '💾' },
                       { label: 'Memory', cmd: 'memory', icon: '⚡' },
                       { label: 'CPU Info', cmd: 'cpu_info', icon: '🔧' },
-                      { label: 'Processes', cmd: 'top_processes', icon: '📋' },
                       { label: 'Netstat', cmd: 'netstat', icon: '🌐' },
                     ];
                     const adminActions = isAdmin ? [
-                      { label: 'Check Updates', cmd: 'upgradable_packages', icon: '🔄' },
+                      { label: 'Check Updates', cmd: '__check_updates__', icon: '🔄' },
                       { label: 'Upgrade Now', cmd: '__upgrade__', icon: '⬆', green: true },
                       { label: 'Update Agent', cmd: '__update_agent__', icon: '🔁' },
                     ] : [];
@@ -3595,13 +3585,13 @@ const Dashboard = () => {
                     const isHover = actionBtnHover === cmd;
                     const isUpgrade = cmd === '__upgrade__';
                     const isUpdateAgent = cmd === '__update_agent__';
+                    const isCheckUpdates = cmd === '__check_updates__';
                     const handleClick = () => {
                       setActiveAction(cmd);
                       if (isUpgrade) handleUpgrade();
                       else if (isUpdateAgent) handleUpdateAgent();
-                      else {
-                        runAction(cmd);
-                      }
+                      else if (isCheckUpdates) { setActionOutput(''); setUpgradeOutput(''); showUpdates(); }
+                      else { runAction(cmd); }
                     };
                     return (
                       <button key={cmd}
@@ -3627,13 +3617,70 @@ const Dashboard = () => {
                     );
                   })}
                 </div>
-                {upgradeLoading && <div style={{ fontSize: '13px', color: '#16a34a', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 1s infinite' }} />
-                  Running upgrade...
-                </div>}
-                {upgradeOutput && <ActionOutput text={upgradeOutput} />}
-                {actionLoading && <div style={styles.empty}>Running...</div>}
-                {!actionLoading && actionOutput && !upgradeOutput && <ActionOutput text={actionOutput} />}
+                {/* Running upgrade indicator */}
+                {upgradeLoading && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 20px', background: darkMode ? 'rgba(61,214,140,0.06)' : 'rgba(34,168,106,0.06)', border: '1px solid #3dd68c40', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', marginBottom: '16px' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#3dd68c', animation: 'pulse 1s infinite', flexShrink: 0 }} />
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: '700', color: '#3dd68c', letterSpacing: '0.06em' }}>UPGRADE IN PROGRESS</div>
+                      <div style={{ fontSize: '11px', color: c.textMuted, marginTop: '2px' }}>Installing packages — do not close this window</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Upgrade result */}
+                {upgradeOutput && !upgradeLoading && (
+                  <div style={{ background: darkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.04)', border: `1px solid ${c.border}`, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', overflow: 'hidden' }}>
+                    <div style={{ padding: '10px 16px', borderBottom: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '8px', background: darkMode ? 'rgba(61,214,140,0.06)' : 'rgba(34,168,106,0.06)' }}>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3dd68c' }} />
+                      <span style={{ fontSize: '11px', fontWeight: '700', color: '#3dd68c', letterSpacing: '0.1em' }}>UPGRADE COMPLETE</span>
+                    </div>
+                    <pre style={{ margin: 0, padding: '14px 16px', background: 'transparent', color: c.text, fontSize: '12px', lineHeight: '1.7', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '360px', overflow: 'auto' }}>{upgradeOutput}</pre>
+                  </div>
+                )}
+
+                {/* Check updates result */}
+                {!actionLoading && updatesData && activeAction === '__check_updates__' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {/* Summary card */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+                      {[
+                        { label: 'PACKAGES AVAILABLE', value: updatesData.packages.length, color: updatesData.packages.length > 0 ? '#e8a838' : '#3dd68c' },
+                        { label: 'REPOS FETCHED', value: updatesData.fetched, color: '#467885' },
+                        { label: 'STATUS', value: updatesData.success ? 'OK' : 'ERROR', color: updatesData.success ? '#3dd68c' : '#f06060' },
+                      ].map(s => (
+                        <div key={s.label} style={{ padding: '14px 16px', background: darkMode ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.04)', border: `1px solid ${s.color}30`, clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)' }}>
+                          <div style={{ fontSize: '9px', letterSpacing: '0.18em', color: c.textMuted, marginBottom: '6px' }}>{s.label}</div>
+                          <div style={{ fontSize: '22px', fontWeight: '800', color: s.color }}>{s.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Package list */}
+                    {updatesData.packages.length > 0 && (
+                      <div style={{ border: `1px solid ${c.border}`, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', overflow: 'hidden' }}>
+                        <div style={{ padding: '8px 16px', borderBottom: `1px solid ${c.border}`, fontSize: '10px', letterSpacing: '0.15em', color: '#e8a838', background: darkMode ? 'rgba(232,168,56,0.06)' : 'rgba(232,168,56,0.04)' }}>
+                          AVAILABLE UPDATES — {updatesData.packages.length} package{updatesData.packages.length !== 1 ? 's' : ''}
+                        </div>
+                        <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
+                          {updatesData.packages.map((p, i) => (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 16px', borderBottom: `1px solid ${c.border}20`, background: i % 2 === 0 ? 'transparent' : (darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)') }}>
+                              <span style={{ fontSize: '12px', color: c.text, fontWeight: '600' }}>{p.name}</span>
+                              <span style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"Hack","Courier New",monospace' }}>{p.version}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {updatesData.packages.length === 0 && (
+                      <div style={{ padding: '20px', textAlign: 'center', color: '#3dd68c', fontSize: '13px', border: '1px solid #3dd68c30', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }}>
+                        ✓ System is up to date
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {actionLoading && <div style={{ padding: '20px', textAlign: 'center', color: c.textMuted, fontSize: '13px' }}>Running...</div>}
+                {!actionLoading && actionOutput && !upgradeOutput && activeAction !== '__check_updates__' && <ActionOutput text={actionOutput} />}
               </div>
             )}
 
