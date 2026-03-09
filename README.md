@@ -226,4 +226,4 @@ npm run dev
 
 ## License
 
-MIT
+AGPL-3.0
