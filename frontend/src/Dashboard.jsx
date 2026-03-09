@@ -329,11 +329,9 @@ const Dashboard = () => {
   const [repoTestServer, setRepoTestServer] = useState('');
   const [repoTestLoading, setRepoTestLoading] = useState(false);
   const [repoTestResult, setRepoTestResult] = useState('');
-  const [pingInterval, setPingInterval] = useState('1');
   const [pingResults, setPingResults] = useState({});
   const [pingRunning, setPingRunning] = useState(false);
   const [pingSelected, setPingSelected] = useState([]);
-  const pingTimerRef = useRef(null);
   const [networkTool, setNetworkTool] = useState('ping');
   const [networkTarget, setNetworkTarget] = useState('');
   const [networkOutput, setNetworkOutput] = useState('');
@@ -1430,16 +1428,9 @@ const Dashboard = () => {
     });
   };
 
-  const startPingMonitor = () => {
-    if (pingTimerRef.current) clearInterval(pingTimerRef.current);
-    setPingResults({});
+  const startPingMonitor = async () => {
     setPingRunning(true);
-    doPingAll(pingSelected);
-    pingTimerRef.current = setInterval(() => doPingAll(pingSelected), parseInt(pingInterval) * 60 * 1000);
-  };
-
-  const stopPingMonitor = () => {
-    if (pingTimerRef.current) { clearInterval(pingTimerRef.current); pingTimerRef.current = null; }
+    await doPingAll(pingSelected);
     setPingRunning(false);
   };
 
@@ -2674,30 +2665,21 @@ const Dashboard = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
               <h3 style={{ ...styles.cardTitle, margin: 0 }}>Ping Monitor</h3>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <select value={pingInterval} onChange={e => setPingInterval(e.target.value)} style={{ ...styles.input, width: '90px', fontSize: '12px', padding: '5px 8px' }}>
-                  <option value="1">1 min</option>
-                  <option value="3">3 min</option>
-                  <option value="5">5 min</option>
-                  <option value="10">10 min</option>
-                </select>
                 <button onClick={() => {
                   const allIds = servers.map(s => s.id);
                   setPingSelected(prev => prev.length === allIds.length ? [] : allIds);
                 }} style={{ ...styles.btn, ...styles.btnSecondary, fontSize: '12px', padding: '5px 10px' }}>
                   {pingSelected.length === servers.length ? 'Deselect All' : 'Select All'}
                 </button>
-                {!pingRunning
-                  ? <button onClick={startPingMonitor} disabled={pingSelected.length === 0} style={{ ...styles.btn, ...styles.btnPrimary, fontSize: '12px', padding: '5px 12px', opacity: pingSelected.length === 0 ? 0.5 : 1 }}>▶ Start</button>
-                  : <button onClick={stopPingMonitor} style={{ ...styles.btn, background: '#ef444420', color: '#ef4444', border: '1px solid #ef444440', fontSize: '12px', padding: '5px 12px' }}>■ Stop</button>}
-                {pingRunning && <span style={{ fontSize: '11px', color: '#22c55e', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 1s infinite' }} /> every {pingInterval}m
-                </span>}
+                <button onClick={startPingMonitor} disabled={pingSelected.length === 0 || pingRunning} style={{ ...styles.btn, ...styles.btnPrimary, fontSize: '12px', padding: '5px 12px' }}>
+                  {pingRunning ? '⟳ Pinging...' : '▶ Ping'}
+                </button>
               </div>
             </div>
 
             {servers.length === 0 && <div style={{ fontSize: '12px', color: c.textMuted }}>No servers registered.</div>}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '6px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {servers.map(srv => {
                 const r = pingResults[srv.id];
                 const selected = pingSelected.includes(srv.id);
