@@ -806,11 +806,11 @@ const Dashboard = () => {
       ]);
       const files = JSON.parse(filesData.output || '[]');
       setLogsFiles(files);
+      const isWindows = String(server?.platform || '').toLowerCase().includes('windows');
       const lines = (servicesData.output || '').trim().split('\n');
-      const svcs = lines
-        .map(l => l.trim().split(/\s+/)[0])
-        .filter(s => s.endsWith('.service'))
-        .map(s => s.replace('.service', ''));
+      const svcs = isWindows
+        ? lines.map(l => l.trim()).filter(s => s.length > 0)
+        : lines.map(l => l.trim().split(/\s+/)[0]).filter(s => s.endsWith('.service')).map(s => s.replace('.service', ''));
       setLogsServices(svcs);
     } catch {}
     setLogsListLoading(false);
@@ -1076,7 +1076,11 @@ const Dashboard = () => {
   };
 
   const handleUpgrade = async () => {
-    if (!window.confirm('Run apt-get upgrade on this server? All pending packages will be installed.')) return;
+    const isWindows = String(selectedServer?.platform || '').toLowerCase().includes('windows');
+    const msg = isWindows
+      ? 'Run Windows Update on this server? All pending updates will be downloaded and installed.'
+      : 'Run apt-get upgrade on this server? All pending packages will be installed.';
+    if (!window.confirm(msg)) return;
     setUpgradeLoading(true);
     setUpgradeOutput('');
     setActionView('upgradeResult');
@@ -1154,13 +1158,13 @@ const Dashboard = () => {
     setServicesList([]);
     setSelectedService(null);
     setServiceDetail('');
+    const isWindows = String(selectedServer?.platform || '').toLowerCase().includes('windows');
     try {
       const data = await agentAction('list_services');
       const lines = (data.output || '').trim().split('\n');
-      const services = lines
-        .map(l => l.trim().split(/\s+/)[0])
-        .filter(s => s.endsWith('.service'))
-        .map(s => s.replace('.service', ''));
+      const services = isWindows
+        ? lines.map(l => l.trim()).filter(s => s.length > 0)
+        : lines.map(l => l.trim().split(/\s+/)[0]).filter(s => s.endsWith('.service')).map(s => s.replace('.service', ''));
       setServicesList(services);
     } catch (err) {
       setServicesList([]);
@@ -3321,16 +3325,29 @@ const Dashboard = () => {
                     ];
                     const adminActions = isAdmin ? [
                       { label: 'Check Updates', cmd: 'upgradable_packages', icon: '🔄' },
-                      { label: isWindows ? 'Upgrade (winget)' : 'Upgrade Now', cmd: '__upgrade__', icon: '⬆', green: true },
+                      { label: 'Upgrade Now', cmd: '__upgrade__', icon: '⬆', green: true },
+                      { label: 'Update Agent', cmd: '__update_agent__', icon: '🔁' },
                     ] : [];
                     return [...commonActions, ...adminActions];
                   })().map(({ label, cmd, icon, green }) => {
                     const isActive = activeAction === cmd;
                     const isHover = actionBtnHover === cmd;
                     const isUpgrade = cmd === '__upgrade__';
+                    const isUpdateAgent = cmd === '__update_agent__';
+                    const handleClick = () => {
+                      setActiveAction(cmd);
+                      if (isUpgrade) handleUpgrade();
+                      else if (isUpdateAgent) {
+                        if (window.confirm('Update agent on this server to the latest version?')) {
+                          runAction('update_agent');
+                        }
+                      } else {
+                        runAction(cmd);
+                      }
+                    };
                     return (
                       <button key={cmd}
-                        onClick={() => { setActiveAction(cmd); isUpgrade ? handleUpgrade() : runAction(cmd); }}
+                        onClick={handleClick}
                         onMouseEnter={() => setActionBtnHover(cmd)}
                         onMouseLeave={() => setActionBtnHover(null)}
                         style={{

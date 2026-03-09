@@ -308,6 +308,40 @@ if ($result.RebootRequired) { Write-Output "REBOOT REQUIRED to complete updates.
         return {"status": "completed" if result.returncode == 0 else "error",
                 "output": result.stdout or result.stderr, "returncode": result.returncode}
 
+    if command == "list_logs":
+        logs = []
+        agent_log = r"C:\ServerCTL\logs\agent.log"
+        if os.path.exists(agent_log):
+            logs.append({"name": "Agent Log", "path": agent_log})
+        logs += [
+            {"name": "Event Log: System",      "path": "EventLog:System"},
+            {"name": "Event Log: Application", "path": "EventLog:Application"},
+            {"name": "Event Log: Security",    "path": "EventLog:Security"},
+        ]
+        return {"status": "completed", "output": json.dumps(logs), "returncode": 0}
+
+    if command == "view_log":
+        path = target or ""
+        if path.startswith("EventLog:"):
+            log_name = path.split(":", 1)[1]
+            limit = 50 if log_name != "Security" else 20
+            out = ps(
+                f"Get-EventLog -LogName '{log_name}' -Newest {limit} -ErrorAction SilentlyContinue | "
+                f"Format-List TimeGenerated,EntryType,Source,Message | Out-String",
+                timeout=30
+            )
+            return {"status": "completed", "output": out or "(no entries)", "returncode": 0}
+        else:
+            try:
+                if not os.path.exists(path):
+                    return {"status": "error", "output": f"File not found: {path}", "returncode": 1}
+                with open(path, "r", encoding="utf-8", errors="replace") as f:
+                    lines = f.readlines()
+                out = "".join(lines[-500:])
+                return {"status": "completed", "output": out, "returncode": 0}
+            except Exception as e:
+                return {"status": "error", "output": str(e), "returncode": 1}
+
     if command == "update_agent":
         try:
             import urllib.request, re as _re
@@ -321,8 +355,12 @@ if ($result.RebootRequired) { Write-Output "REBOOT REQUIRED to complete updates.
                 new_code = resp.read()
             with open(agent_path, 'wb') as f:
                 f.write(new_code)
+            # Try NSSM service first, fall back to Task Scheduler
             subprocess.Popen(["powershell", "-Command",
-                              "Start-Sleep 2; Stop-ScheduledTask -TaskName 'ServerCTL Agent'; Start-ScheduledTask -TaskName 'ServerCTL Agent'"])
+                              "Start-Sleep 2; "
+                              "try { Restart-Service 'ServerCTL-Agent' -Force -ErrorAction Stop } "
+                              "catch { Stop-ScheduledTask -TaskName 'ServerCTL Agent' -ErrorAction SilentlyContinue; "
+                              "Start-Sleep 1; Start-ScheduledTask -TaskName 'ServerCTL Agent' -ErrorAction SilentlyContinue }"])
             return {"status": "completed", "output": "Agent updated — restarting...", "returncode": 0}
         except Exception as e:
             return {"status": "error", "output": str(e), "returncode": 1}
@@ -377,19 +415,25 @@ async def daily_update_check(interval_hours: int = 24):
     await asyncio.sleep(60)
     while True:
         try:
-            log.info("Running daily update check (winget)...")
-            out = ps("winget upgrade --include-unknown 2>$null | Out-String", timeout=120)
-            packages = [line.split()[0] for line in out.splitlines()
-                        if line and not line.startswith("-") and not line.startswith("Name")
-                        and len(line.split()) >= 3]
-            reboot = ps("(Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update\\RebootRequired' -ErrorAction SilentlyContinue) -ne $null").strip().lower() == "true"
+            log.info("Running daily update check (Windows Update)...")
+            out = ps("""
+$s = New-Object -ComObject Microsoft.Update.Session
+$q = $s.CreateUpdateSearcher().Search("IsInstalled=0 and Type='Software' and IsHidden=0")
+$q.Updates | ForEach-Object { $_.Title }
+""", timeout=120)
+            packages = [line.strip() for line in out.splitlines() if line.strip()]
+            reboot_out = ps(
+                "if (Test-Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update\\RebootRequired') { 'true' } else { 'false' }",
+                timeout=10
+            )
+            reboot = reboot_out.strip().lower() == "true"
             pending_updates = {
                 "count": len(packages),
                 "packages": packages[:50],
                 "checked_at": int(time.time()),
                 "reboot_required": reboot,
             }
-            log.info(f"Update check done: {len(packages)} upgradable (reboot={reboot})")
+            log.info(f"Update check done: {len(packages)} pending (reboot={reboot})")
         except Exception as e:
             log.warning(f"Daily update check failed: {e}")
         await asyncio.sleep(interval_hours * 3600)
