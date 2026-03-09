@@ -2623,8 +2623,10 @@ const Dashboard = () => {
 
       {/* ── NETWORKS section ── */}
       {navSection === 'networks' && (
-        <div style={{ maxWidth: '640px' }}>
-          <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, padding: '20px', marginBottom: '16px' }}>
+        <div style={{ width: '100%' }}>
+          {/* Top row: Network Scan + Speed Test side by side */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '16px' }}>
+          <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, padding: '20px' }}>
             <h3 style={{ ...styles.cardTitle, marginBottom: '16px' }}>Network Scan</h3>
             <div style={styles.formRow}>
               <div style={styles.inputGroup}>
@@ -2636,7 +2638,7 @@ const Dashboard = () => {
           </div>
 
           {/* Speed Test */}
-          <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, padding: '20px', marginBottom: '16px' }}>
+          <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, padding: '20px' }}>
             {(() => {
               const selSrv = servers.find(s => s.id === repoTestServer);
               const isWin = selSrv ? String(selSrv.platform || '').toLowerCase().includes('windows') : false;
@@ -2665,8 +2667,9 @@ const Dashboard = () => {
               </div>
             )}
           </div>
+          </div>{/* end top grid */}
 
-          {/* Ping Monitor */}
+          {/* Ping Monitor — full width */}
           <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
               <h3 style={{ ...styles.cardTitle, margin: 0 }}>Ping Monitor</h3>
@@ -2694,7 +2697,7 @@ const Dashboard = () => {
 
             {servers.length === 0 && <div style={{ fontSize: '12px', color: c.textMuted }}>No servers registered.</div>}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '6px' }}>
               {servers.map(srv => {
                 const r = pingResults[srv.id];
                 const selected = pingSelected.includes(srv.id);

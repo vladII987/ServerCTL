@@ -730,48 +730,57 @@ Write-Host "[*] Writing config..." -ForegroundColor Yellow
 $cfgContent = "server_url: {ws_url}`napi_token: {token}`nlog_file: C:\\ServerCTL\\logs\\agent.log`nreport_interval: 60"
 [System.IO.File]::WriteAllText($cfgFile, $cfgContent, [System.Text.UTF8Encoding]::new($false))
 
-# Download and install NSSM to run agent as a proper Windows Service
-Write-Host "[*] Downloading NSSM (service manager)..." -ForegroundColor Yellow
-$nssmDir  = "$baseDir\\nssm"
-$nssmExe  = "$nssmDir\\nssm.exe"
-if (-not (Test-Path $nssmExe)) {{
-    $nssmZip = "$env:TEMP\\nssm.zip"
+# Download WinSW to run agent as a proper Windows Service
+Write-Host "[*] Downloading WinSW (service wrapper)..." -ForegroundColor Yellow
+$winswDir = "$baseDir\\winsw"
+$winswExe = "$winswDir\\winsw.exe"
+New-Item -ItemType Directory -Force -Path $winswDir | Out-Null
+if (-not (Test-Path $winswExe)) {{
     try {{
-        Invoke-WebRequest -Uri "https://nssm.cc/ci/nssm-2.24-101-g897c7ad.zip" -OutFile $nssmZip -UseBasicParsing
-        Expand-Archive -Path $nssmZip -DestinationPath "$env:TEMP\\nssm_extract" -Force
-        $nssmBin = Get-ChildItem -Path "$env:TEMP\\nssm_extract" -Recurse -Filter "nssm.exe" | Where-Object {{ $_.Directory.Name -eq "win64" }} | Select-Object -First 1
-        if (-not $nssmBin) {{
-            $nssmBin = Get-ChildItem -Path "$env:TEMP\\nssm_extract" -Recurse -Filter "nssm.exe" | Select-Object -First 1
-        }}
-        New-Item -ItemType Directory -Force -Path $nssmDir | Out-Null
-        Copy-Item $nssmBin.FullName $nssmExe -Force
-        Remove-Item $nssmZip -Force -ErrorAction SilentlyContinue
-        Remove-Item "$env:TEMP\\nssm_extract" -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Host "[*] NSSM installed." -ForegroundColor Yellow
+        Invoke-WebRequest -Uri "https://github.com/winsw/winsw/releases/download/v2.12.0/WinSW-x64.exe" -OutFile $winswExe -UseBasicParsing
+        Write-Host "[*] WinSW downloaded." -ForegroundColor Yellow
     }} catch {{
-        Write-Warning "Could not download NSSM: $_"
-        Write-Warning "Falling back to Task Scheduler..."
-        $nssmExe = $null
+        Write-Warning "Could not download WinSW: $_"
+        $winswExe = $null
     }}
+}}
+
+# Create WinSW XML config
+if ($winswExe -and (Test-Path $winswExe)) {{
+    $winswXml = "$winswDir\\winsw.xml"
+    $xmlContent = @"
+<service>
+  <id>ServerCTL-Agent</id>
+  <name>ServerCTL Agent</name>
+  <description>ServerCTL monitoring agent</description>
+  <executable>$pyExe</executable>
+  <arguments>$agentPy</arguments>
+  <log mode="roll">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>3</keepFiles>
+  </log>
+  <logpath>$logDir</logpath>
+  <onfailure action="restart" delay="10 sec"/>
+  <onfailure action="restart" delay="20 sec"/>
+  <onfailure action="restart" delay="30 sec"/>
+</service>
+"@
+    [System.IO.File]::WriteAllText($winswXml, $xmlContent, [System.Text.UTF8Encoding]::new($false))
 }}
 
 # Stop and remove old installations
 Stop-Service "ServerCTL-Agent" -Force -ErrorAction SilentlyContinue
-if ($nssmExe -and (Test-Path $nssmExe)) {{
-    & $nssmExe remove "ServerCTL-Agent" confirm 2>$null
+if ($winswExe -and (Test-Path $winswExe)) {{
+    & $winswExe uninstall 2>$null
 }}
 Unregister-ScheduledTask -TaskName "ServerCTL Agent" -Confirm:$false -ErrorAction SilentlyContinue
 
-if ($nssmExe -and (Test-Path $nssmExe)) {{
-    # Install as Windows Service using NSSM
-    Write-Host "[*] Installing Windows Service (NSSM)..." -ForegroundColor Yellow
-    & $nssmExe install "ServerCTL-Agent" $pyExe $agentPy
-    & $nssmExe set "ServerCTL-Agent" DisplayName "ServerCTL Agent"
-    & $nssmExe set "ServerCTL-Agent" Description "ServerCTL monitoring agent"
-    & $nssmExe set "ServerCTL-Agent" Start SERVICE_AUTO_START
-    & $nssmExe set "ServerCTL-Agent" AppRestartDelay 10000
-    & $nssmExe set "ServerCTL-Agent" AppStdout "$logDir\\agent.log"
-    & $nssmExe set "ServerCTL-Agent" AppStderr "$logDir\\agent.log"
+if ($winswExe -and (Test-Path $winswExe)) {{
+    # Install as Windows Service using WinSW
+    Write-Host "[*] Installing Windows Service (WinSW)..." -ForegroundColor Yellow
+    Push-Location $winswDir
+    & $winswExe install
+    Pop-Location
     Start-Service "ServerCTL-Agent"
     Write-Host ""
     Write-Host "==========================================" -ForegroundColor Green
@@ -783,22 +792,8 @@ if ($nssmExe -and (Test-Path $nssmExe)) {{
     Write-Host " Visible in services.msc as: ServerCTL Agent" -ForegroundColor Green
     Write-Host "==========================================" -ForegroundColor Green
 }} else {{
-    # Fallback: Task Scheduler
-    Write-Host "[*] Installing Scheduled Task (fallback)..." -ForegroundColor Yellow
-    $action    = New-ScheduledTaskAction -Execute $pyExe -Argument $agentPy
-    $trigger   = New-ScheduledTaskTrigger -AtStartup
-    $settings  = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit (New-TimeSpan -Hours 0)
-    $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
-    Register-ScheduledTask -TaskName "ServerCTL Agent" -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null
-    Start-ScheduledTask -TaskName "ServerCTL Agent"
-    Write-Host ""
-    Write-Host "==========================================" -ForegroundColor Green
-    Write-Host " ServerCTL Agent installed successfully!" -ForegroundColor Green
-    Write-Host " Task:    ServerCTL Agent (Task Scheduler)" -ForegroundColor Green
-    Write-Host " Python:  C:\\ServerCTL\\python\\python.exe" -ForegroundColor Green
-    Write-Host " Config:  C:\\ServerCTL\\config.yml"         -ForegroundColor Green
-    Write-Host " Logs:    C:\\ServerCTL\\logs\\agent.log"    -ForegroundColor Green
-    Write-Host "==========================================" -ForegroundColor Green
+    Write-Error "WinSW download failed. Please check internet connectivity and try again."
+    exit 1
 }}
 """
     return PlainTextResponse(script, media_type="text/plain")
