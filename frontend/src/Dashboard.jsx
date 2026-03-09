@@ -5,68 +5,68 @@ const WS_HOST = `${WS_PROTOCOL}//${window.location.host}`;
 
 const colors = {
   dark: {
-    bg: '#0f172a',
-    card: '#1e293b',
-    cardHover: '#334155',
-    text: '#f1f5f9',
-    textMuted: '#94a3b8',
-    border: '#334155',
-    input: '#1e293b',
-    inputBorder: '#475569',
-    primary: '#3b82f6',
-    primaryHover: '#2563eb',
-    success: '#22c55e',
-    danger: '#ef4444',
-    warning: '#f59e0b',
-    purple: '#8b5cf6',
-    green: '#10b981',
-    red: '#ef4444',
-    orange: '#f97316',
-    amber: '#f59e0b',
-    yellow: '#eab308',
-    lime: '#84cc16',
-    emerald: '#10b981',
-    teal: '#14b8a6',
-    cyan: '#06b6d4',
-    sky: '#0ea5e9',
-    blue: '#3b82f6',
-    indigo: '#6366f1',
-    violet: '#8b5cf6',
-    fuchsia: '#d946ef',
-    pink: '#ec4899',
-    rose: '#f43f5e',
+    bg: '#16232E',
+    card: '#1a2d3a',
+    cardHover: '#1f3748',
+    text: '#c8d8de',
+    textMuted: '#5d8a9a',
+    border: '#2a5063',
+    input: '#0f1e28',
+    inputBorder: '#467885',
+    primary: '#A8987C',
+    primaryHover: '#bfaa8c',
+    success: '#3dd68c',
+    danger: '#f06060',
+    warning: '#e8a838',
+    purple: '#8b7cf6',
+    green: '#3dd68c',
+    red: '#f06060',
+    orange: '#e8773a',
+    amber: '#e8a838',
+    yellow: '#d4b840',
+    lime: '#7ac840',
+    emerald: '#2ec880',
+    teal: '#2ab8a8',
+    cyan: '#20b0cc',
+    sky: '#30a8e0',
+    blue: '#4888e8',
+    indigo: '#6068e8',
+    violet: '#8b7cf6',
+    fuchsia: '#c040d8',
+    pink: '#d840a0',
+    rose: '#e84068',
   },
   light: {
-    bg: '#f8fafc',
+    bg: '#eef2f4',
     card: '#ffffff',
-    cardHover: '#f1f5f9',
-    text: '#1e293b',
-    textMuted: '#64748b',
-    border: '#e2e8f0',
+    cardHover: '#e8eef2',
+    text: '#16232E',
+    textMuted: '#467885',
+    border: '#c0d4da',
     input: '#ffffff',
-    inputBorder: '#e2e8f0',
-    primary: '#3b82f6',
-    primaryHover: '#2563eb',
-    success: '#22c55e',
-    danger: '#ef4444',
-    warning: '#f59e0b',
-    purple: '#8b5cf6',
-    green: '#10b981',
-    red: '#ef4444',
-    orange: '#f97316',
-    amber: '#f59e0b',
-    yellow: '#eab308',
-    lime: '#84cc16',
-    emerald: '#10b981',
-    teal: '#14b8a6',
-    cyan: '#06b6d4',
-    sky: '#0ea5e9',
-    blue: '#3b82f6',
-    indigo: '#6366f1',
-    violet: '#8b5cf6',
-    fuchsia: '#d946ef',
-    pink: '#ec4899',
-    rose: '#f43f5e',
+    inputBorder: '#A8987C',
+    primary: '#25515E',
+    primaryHover: '#16232E',
+    success: '#22a86a',
+    danger: '#d04040',
+    warning: '#c08020',
+    purple: '#7060d8',
+    green: '#22a86a',
+    red: '#d04040',
+    orange: '#c06030',
+    amber: '#c08020',
+    yellow: '#b09000',
+    lime: '#608020',
+    emerald: '#18a060',
+    teal: '#18908a',
+    cyan: '#1888a8',
+    sky: '#2080c0',
+    blue: '#2868c8',
+    indigo: '#4050b8',
+    violet: '#7060d8',
+    fuchsia: '#a030b0',
+    pink: '#b02888',
+    rose: '#c03058',
   }
 };
 
@@ -95,33 +95,56 @@ const LoginPage = ({ onLogin, darkMode, toggleDark }) => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif', color: c.text }}>
-      <div style={{ width: '100%', maxWidth: '400px', padding: '0 20px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ fontSize: '42px', fontWeight: '900', background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-1px' }}>ServerCTL</div>
-          <div style={{ color: c.textMuted, marginTop: '6px' }}>Infrastructure Control Panel</div>
+    <div style={{ minHeight: '100vh', background: darkMode ? '#16232E' : '#eef2f4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Courier New", Courier, monospace', color: c.text, position: 'relative', overflow: 'hidden' }}>
+      <style>{`
+        @keyframes loginGrid { 0%,100% { opacity: 0.04; } 50% { opacity: 0.08; } }
+        @keyframes loginScan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100vh); } }
+        @keyframes loginGlow { 0%,100% { box-shadow: 0 0 20px rgba(168,152,124,0.15), 0 0 60px rgba(70,120,133,0.1); } 50% { box-shadow: 0 0 30px rgba(168,152,124,0.25), 0 0 80px rgba(70,120,133,0.15); } }
+        .login-input:focus { border-color: #A8987C !important; box-shadow: 0 0 0 1px #A8987C40, 0 0 12px #A8987C20 !important; outline: none; }
+        .login-btn:hover:not(:disabled) { background: #bfaa8c !important; box-shadow: 0 0 20px #A8987C40 !important; }
+      `}</style>
+      {/* Grid background */}
+      <div style={{ position: 'absolute', inset: 0, backgroundImage: `linear-gradient(${darkMode ? 'rgba(70,120,133,0.07)' : 'rgba(37,81,94,0.06)'} 1px, transparent 1px), linear-gradient(90deg, ${darkMode ? 'rgba(70,120,133,0.07)' : 'rgba(37,81,94,0.06)'} 1px, transparent 1px)`, backgroundSize: '40px 40px', animation: 'loginGrid 4s ease-in-out infinite' }} />
+      {/* Scan line */}
+      {darkMode && <div style={{ position: 'absolute', left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, transparent, rgba(168,152,124,0.15), transparent)', animation: 'loginScan 8s linear infinite', pointerEvents: 'none' }} />}
+
+      <div style={{ width: '100%', maxWidth: '400px', padding: '0 24px', position: 'relative', zIndex: 1 }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+          <div style={{ fontSize: '11px', letterSpacing: '0.4em', color: '#467885', marginBottom: '8px', textTransform: 'uppercase' }}>◈ SYSTEM ONLINE ◈</div>
+          <div style={{ fontSize: '38px', fontWeight: '900', letterSpacing: '0.12em', color: '#A8987C', textShadow: darkMode ? '0 0 30px rgba(168,152,124,0.4)' : 'none', fontFamily: '"Courier New", monospace' }}>SERVERCTL</div>
+          <div style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#467885', marginTop: '6px', textTransform: 'uppercase' }}>Infrastructure Control Interface</div>
         </div>
-        <div style={{ background: c.card, borderRadius: '16px', padding: '32px', border: `1px solid ${c.border}`, boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
-          <h2 style={{ margin: '0 0 24px', fontSize: '18px', fontWeight: '700' }}>Sign In</h2>
+
+        {/* Card */}
+        <div style={{ background: darkMode ? 'rgba(26,45,58,0.92)' : 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)', border: `1px solid ${darkMode ? '#2a5063' : '#c0d4da'}`, padding: '32px', clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))', animation: darkMode ? 'loginGlow 3s ease-in-out infinite' : 'none' }}>
+          {/* Corner accents */}
+          <div style={{ position: 'absolute', top: 0, right: 0, width: '16px', height: '16px', borderTop: `2px solid #A8987C`, borderRight: `2px solid #A8987C` }} />
+          <div style={{ position: 'absolute', bottom: 0, left: 0, width: '16px', height: '16px', borderBottom: `2px solid #A8987C`, borderLeft: `2px solid #A8987C` }} />
+
+          <div style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#467885', textTransform: 'uppercase', marginBottom: '24px' }}>// Authentication Required</div>
+
           <form onSubmit={submit}>
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px', color: c.textMuted }}>Username</label>
-              <input value={username} onChange={e => setUsername(e.target.value)} autoFocus required
-                style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: `1px solid ${c.border}`, background: c.bg, color: c.text, fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '6px', color: '#467885', letterSpacing: '0.15em', textTransform: 'uppercase' }}>User ID</label>
+              <input value={username} onChange={e => setUsername(e.target.value)} autoFocus required className="login-input"
+                style={{ width: '100%', padding: '10px 14px', border: `1px solid ${darkMode ? '#2a5063' : '#c0d4da'}`, background: darkMode ? '#0f1e28' : '#f5f8fa', color: c.text, fontSize: '14px', boxSizing: 'border-box', fontFamily: '"Courier New", monospace', transition: 'all 0.2s', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))' }} />
             </div>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '6px', color: c.textMuted }}>Password</label>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
-                style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: `1px solid ${c.border}`, background: c.bg, color: c.text, fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '6px', color: '#467885', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Access Key</label>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required className="login-input"
+                style={{ width: '100%', padding: '10px 14px', border: `1px solid ${darkMode ? '#2a5063' : '#c0d4da'}`, background: darkMode ? '#0f1e28' : '#f5f8fa', color: c.text, fontSize: '14px', boxSizing: 'border-box', fontFamily: '"Courier New", monospace', transition: 'all 0.2s', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))' }} />
             </div>
-            {error && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: '8px', marginBottom: '16px', fontSize: '13px' }}>{error}</div>}
-            <button type="submit" disabled={loading} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: 'none', background: 'linear-gradient(135deg,#3b82f6,#6366f1)', color: '#fff', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}>
-              {loading ? 'Signing in...' : 'Sign In'}
+            {error && <div style={{ border: '1px solid #f0606040', background: '#f0606012', color: '#f06060', padding: '10px 14px', marginBottom: '16px', fontSize: '12px', fontFamily: '"Courier New", monospace', letterSpacing: '0.05em' }}>⚠ {error}</div>}
+            <button type="submit" disabled={loading} className="login-btn"
+              style={{ width: '100%', padding: '12px', border: `1px solid #A8987C`, background: '#A8987C', color: '#16232E', fontSize: '13px', fontWeight: '800', cursor: 'pointer', letterSpacing: '0.25em', textTransform: 'uppercase', fontFamily: '"Courier New", monospace', clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))', transition: 'all 0.2s' }}>
+              {loading ? '[ AUTHENTICATING... ]' : '[ INITIALIZE ACCESS ]'}
             </button>
           </form>
         </div>
+
         <div style={{ textAlign: 'center', marginTop: '16px' }}>
-          <button onClick={toggleDark} style={{ background: 'none', border: 'none', color: c.textMuted, cursor: 'pointer', fontSize: '13px' }}>{darkMode ? '☀️ Light mode' : '🌙 Dark mode'}</button>
+          <button onClick={toggleDark} style={{ background: 'none', border: 'none', color: '#467885', cursor: 'pointer', fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', fontFamily: '"Courier New", monospace' }}>{darkMode ? '◑ Light Interface' : '◐ Dark Interface'}</button>
         </div>
       </div>
     </div>
@@ -1536,7 +1559,7 @@ const Dashboard = () => {
     },
     searchInput: {
       padding: '10px 16px',
-      borderRadius: '8px',
+      clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
       border: `1px solid ${c.border}`,
       fontSize: '14px',
       background: c.card,
@@ -1545,33 +1568,37 @@ const Dashboard = () => {
       outline: 'none',
     },
     btn: {
-      padding: '10px 16px',
-      borderRadius: '8px',
+      padding: '8px 16px',
       border: 'none',
-      fontSize: '14px',
-      fontWeight: '500',
+      fontSize: '13px',
+      fontWeight: '600',
       cursor: 'pointer',
-      transition: 'all 0.2s',
+      transition: 'all 0.15s',
       display: 'inline-flex',
       alignItems: 'center',
       gap: '6px',
+      letterSpacing: '0.04em',
+      clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))',
     },
     btnPrimary: {
-      background: c.primary,
-      color: '#fff',
+      background: '#A8987C',
+      color: '#16232E',
+      border: '1px solid #A8987C',
     },
     btnSecondary: {
-      background: c.cardHover,
+      background: 'transparent',
       color: c.text,
       border: `1px solid ${c.border}`,
     },
     btnSuccess: {
-      background: '#22c55e',
-      color: '#fff',
+      background: 'transparent',
+      color: '#3dd68c',
+      border: '1px solid #3dd68c60',
     },
     btnDanger: {
-      background: '#fee2e2',
-      color: '#dc2626',
+      background: 'transparent',
+      color: '#f06060',
+      border: '1px solid #f0606050',
     },
     statsGrid: {
       display: 'grid',
@@ -1580,11 +1607,12 @@ const Dashboard = () => {
       marginBottom: '24px',
     },
     statCard: (color) => ({
-      background: c.card,
-      borderRadius: '12px',
+      background: darkMode ? 'rgba(26,45,58,0.88)' : 'rgba(255,255,255,0.88)',
       padding: '20px',
-      border: `1px solid ${c.border}`,
-      borderLeft: `4px solid ${color}`,
+      border: `1px solid ${darkMode ? '#2a5063' : '#c0d4da'}`,
+      borderLeft: `3px solid ${color}`,
+      clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)',
+      boxShadow: darkMode ? `0 0 12px ${color}18` : 'none',
     }),
     statLabel: {
       fontSize: '13px',
@@ -1602,12 +1630,12 @@ const Dashboard = () => {
       marginTop: '4px',
     },
     card: {
-      background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)',
+      background: darkMode ? 'rgba(26,45,58,0.88)' : 'rgba(255,255,255,0.88)',
       backdropFilter: 'blur(10px)',
-      borderRadius: '12px',
-      boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
+      clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))',
+      boxShadow: darkMode ? '0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(70,120,133,0.1)' : '0 4px 16px rgba(0,0,0,0.08)',
       marginBottom: '24px',
-      border: `1px solid ${c.border}`,
+      border: `1px solid ${darkMode ? '#2a5063' : '#c0d4da'}`,
       overflow: 'hidden',
     },
     cardHeader: {
@@ -1618,9 +1646,12 @@ const Dashboard = () => {
       alignItems: 'center',
     },
     cardTitle: {
-      fontSize: '16px',
-      fontWeight: '600',
+      fontSize: '13px',
+      fontWeight: '700',
       margin: 0,
+      letterSpacing: '0.1em',
+      textTransform: 'uppercase',
+      color: '#A8987C',
     },
     cardBody: {
       padding: '0',
@@ -1704,7 +1735,7 @@ const Dashboard = () => {
     },
     modalContent: {
       background: c.card,
-      borderRadius: '12px',
+      clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))',
       width: '90%',
       maxWidth: '960px',
       minWidth: '480px',
@@ -1751,7 +1782,7 @@ const Dashboard = () => {
       background: '#0d1117',
       color: '#c9d1d9',
       padding: '16px',
-      borderRadius: '8px',
+      clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
       fontFamily: 'monospace',
       fontSize: '13px',
       minHeight: '300px',
@@ -1763,7 +1794,7 @@ const Dashboard = () => {
     sshInput: {
       width: '100%',
       padding: '10px 14px',
-      borderRadius: '8px',
+      clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
       border: '1px solid #30363d',
       background: '#0d1117',
       color: '#c9d1d9',
@@ -1781,14 +1812,15 @@ const Dashboard = () => {
       lineHeight: 1,
     },
     input: {
-      padding: '10px 14px',
-      borderRadius: '8px',
-      border: `1px solid ${c.inputBorder}`,
-      fontSize: '14px',
+      padding: '8px 12px',
+      border: `1px solid ${darkMode ? '#2a5063' : '#b8cdd6'}`,
+      fontSize: '13px',
       outline: 'none',
-      background: c.input,
+      background: darkMode ? '#0f1e28' : '#f0f5f8',
       color: c.text,
       minWidth: '180px',
+      clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
+      transition: 'border-color 0.15s, box-shadow 0.15s',
     },
     label: {
       fontSize: '13px',
@@ -1810,7 +1842,7 @@ const Dashboard = () => {
     actionOutput: {
       background: c.bg,
       padding: '16px',
-      borderRadius: '8px',
+      clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
       fontFamily: 'monospace',
       fontSize: '12px',
       whiteSpace: 'pre-wrap',
@@ -1896,7 +1928,7 @@ const Dashboard = () => {
   const barTrack = { height: '6px', borderRadius: '3px', background: darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)', overflow: 'hidden' };
   const barFill = (pct, color) => ({ height: '100%', width: `${pct}%`, background: color, borderRadius: '3px', transition: 'width 0.4s ease' });
   const pctColor = (pct) => pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#3b82f6';
-  const badge = (text, color) => ({ display: 'inline-block', background: color + '20', color, padding: '1px 8px', borderRadius: '10px', fontWeight: '700', fontSize: '11px' });
+  const badge = (text, color) => ({ display: 'inline-block', background: color + '20', color, padding: '1px 8px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '700', fontSize: '11px' });
 
   const parseMemVal = (str = '') => {
     if (!str || str === '0B') return 0;
@@ -1918,7 +1950,7 @@ const Dashboard = () => {
         {rows.map((r, i) => {
           const color = pctColor(r.pct);
           return (
-            <div key={i} style={{ background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', borderRadius: '10px', padding: '12px 16px', border: `1px solid ${c.border}` }}>
+            <div key={i} style={{ background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', padding: '12px 16px', border: `1px solid ${c.border}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <div>
                   <span style={{ fontSize: '13px', fontWeight: '600', color: c.text }}>{r.mount}</span>
@@ -1950,13 +1982,13 @@ const Dashboard = () => {
           const color = pctColor(pct);
           const isSwap = r.label === 'Swap';
           if (isSwap && totalGb === 0) return (
-            <div key={i} style={{ background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', borderRadius: '10px', padding: '12px 16px', border: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div key={i} style={{ background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', padding: '12px 16px', border: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '13px', fontWeight: '600' }}>Swap</span>
               <span style={{ fontSize: '12px', color: c.textMuted }}>Not configured</span>
             </div>
           );
           return (
-            <div key={i} style={{ background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', borderRadius: '10px', padding: '14px 16px', border: `1px solid ${c.border}` }}>
+            <div key={i} style={{ background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', padding: '14px 16px', border: `1px solid ${c.border}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <span style={{ fontSize: '14px', fontWeight: '700' }}>{r.label === 'Mem' ? 'Memory (RAM)' : 'Swap'}</span>
                 <span style={badge(pct + '%', color)}>{pct}%</span>
@@ -1991,7 +2023,7 @@ const Dashboard = () => {
         {title && <div style={{ fontSize: '12px', fontWeight: '600', color: c.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>{title}</div>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {sortedEntries.map(([k, v], i) => (
-            <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '8px 12px', borderRadius: '8px', background: i % 2 === 0 ? (darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)') : 'transparent' }}>
+            <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '8px 12px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', background: i % 2 === 0 ? (darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)') : 'transparent' }}>
               <span style={{ fontSize: '13px', color: c.textMuted, flexShrink: 0, marginRight: '16px' }}>{k}</span>
               <span style={{ fontSize: '13px', fontWeight: '600', color: c.text, textAlign: 'right', wordBreak: 'break-word' }}>{v}</span>
             </div>
@@ -2011,8 +2043,8 @@ const Dashboard = () => {
     const kv = parseKeyVal(text);
     if (kv) return <KVGrid data={kv} />;
     return (
-      <div style={{ borderRadius: '10px', border: `1px solid ${c.border}`, overflow: 'hidden' }}>
-        <div style={{ background: darkMode ? '#161b22' : '#f1f5f9', padding: '8px 14px', borderBottom: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div style={{ clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', border: `1px solid ${c.border}`, overflow: 'hidden' }}>
+        <div style={{ background: darkMode ? '#0d1820' : '#f0f5f8', padding: '8px 14px', borderBottom: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '6px' }}>
           <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#ef4444' }} />
           <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#f59e0b' }} />
           <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#22c55e' }} />
@@ -2038,68 +2070,84 @@ const Dashboard = () => {
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', color: c.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', transition: 'all 0.3s' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', color: c.text, fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', transition: 'background 0.3s, color 0.3s', background: darkMode ? '#16232E' : '#eef2f4', position: 'relative' }}>
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .probe-info-wrap:hover .probe-info-icon { background: #3b82f6 !important; color: #fff !important; }
-        .probe-info-wrap:hover .probe-tooltip { display: block !important; }
         @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes bgGrid { 0%,100% { opacity: ${darkMode ? '1' : '0.6'}; } 50% { opacity: ${darkMode ? '0.6' : '0.3'}; } }
+        @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100vh); } }
+        .probe-info-wrap:hover .probe-info-icon { background: #A8987C !important; color: #16232E !important; }
+        .probe-info-wrap:hover .probe-tooltip { display: block !important; }
         button:not(:disabled):active { transform: scale(0.96) !important; }
-        button:disabled { opacity: 0.4 !important; cursor: not-allowed !important; pointer-events: auto !important; }
-        button:not(:disabled) { transition: filter 0.12s, transform 0.1s, opacity 0.12s; }
-        button:not(:disabled):hover { filter: brightness(1.1); }
+        button:disabled { opacity: 0.35 !important; cursor: not-allowed !important; pointer-events: auto !important; }
+        button:not(:disabled) { transition: filter 0.12s, transform 0.1s, box-shadow 0.15s; }
+        button:not(:disabled):hover { filter: brightness(1.12); }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: ${darkMode ? '#0f1e28' : '#e0e8ec'}; }
+        ::-webkit-scrollbar-thumb { background: #467885; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #A8987C; }
+        input, select, textarea { color-scheme: ${darkMode ? 'dark' : 'light'}; }
+        .fut-card { clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)); }
+        .fut-btn { clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px)); }
       `}</style>
+      {/* Background grid */}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, backgroundImage: `linear-gradient(${darkMode ? 'rgba(70,120,133,0.06)' : 'rgba(37,81,94,0.05)'} 1px, transparent 1px), linear-gradient(90deg, ${darkMode ? 'rgba(70,120,133,0.06)' : 'rgba(37,81,94,0.05)'} 1px, transparent 1px)`, backgroundSize: '48px 48px', animation: 'bgGrid 6s ease-in-out infinite' }} />
+      {/* Scanline (dark mode only) */}
+      {darkMode && <div style={{ position: 'fixed', left: 0, right: 0, height: '120px', background: 'linear-gradient(transparent, rgba(70,120,133,0.03), transparent)', animation: 'scanline 12s linear infinite', pointerEvents: 'none', zIndex: 0 }} />}
       {/* ── Left Nav Sidebar ── */}
-      <nav style={{ width: '210px', position: 'fixed', top: 0, bottom: 0, left: 0, background: darkMode ? 'rgba(8,15,30,0.88)' : 'rgba(240,244,248,0.88)', backdropFilter: 'blur(12px)', borderRight: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', zIndex: 200, overflowY: 'auto' }}>
+      <nav style={{ width: '210px', position: 'fixed', top: 0, bottom: 0, left: 0, background: darkMode ? 'rgba(13,24,32,0.96)' : 'rgba(230,238,242,0.96)', backdropFilter: 'blur(16px)', borderRight: `1px solid ${darkMode ? '#1e3d4f' : '#b8cdd6'}`, display: 'flex', flexDirection: 'column', zIndex: 200, overflowY: 'auto' }}>
         {/* Logo */}
-        <div style={{ padding: '16px 16px 14px', borderBottom: `1px solid ${c.border}`, textAlign: 'center' }}>
-          {customLogo && <img src={customLogo} alt="logo" style={{ maxWidth: '120px', maxHeight: '60px', objectFit: 'contain', marginBottom: '8px', borderRadius: '6px' }} />}
-          <div style={{ fontWeight: '800', fontSize: '17px', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{customTabTitle}</div>
-          <div style={{ fontSize: '11px', color: c.textMuted, marginTop: '2px' }}>Infrastructure Manager</div>
+        <div style={{ padding: '18px 16px 16px', borderBottom: `1px solid ${darkMode ? '#1e3d4f' : '#b8cdd6'}`, textAlign: 'center' }}>
+          {customLogo && <img src={customLogo} alt="logo" style={{ maxWidth: '120px', maxHeight: '60px', objectFit: 'contain', marginBottom: '8px', borderRadius: '3px' }} />}
+          <div style={{ fontWeight: '900', fontSize: '16px', letterSpacing: '0.18em', color: '#A8987C', textShadow: darkMode ? '0 0 20px rgba(168,152,124,0.3)' : 'none', fontFamily: '"Courier New", monospace' }}>{customTabTitle}</div>
+          <div style={{ fontSize: '9px', color: '#467885', marginTop: '4px', letterSpacing: '0.2em', textTransform: 'uppercase' }}>◈ Control Interface</div>
         </div>
         {/* Nav items */}
-        <div style={{ flex: 1, padding: '8px 0' }}>
+        <div style={{ flex: 1, padding: '6px 0' }}>
           {navItems.map(item => {
             const active = navSection === item.key || (navSection === 'manage' && item.key === 'servers');
             const updatesBadge = item.key === 'updates' && servers.some(s => s.pending_updates?.count > 0)
               ? servers.reduce((sum, s) => sum + (s.pending_updates?.count || 0), 0) : 0;
             return (
-              <button key={item.key} onClick={() => { setNavSection(item.key); if (item.key === 'servers') setServerQuickFilter('all'); if (item.key === 'settings' && isAdmin) fetchUsers(); }} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', border: 'none', borderLeft: `3px solid ${active ? c.primary : 'transparent'}`, background: active ? (darkMode ? '#1e293b' : '#e2e8f0') : 'transparent', color: active ? c.primary : c.textMuted, cursor: 'pointer', fontSize: '13px', fontWeight: active ? '600' : '400', width: '100%', textAlign: 'left', transition: 'all 0.15s', position: 'relative' }}>
-                <span style={{ fontSize: '14px', width: '18px', textAlign: 'center', flexShrink: 0 }}>{item.icon}</span>
+              <button key={item.key} onClick={() => { setNavSection(item.key); if (item.key === 'servers') setServerQuickFilter('all'); if (item.key === 'settings' && isAdmin) fetchUsers(); }}
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 16px', border: 'none', borderLeft: `2px solid ${active ? '#A8987C' : 'transparent'}`, background: active ? (darkMode ? 'rgba(168,152,124,0.08)' : 'rgba(37,81,94,0.08)') : 'transparent', color: active ? '#A8987C' : c.textMuted, cursor: 'pointer', fontSize: '12px', fontWeight: active ? '700' : '400', width: '100%', textAlign: 'left', transition: 'all 0.15s', letterSpacing: active ? '0.04em' : '0', position: 'relative' }}>
+                <span style={{ fontSize: '13px', width: '18px', textAlign: 'center', flexShrink: 0, filter: active ? (darkMode ? 'drop-shadow(0 0 4px #A8987C)' : 'none') : 'none' }}>{item.icon}</span>
                 <span style={{ flex: 1 }}>{item.label}</span>
-                {updatesBadge > 0 && <span style={{ background: '#f59e0b', color: '#fff', fontSize: '10px', fontWeight: '700', padding: '1px 6px', borderRadius: '10px' }}>{updatesBadge}</span>}
+                {updatesBadge > 0 && <span style={{ background: '#e8a838', color: '#16232E', fontSize: '9px', fontWeight: '800', padding: '1px 5px', letterSpacing: '0.05em' }}>{updatesBadge}</span>}
               </button>
             );
           })}
         </div>
         {/* User info at bottom */}
-        <div style={{ padding: '12px 16px', borderTop: `1px solid ${c.border}`, fontSize: '12px' }}>
-          <div style={{ fontWeight: '600', color: c.text, marginBottom: '2px' }}>{user?.username}</div>
-          <div style={{ color: c.textMuted, marginBottom: '8px' }}>{isAdmin ? 'Administrator' : 'User'}</div>
-          <button onClick={handleLogout} style={{ ...styles.btn, background: '#fee2e230', color: '#dc2626', border: '1px solid #fee2e2', fontSize: '12px', padding: '5px 10px', width: '100%', justifyContent: 'center' }}>Sign Out</button>
+        <div style={{ padding: '12px 16px', borderTop: `1px solid ${darkMode ? '#1e3d4f' : '#b8cdd6'}`, fontSize: '11px' }}>
+          <div style={{ fontWeight: '700', color: '#A8987C', marginBottom: '1px', letterSpacing: '0.06em', fontFamily: '"Courier New", monospace' }}>{user?.username}</div>
+          <div style={{ color: '#467885', marginBottom: '10px', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{isAdmin ? '// Administrator' : '// User'}</div>
+          <button onClick={handleLogout} style={{ ...styles.btn, background: 'transparent', color: '#f06060', border: '1px solid #f0606040', fontSize: '11px', padding: '5px 10px', width: '100%', justifyContent: 'center', letterSpacing: '0.08em', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))' }}>Sign Out</button>
         </div>
       </nav>
 
       {/* ── Main content area ── */}
-      <div style={{ marginLeft: '210px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <div style={{ marginLeft: '210px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'relative', zIndex: 1 }}>
         {/* Top Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 24px', borderBottom: `1px solid ${c.border}`, background: darkMode ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px', borderBottom: `1px solid ${darkMode ? '#1e3d4f' : '#b8cdd6'}`, background: darkMode ? 'rgba(13,24,32,0.92)' : 'rgba(230,238,242,0.92)', backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 100 }}>
           <div>
-            <div style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '-0.3px' }}>{navSection === 'manage' && selectedServer ? selectedServer.name : (navItems.find(n => n.key === navSection)?.label || customTabTitle)}</div>
-            <div style={{ fontSize: '13px', color: c.textMuted, marginTop: '2px' }}>
-              Welcome, <strong style={{ color: c.text, fontSize: '14px' }}>{user?.username}</strong>
-              <span style={{ marginLeft: '8px', background: isAdmin ? '#3b82f620' : '#22c55e20', color: isAdmin ? '#3b82f6' : '#22c55e', padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: '700' }}>{isAdmin ? 'Admin' : 'User'}</span>
+            <div style={{ fontSize: '16px', fontWeight: '800', letterSpacing: '0.08em', color: '#A8987C', textTransform: 'uppercase', fontFamily: '"Courier New", monospace', textShadow: darkMode ? '0 0 16px rgba(168,152,124,0.25)' : 'none' }}>
+              {navSection === 'manage' && selectedServer ? selectedServer.name : (navItems.find(n => n.key === navSection)?.label || customTabTitle)}
+            </div>
+            <div style={{ fontSize: '11px', color: '#467885', marginTop: '2px', letterSpacing: '0.12em' }}>
+              ◈ {user?.username}
+              <span style={{ marginLeft: '10px', background: isAdmin ? 'rgba(168,152,124,0.12)' : 'rgba(61,214,140,0.12)', color: isAdmin ? '#A8987C' : '#3dd68c', padding: '1px 7px', fontSize: '10px', fontWeight: '700', letterSpacing: '0.1em' }}>{isAdmin ? 'ADMIN' : 'USER'}</span>
             </div>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <button onClick={() => setDarkMode(!darkMode)} style={{ ...styles.btn, ...styles.btnSecondary, padding: '8px 12px' }}>{darkMode ? '☀️' : '🌙'}</button>
+            <button onClick={() => setDarkMode(!darkMode)} style={{ ...styles.btn, background: 'transparent', border: `1px solid ${darkMode ? '#2a5063' : '#b8cdd6'}`, color: c.textMuted, padding: '6px 12px', fontSize: '13px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))' }}>{darkMode ? '◑' : '◐'}</button>
           </div>
         </div>
 
         {/* Page content */}
-        <div style={{ padding: '24px', flex: 1, background: darkMode ? 'rgba(15,23,42,0.55)' : 'rgba(248,250,252,0.55)' }}>
+        <div style={{ padding: '24px', flex: 1 }}>
 
 
       {/* ── SERVERS section ── */}
@@ -2107,7 +2155,7 @@ const Dashboard = () => {
 
       {/* Quick filter banner */}
       {serverQuickFilter !== 'all' && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', padding: '10px 16px', borderRadius: '10px', background: serverQuickFilter === 'needs_reboot' ? '#ef444415' : '#f59e0b15', border: `1px solid ${serverQuickFilter === 'needs_reboot' ? '#ef444440' : '#f59e0b40'}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', padding: '10px 16px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', background: serverQuickFilter === 'needs_reboot' ? '#ef444415' : '#f59e0b15', border: `1px solid ${serverQuickFilter === 'needs_reboot' ? '#ef444440' : '#f59e0b40'}` }}>
           <span style={{ fontSize: '13px', fontWeight: '600', color: serverQuickFilter === 'needs_reboot' ? '#ef4444' : '#f59e0b' }}>
             {serverQuickFilter === 'needs_reboot' ? `⚠ ${filteredServers.length} server(a) zahtijeva reboot` : `↑ ${filteredServers.length} server(a) ima dostupne update-e`}
           </span>
@@ -2129,7 +2177,7 @@ const Dashboard = () => {
           { label: 'Offline', value: offlineCount, color: '#ef4444', icon: '○', sub: 'unreachable' },
           { label: 'Backend', value: hostStatus === null ? '…' : hostStatus.online ? 'OK' : 'DOWN', color: hostStatus?.online !== false ? '#22c55e' : '#ef4444', icon: '⬡', sub: 'host status' },
         ].map(stat => (
-          <div key={stat.label} style={{ background: c.card, borderRadius: '14px', padding: '18px 20px', border: `1px solid ${c.border}`, borderTop: `3px solid ${stat.color}`, position: 'relative', overflow: 'hidden' }}>
+          <div key={stat.label} style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', padding: '18px 20px', border: `1px solid ${c.border}`, borderTop: `3px solid ${stat.color}`, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: '14px', right: '16px', fontSize: '22px', opacity: 0.15, color: stat.color }}>{stat.icon}</div>
             <div style={{ fontSize: '12px', fontWeight: '600', color: c.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{stat.label}</div>
             <div style={{ fontSize: '34px', fontWeight: '800', color: stat.color, lineHeight: 1.1, marginTop: '6px' }}>{stat.value}</div>
@@ -2178,7 +2226,7 @@ const Dashboard = () => {
             <span style={{ display: 'inline-block', animation: syncingStatus ? 'spin 0.8s linear infinite' : 'none' }}>↺</span>
             {syncingStatus && <span style={{ marginLeft: '5px', fontSize: '11px' }}>Syncing...</span>}
           </button>
-          <div style={{ display: 'flex', border: `1px solid ${c.border}`, borderRadius: '8px', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', border: `1px solid ${c.border}`, clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', overflow: 'hidden' }}>
             <button onClick={() => setViewMode('grid')} title="Grid view" style={{ ...styles.btn, padding: '8px 12px', borderRadius: 0, background: viewMode === 'grid' ? c.primary : c.card, color: viewMode === 'grid' ? '#fff' : c.textMuted, border: 'none', fontSize: '15px' }}>⊞</button>
             <button onClick={() => setViewMode('list')} title="List view" style={{ ...styles.btn, padding: '8px 12px', borderRadius: 0, background: viewMode === 'list' ? c.primary : c.card, color: viewMode === 'list' ? '#fff' : c.textMuted, border: 'none', fontSize: '15px' }}>≡</button>
           </div>
@@ -2186,7 +2234,7 @@ const Dashboard = () => {
       </div>
 
       {showBulkPanel && (
-        <div style={{ background: c.card, borderRadius: '12px', border: `1px solid ${c.border}`, padding: '16px', marginBottom: '16px' }}>
+        <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, padding: '16px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <div style={{ fontSize: '12px', color: c.textMuted, fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Bulk Actions — <span style={{ color: c.primary }}>{selectedServers.length} selected</span>
@@ -2226,7 +2274,7 @@ const Dashboard = () => {
             const pu = s.pending_updates;
             return (
               <div key={String(s.id || '')}
-                style={{ background: c.card, borderRadius: '14px', border: `1px solid ${isSelected ? c.primary : c.border}`, overflow: 'hidden', transition: 'transform 0.15s, box-shadow 0.15s', boxShadow: hoveredRow === s.id ? '0 8px 24px rgba(0,0,0,0.15)' : '0 1px 4px rgba(0,0,0,0.06)', transform: hoveredRow === s.id ? 'translateY(-2px)' : 'none', position: 'relative' }}
+                style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${isSelected ? c.primary : c.border}`, overflow: 'hidden', transition: 'transform 0.15s, box-shadow 0.15s', boxShadow: hoveredRow === s.id ? '0 8px 24px rgba(0,0,0,0.15)' : '0 1px 4px rgba(0,0,0,0.06)', transform: hoveredRow === s.id ? 'translateY(-2px)' : 'none', position: 'relative' }}
                 onMouseEnter={() => setHoveredRow(s.id)} onMouseLeave={() => setHoveredRow(null)}
               >
                 <div style={{ height: '3px', background: s.online ? 'linear-gradient(90deg,#22c55e,#10b981)' : '#334155' }} />
@@ -2240,7 +2288,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                      {pu?.count > 0 && <span title={`${pu.count} updates available`} style={{ background: '#f59e0b20', color: '#f59e0b', fontSize: '11px', padding: '1px 6px', borderRadius: '10px', fontWeight: '700' }}>↑{pu.count}</span>}
+                      {pu?.count > 0 && <span title={`${pu.count} updates available`} style={{ background: '#f59e0b20', color: '#f59e0b', fontSize: '11px', padding: '1px 6px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '700' }}>↑{pu.count}</span>}
                       <span style={{ fontSize: '11px', background: c.cardHover, color: c.textMuted, padding: '2px 8px', borderRadius: '20px', fontWeight: '500' }}>{s.group || 'default'}</span>
                     </div>
                   </div>
@@ -2272,7 +2320,7 @@ const Dashboard = () => {
         </div>
       ) : (
         /* List / Table view — Docker-style */
-        <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, overflow: 'auto' }}>
+        <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, overflow: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', minWidth: '900px' }}>
             <thead>
               <tr style={{ background: darkMode ? '#0f172a' : '#f1f5f9', borderBottom: `2px solid ${c.border}` }}>
@@ -2336,7 +2384,7 @@ const Dashboard = () => {
                     {/* State */}
                     <td style={styles.td}>
                       <span style={{
-                        display: 'inline-block', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '700',
+                        display: 'inline-block', padding: '2px 10px', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', fontSize: '11px', fontWeight: '700',
                         background: s.online ? '#22c55e18' : '#ef444418',
                         color: s.online ? '#22c55e' : '#ef4444',
                         border: `1px solid ${s.online ? '#22c55e40' : '#ef444440'}`
@@ -2375,14 +2423,14 @@ const Dashboard = () => {
                     {/* Updates */}
                     <td style={styles.td}>
                       {pu?.count > 0
-                        ? <span style={{ background: '#f59e0b18', color: '#f59e0b', fontSize: '11px', padding: '2px 8px', borderRadius: '10px', fontWeight: '700', border: '1px solid #f59e0b40', whiteSpace: 'nowrap' }}>↑ {pu.count} pkg</span>
+                        ? <span style={{ background: '#f59e0b18', color: '#f59e0b', fontSize: '11px', padding: '2px 8px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '700', border: '1px solid #f59e0b40', whiteSpace: 'nowrap' }}>↑ {pu.count} pkg</span>
                         : <span style={{ fontSize: '11px', color: '#22c55e', opacity: 0.7 }}>✓ up to date</span>}
                     </td>
                     {/* Reboot required */}
                     <td style={styles.td}>
                       {pu?.reboot_required ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ background: '#ef444418', color: '#ef4444', fontSize: '11px', padding: '2px 8px', borderRadius: '10px', fontWeight: '700', border: '1px solid #ef444440', whiteSpace: 'nowrap' }}>⚠ Required</span>
+                          <span style={{ background: '#ef444418', color: '#ef4444', fontSize: '11px', padding: '2px 8px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '700', border: '1px solid #ef444440', whiteSpace: 'nowrap' }}>⚠ Required</span>
                           <button onClick={() => promptReboot([{ id: s.id, name: s.name, host: s.host, pending_updates: s.pending_updates }])}
                             style={{ background: '#ef444420', color: '#ef4444', border: '1px solid #ef444440', borderRadius: '6px', padding: '2px 8px', fontSize: '11px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                             ↺ Reboot
@@ -2489,7 +2537,7 @@ const Dashboard = () => {
               ].map(s => (
                 <div key={s.label}
                   onClick={() => { if (s.filter) { setServerQuickFilter(s.filter); setStatusFilter('all'); setGroupFilter('all'); setSearchQuery(''); setNavSection('servers'); } }}
-                  style={{ background: c.card, borderRadius: '14px', padding: '16px 18px', border: `1px solid ${c.border}`, borderTop: `3px solid ${s.color}`, position: 'relative', overflow: 'hidden', cursor: s.filter ? 'pointer' : 'default', transition: 'transform 0.15s, box-shadow 0.15s' }}
+                  style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', padding: '16px 18px', border: `1px solid ${c.border}`, borderTop: `3px solid ${s.color}`, position: 'relative', overflow: 'hidden', cursor: s.filter ? 'pointer' : 'default', transition: 'transform 0.15s, box-shadow 0.15s' }}
                   onMouseEnter={e => { if (s.filter) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${s.color}30`; } }}
                   onMouseLeave={e => { if (s.filter) { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; } }}
                 >
@@ -2510,7 +2558,7 @@ const Dashboard = () => {
                 { label: 'Compliance',        value: `${compliance}/${totalHosts}`, color: compliance === totalHosts ? '#22c55e' : '#f59e0b', icon: '✅' },
                 { label: 'Avg Pkgs / Host',   value: totalHosts > 0 ? Math.round(totalPkgs / totalHosts) : 0, color: '#8b5cf6', icon: '∅' },
               ].map(s => (
-                <div key={s.label} style={{ background: c.card, borderRadius: '12px', padding: '14px 16px', border: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div key={s.label} style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', padding: '14px 16px', border: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '14px' }}>
                   <div style={{ fontSize: '24px', opacity: 0.7, flexShrink: 0 }}>{s.icon}</div>
                   <div>
                     <div style={{ fontSize: '11px', fontWeight: '700', color: c.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</div>
@@ -2523,7 +2571,7 @@ const Dashboard = () => {
             {/* Charts row */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
               {/* OS Distribution */}
-              <div style={{ background: c.card, borderRadius: '14px', padding: '20px', border: `1px solid ${c.border}` }}>
+              <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', padding: '20px', border: `1px solid ${c.border}` }}>
                 <div style={{ fontWeight: '700', fontSize: '13px', marginBottom: '14px', color: c.text }}>OS Distribution</div>
                 {totalHosts === 0 ? <div style={{ fontSize: '12px', color: c.textMuted }}>No hosts registered</div> : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -2551,7 +2599,7 @@ const Dashboard = () => {
               </div>
 
               {/* Update Status */}
-              <div style={{ background: c.card, borderRadius: '14px', padding: '20px', border: `1px solid ${c.border}` }}>
+              <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', padding: '20px', border: `1px solid ${c.border}` }}>
                 <div style={{ fontWeight: '700', fontSize: '13px', marginBottom: '14px', color: c.text }}>Update Status</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {[
@@ -2565,7 +2613,7 @@ const Dashboard = () => {
                         <span style={{ fontSize: '12px', color: c.textMuted }}>{row.label}</span>
                         <span style={{ fontSize: '12px', fontWeight: '700', color: row.color }}>{row.count}</span>
                       </div>
-                      <div style={{ height: '6px', borderRadius: '3px', background: darkMode ? '#1e293b' : '#f1f5f9', overflow: 'hidden' }}>
+                      <div style={{ height: '6px', borderRadius: '3px', background: darkMode ? '#1a2d3a' : '#f0f5f8', overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${totalHosts > 0 ? (row.count / totalHosts * 100) : 0}%`, background: row.color, borderRadius: '3px', transition: 'width 0.6s ease' }} />
                       </div>
                     </div>
@@ -2578,7 +2626,7 @@ const Dashboard = () => {
               </div>
 
               {/* Online Servers list */}
-              <div style={{ background: c.card, borderRadius: '14px', padding: '20px', border: `1px solid ${c.border}`, overflow: 'hidden' }}>
+              <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', padding: '20px', border: `1px solid ${c.border}`, overflow: 'hidden' }}>
                 <div style={{ fontWeight: '700', fontSize: '13px', marginBottom: '14px', color: c.text }}>Host Status</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto', maxHeight: '200px' }}>
                   {servers.length === 0 && <div style={{ fontSize: '12px', color: c.textMuted }}>No hosts registered</div>}
@@ -2587,7 +2635,7 @@ const Dashboard = () => {
                       <div style={{ width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0, background: s.online ? '#22c55e' : '#ef4444', boxShadow: s.online ? '0 0 4px #22c55e80' : 'none' }} />
                       <span style={{ fontSize: '12px', fontWeight: '600', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(s.name||'')}</span>
                       {s.pending_updates?.reboot_required && <span title="Reboot required" style={{ fontSize: '10px', color: '#ef4444' }}>⚠</span>}
-                      {s.pending_updates?.count > 0 && <span style={{ fontSize: '10px', background: '#f59e0b20', color: '#f59e0b', padding: '1px 5px', borderRadius: '8px', fontWeight: '700' }}>↑{s.pending_updates.count}</span>}
+                      {s.pending_updates?.count > 0 && <span style={{ fontSize: '10px', background: '#f59e0b20', color: '#f59e0b', padding: '1px 5px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', fontWeight: '700' }}>↑{s.pending_updates.count}</span>}
                     </div>
                   ))}
                 </div>
@@ -2596,11 +2644,11 @@ const Dashboard = () => {
 
             {/* Servers needing updates */}
             {needsUpdate > 0 && (
-              <div style={{ background: c.card, borderRadius: '14px', padding: '20px', border: `1px solid ${c.border}` }}>
+              <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', padding: '20px', border: `1px solid ${c.border}` }}>
                 <div style={{ fontWeight: '700', fontSize: '13px', marginBottom: '12px', color: c.text }}>Servers Needing Updates</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {servers.filter(s => s.pending_updates?.count > 0).map(s => (
-                    <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderRadius: '8px', background: darkMode ? '#0f172a' : '#f8fafc', border: `1px solid ${c.border}` }}>
+                    <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', background: darkMode ? '#0d1820' : '#f0f5f8', border: `1px solid ${c.border}` }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: s.online ? '#22c55e' : '#ef4444', boxShadow: s.online ? '0 0 4px #22c55e80' : 'none' }} />
                         <div>
@@ -2609,8 +2657,8 @@ const Dashboard = () => {
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        {s.pending_updates.reboot_required && <span style={{ background: '#ef444418', color: '#ef4444', fontSize: '10px', padding: '1px 7px', borderRadius: '8px', fontWeight: '700', border: '1px solid #ef444440' }}>⚠ Reboot</span>}
-                        <span style={{ background: '#f59e0b18', color: '#f59e0b', fontSize: '11px', padding: '2px 8px', borderRadius: '10px', fontWeight: '700', border: '1px solid #f59e0b40' }}>↑ {s.pending_updates.count} pkg</span>
+                        {s.pending_updates.reboot_required && <span style={{ background: '#ef444418', color: '#ef4444', fontSize: '10px', padding: '1px 7px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', fontWeight: '700', border: '1px solid #ef444440' }}>⚠ Reboot</span>}
+                        <span style={{ background: '#f59e0b18', color: '#f59e0b', fontSize: '11px', padding: '2px 8px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '700', border: '1px solid #f59e0b40' }}>↑ {s.pending_updates.count} pkg</span>
                         <button onClick={() => { handleServerClick(s); }} style={{ ...styles.iconBtn, background: '#3b82f618', color: '#3b82f6', border: '1px solid #3b82f630', fontSize: '11px' }}>Manage</button>
                       </div>
                     </div>
@@ -2628,7 +2676,7 @@ const Dashboard = () => {
         <div style={{ width: '100%' }}>
           {/* Top row: Network Scan + Speed Test side by side */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '16px' }}>
-          <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, padding: '20px' }}>
+          <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, padding: '20px' }}>
             <h3 style={{ ...styles.cardTitle, marginBottom: '16px' }}>Network Scan</h3>
             <div style={styles.formRow}>
               <div style={styles.inputGroup}>
@@ -2640,7 +2688,7 @@ const Dashboard = () => {
           </div>
 
           {/* Speed Test */}
-          <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, padding: '20px' }}>
+          <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, padding: '20px' }}>
             {(() => {
               const selSrv = servers.find(s => s.id === repoTestServer);
               const isWin = selSrv ? String(selSrv.platform || '').toLowerCase().includes('windows') : false;
@@ -2664,7 +2712,7 @@ const Dashboard = () => {
               {repoTestLoading && <div style={{ width: '14px', height: '14px', border: `2px solid ${c.primary}40`, borderTopColor: c.primary, borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />}
             </div>
             {repoTestResult && (
-              <div style={{ marginTop: '12px', background: darkMode ? '#0f172a' : '#f8fafc', borderRadius: '8px', padding: '10px 14px', fontFamily: 'monospace', fontSize: '12px', color: c.text, whiteSpace: 'pre-wrap', border: `1px solid ${c.border}` }}>
+              <div style={{ marginTop: '12px', background: darkMode ? '#0d1820' : '#f0f5f8', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', padding: '10px 14px', fontFamily: 'monospace', fontSize: '12px', color: c.text, whiteSpace: 'pre-wrap', border: `1px solid ${c.border}` }}>
                 {repoTestResult}
               </div>
             )}
@@ -2672,7 +2720,7 @@ const Dashboard = () => {
           </div>{/* end top grid */}
 
           {/* Ping Monitor — full width */}
-          <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, padding: '20px' }}>
+          <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
               <h3 style={{ ...styles.cardTitle, margin: 0 }}>Probe Monitor</h3>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -2795,7 +2843,7 @@ const Dashboard = () => {
                     const tip = probeTooltip(r);
                     return (
                       <div key={srv.id} onClick={() => setPingSelected(prev => prev.includes(srv.id) ? prev.filter(x => x !== srv.id) : [...prev, srv.id])}
-                        style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', borderRadius: '10px', cursor: 'pointer',
+                        style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', cursor: 'pointer',
                           background: selected ? (darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)') : (darkMode ? '#0f172a' : '#f8fafc'),
                           border: `1px solid ${selected ? c.primary + '60' : c.border}`, transition: 'all 0.15s' }}>
                         {/* Checkbox */}
@@ -2818,7 +2866,7 @@ const Dashboard = () => {
                           {tip && (
                             <div className="probe-info-wrap" style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
                               <div className="probe-info-icon" style={{ width: '16px', height: '16px', borderRadius: '50%', background: darkMode ? '#334155' : '#e2e8f0', color: c.textMuted, fontSize: '10px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'help', userSelect: 'none' }}>ⓘ</div>
-                              <div className="probe-tooltip" style={{ display: 'none', position: 'absolute', right: 0, bottom: '22px', width: '260px', background: darkMode ? '#1e293b' : '#fff', border: `1px solid ${c.border}`, borderRadius: '8px', padding: '10px 12px', fontSize: '12px', color: c.text, lineHeight: '1.5', boxShadow: '0 8px 24px rgba(0,0,0,0.2)', zIndex: 100 }}>
+                              <div className="probe-tooltip" style={{ display: 'none', position: 'absolute', right: 0, bottom: '22px', width: '260px', background: darkMode ? '#1e293b' : '#fff', border: `1px solid ${c.border}`, clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', padding: '10px 12px', fontSize: '12px', color: c.text, lineHeight: '1.5', boxShadow: '0 8px 24px rgba(0,0,0,0.2)', zIndex: 100 }}>
                                 {tip}
                               </div>
                             </div>
@@ -2893,7 +2941,7 @@ const Dashboard = () => {
             {bulkProgress.length > 0 && (
               <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {bulkProgress.map(p => (
-                  <div key={p.id} style={{ background: darkMode ? '#0f172a' : '#f8fafc', borderRadius: '8px', padding: '10px 14px', border: `1px solid ${c.border}` }}>
+                  <div key={p.id} style={{ background: darkMode ? '#0d1820' : '#f0f5f8', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', padding: '10px 14px', border: `1px solid ${c.border}` }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.status === 'done' ? '#22c55e' : p.status === 'error' ? '#ef4444' : p.status === 'running' ? '#f59e0b' : c.border, animation: p.status === 'running' ? 'pulse 1s infinite' : 'none' }} />
@@ -2920,8 +2968,8 @@ const Dashboard = () => {
               : updServers.map(s => {
                 const isSelected = selectedServers.includes(s.id);
                 return (
-                  <div key={s.id} style={{ background: c.card, borderRadius: '14px', border: `1px solid ${isSelected ? c.primary : c.border}`, marginBottom: '12px', overflow: 'hidden', transition: 'border-color 0.15s' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 18px', borderBottom: `1px solid ${c.border}`, background: darkMode ? '#0f172a' : '#f8fafc' }}>
+                  <div key={s.id} style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${isSelected ? c.primary : c.border}`, marginBottom: '12px', overflow: 'hidden', transition: 'border-color 0.15s' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 18px', borderBottom: `1px solid ${c.border}`, background: darkMode ? '#0d1820' : '#f0f5f8' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <input type="checkbox" checked={isSelected} onChange={() => toggleServerSelection(s.id)} style={{ width: '14px', height: '14px', cursor: 'pointer', accentColor: c.primary }} />
                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: s.online ? '#22c55e' : '#ef4444', boxShadow: s.online ? '0 0 5px #22c55e80' : 'none' }} />
@@ -2929,10 +2977,10 @@ const Dashboard = () => {
                           <span style={{ fontWeight: '700', fontSize: '14px' }}>{String(s.name||'')}</span>
                           <span style={{ fontSize: '12px', color: c.textMuted, fontFamily: 'monospace', marginLeft: '8px' }}>{s.host}</span>
                         </div>
-                        {s.pending_updates?.reboot_required && <span style={{ background: '#ef444418', color: '#ef4444', fontSize: '10px', padding: '1px 7px', borderRadius: '8px', fontWeight: '700', border: '1px solid #ef444440' }}>⚠ Reboot after</span>}
+                        {s.pending_updates?.reboot_required && <span style={{ background: '#ef444418', color: '#ef4444', fontSize: '10px', padding: '1px 7px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', fontWeight: '700', border: '1px solid #ef444440' }}>⚠ Reboot after</span>}
                       </div>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <span style={{ background: '#f59e0b18', color: '#f59e0b', fontSize: '12px', padding: '3px 10px', borderRadius: '10px', fontWeight: '700', border: '1px solid #f59e0b40' }}>↑ {s.pending_updates.count} pkg</span>
+                        <span style={{ background: '#f59e0b18', color: '#f59e0b', fontSize: '12px', padding: '3px 10px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '700', border: '1px solid #f59e0b40' }}>↑ {s.pending_updates.count} pkg</span>
                         {s.online && (
                           <button onClick={() => upgradeServers([s.id])} disabled={bulkActionLoading}
                             style={{ ...styles.btn, background: '#22c55e', color: '#fff', border: 'none', padding: '5px 14px', fontSize: '12px' }}>
@@ -2958,7 +3006,7 @@ const Dashboard = () => {
       {navSection === 'logs' && (
         <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '16px', height: 'calc(100vh - 120px)' }}>
           {/* Server list */}
-          <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid ${c.border}`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <div style={{ padding: '12px 14px', borderBottom: `1px solid ${c.border}`, fontSize: '12px', fontWeight: '700', color: c.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Online Servers</div>
             <div style={{ overflowY: 'auto', flex: 1 }}>
               {servers.filter(s => s.online).length === 0 && <div style={{ padding: '20px', fontSize: '13px', color: c.textMuted }}>No servers online</div>}
@@ -2978,7 +3026,7 @@ const Dashboard = () => {
           </div>
 
           {/* Log viewer panel */}
-          <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {!logsServer ? (
               <div style={styles.empty}>
                 <div style={{ fontSize: '36px', opacity: 0.3, marginBottom: '12px' }}>📋</div>
@@ -2991,7 +3039,7 @@ const Dashboard = () => {
                   <span style={{ fontWeight: '600', fontSize: '13px', marginRight: '4px' }}>{logsServer.name}</span>
                   <span style={{ fontSize: '11px', color: c.textMuted, fontFamily: 'monospace' }}>{logsServer.host}</span>
                   {/* Source type tabs */}
-                  <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px', background: darkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.06)', borderRadius: '8px', padding: '3px' }}>
+                  <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px', background: darkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.06)', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', padding: '3px' }}>
                     {[['files', '📄 Log Files'], ['services', '⚙ Services']].map(([key, label]) => (
                       <button key={key} onClick={() => { setLogsTab(key); setLogsSelectedItem(null); setLogsContent(''); }}
                         style={{ background: logsTab === key ? c.primary : 'transparent', color: logsTab === key ? '#fff' : c.textMuted, border: 'none', borderRadius: '6px', padding: '4px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s' }}>
@@ -3066,7 +3114,7 @@ const Dashboard = () => {
       {navSection === 'shell' && (
         <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '16px', margin: '-24px', height: 'calc(100vh - 68px)' }}>
           {/* Server list */}
-          <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid ${c.border}`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <div style={{ padding: '12px 14px', borderBottom: `1px solid ${c.border}`, fontSize: '12px', fontWeight: '700', color: c.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Servers</div>
             <div style={{ overflowY: 'auto', flex: 1 }}>
               {servers.filter(s => !String(s.platform || '').toLowerCase().includes('windows')).length === 0 && <div style={{ padding: '20px', fontSize: '13px', color: c.textMuted }}>No Linux servers</div>}
@@ -3086,7 +3134,7 @@ const Dashboard = () => {
           </div>
 
           {/* Terminal panel */}
-          <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {!shellServer ? (
               <div style={styles.empty}>
                 <div style={{ fontSize: '36px', opacity: 0.3, marginBottom: '12px' }}>⌨</div>
@@ -3170,7 +3218,7 @@ const Dashboard = () => {
         </div>
       )}
       {navSection === 'activity' && (
-        <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, padding: '20px' }}>
+        <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, padding: '20px' }}>
           <h3 style={{ ...styles.cardTitle, marginBottom: '16px' }}>Connected Agents</h3>
           {servers.filter(s=>s.online).map(s => (
             <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: `1px solid ${c.border}20` }}>
@@ -3189,7 +3237,7 @@ const Dashboard = () => {
       {/* ── SETTINGS section ── */}
       {navSection === 'settings' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, padding: '20px' }}>
+          <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, padding: '20px' }}>
             <h3 style={{ ...styles.cardTitle, marginBottom: '18px' }}>Branding</h3>
 
             {/* Logo upload */}
@@ -3234,7 +3282,7 @@ const Dashboard = () => {
             </div>
           </div>
           {isAdmin && (
-            <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, padding: '20px' }}>
+            <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, padding: '20px' }}>
               <h3 style={{ ...styles.cardTitle, marginBottom: '4px' }}>User Management</h3>
               <div style={{ fontSize: '12px', color: c.textMuted, marginBottom: '16px' }}>Manage who can access ServerCTL</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 140px auto', gap: '10px', marginBottom: '16px', alignItems: 'end' }}>
@@ -3266,7 +3314,7 @@ const Dashboard = () => {
                     <tr key={u.username} style={{ borderBottom: `1px solid ${c.border}20` }}>
                       <td style={styles.td}><strong>{u.username}</strong> {u.username === user?.username && <span style={{ fontSize: '11px', color: '#3b82f6' }}>(you)</span>}</td>
                       <td style={styles.td}>
-                        <span style={{ background: u.role === 'admin' ? '#3b82f620' : '#22c55e20', color: u.role === 'admin' ? '#3b82f6' : '#22c55e', padding: '2px 8px', borderRadius: '10px', fontSize: '12px', fontWeight: '600' }}>{u.role}</span>
+                        <span style={{ background: u.role === 'admin' ? '#3b82f620' : '#22c55e20', color: u.role === 'admin' ? '#3b82f6' : '#22c55e', padding: '2px 8px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontSize: '12px', fontWeight: '600' }}>{u.role}</span>
                       </td>
                       <td style={styles.td}>
                         {u.username !== user?.username && (
@@ -3279,10 +3327,10 @@ const Dashboard = () => {
               </table>
             </div>
           )}
-          <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, padding: '20px' }}>
+          <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, padding: '20px' }}>
             <h3 style={{ ...styles.cardTitle, marginBottom: '12px' }}>Account</h3>
             <div style={{ fontSize: '13px', marginBottom: '8px' }}><span style={{ color: c.textMuted }}>Logged in as:</span> <strong>{user?.username}</strong></div>
-            <div style={{ fontSize: '13px', marginBottom: '16px' }}><span style={{ color: c.textMuted }}>Role:</span> <span style={{ background: isAdmin ? '#3b82f620' : '#22c55e20', color: isAdmin ? '#3b82f6' : '#22c55e', padding: '1px 8px', borderRadius: '10px', fontWeight: '600' }}>{user?.role}</span></div>
+            <div style={{ fontSize: '13px', marginBottom: '16px' }}><span style={{ color: c.textMuted }}>Role:</span> <span style={{ background: isAdmin ? '#3b82f620' : '#22c55e20', color: isAdmin ? '#3b82f6' : '#22c55e', padding: '1px 8px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '600' }}>{user?.role}</span></div>
             <button onClick={handleLogout} style={{ ...styles.btn, background: '#fee2e2', color: '#dc2626', border: 'none' }}>Sign Out</button>
           </div>
         </div>
@@ -3305,7 +3353,7 @@ const Dashboard = () => {
         return (
           <div>
             {/* Server header bar */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', padding: '12px 16px', background: darkMode ? 'rgba(30,41,59,0.7)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', borderRadius: '12px', border: `1px solid ${c.border}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', padding: '12px 16px', background: darkMode ? 'rgba(30,41,59,0.7)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}` }}>
               <button onClick={() => { setSelectedServer(null); setNavSection('servers'); }} style={{ ...styles.btn, ...styles.btnSecondary, padding: '5px 12px', fontSize: '12px', flexShrink: 0 }}>← Back</button>
               <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: selectedServer.online ? '#22c55e' : '#ef4444', boxShadow: selectedServer.online ? '0 0 8px #22c55e80' : 'none', flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -3313,7 +3361,7 @@ const Dashboard = () => {
                 <div style={{ color: c.textMuted, fontSize: '12px', fontFamily: 'monospace' }}>{String(selectedServer.host || '')} · {String(selectedServer.platform || 'Linux')}</div>
               </div>
               {selectedServer.pending_updates?.count > 0 && (
-                <span style={{ background: '#f59e0b20', color: '#f59e0b', fontSize: '11px', padding: '2px 8px', borderRadius: '10px', fontWeight: '700', border: '1px solid #f59e0b40', flexShrink: 0 }}>↑ {selectedServer.pending_updates.count} updates</span>
+                <span style={{ background: '#f59e0b20', color: '#f59e0b', fontSize: '11px', padding: '2px 8px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '700', border: '1px solid #f59e0b40', flexShrink: 0 }}>↑ {selectedServer.pending_updates.count} updates</span>
               )}
               {isAdmin && <button onClick={() => handleDelete(selectedServer.id)} style={{ ...styles.btn, background: '#fee2e220', color: '#ef4444', border: '1px solid #ef444430', padding: '5px 12px', fontSize: '12px', flexShrink: 0 }}>Delete</button>}
             </div>
@@ -3329,7 +3377,7 @@ const Dashboard = () => {
                     { label: 'RAM', val: sm.ram_percent, unit: '%', sub: `${sm.ram_used_gb}/${sm.ram_total_gb} GB`, color: '#8b5cf6' },
                     { label: 'Disk', val: sm.disk_percent, unit: '%', sub: `${sm.disk_used_gb}/${sm.disk_total_gb} GB`, color: '#f59e0b' },
                   ].map(m => (
-                    <div key={m.label} style={{ background: darkMode ? 'rgba(30,41,59,0.7)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', borderRadius: '10px', padding: '10px 14px', border: `1px solid ${c.border}` }}>
+                    <div key={m.label} style={{ background: darkMode ? 'rgba(30,41,59,0.7)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', padding: '10px 14px', border: `1px solid ${c.border}` }}>
                       <div style={{ fontSize: '11px', color: c.textMuted, fontWeight: '600', marginBottom: '6px' }}>{m.label}</div>
                       <div style={{ height: '4px', borderRadius: '2px', background: c.border, marginBottom: '6px', overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${m.val || 0}%`, background: m.color, transition: 'width 0.4s' }} />
@@ -3398,7 +3446,7 @@ const Dashboard = () => {
                       <Section title="Disk Usage">
                         {(sysInfo.disks || []).length === 0 && <div style={{ fontSize: '12px', color: c.textMuted }}>No disk data</div>}
                         {(sysInfo.disks || []).map((d, i) => (
-                          <div key={i} style={{ marginBottom: '10px', padding: '10px 12px', background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.04)', borderRadius: '8px', border: `1px solid ${c.border}` }}>
+                          <div key={i} style={{ marginBottom: '10px', padding: '10px 12px', background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.04)', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', border: `1px solid ${c.border}` }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                               <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: '600', color: c.text }}>{d.device}</span>
                               <span style={{ fontSize: '12px', color: parseInt(d.pct) >= 90 ? '#ef4444' : parseInt(d.pct) >= 75 ? '#f59e0b' : c.success }}>{d.pct} used</span>
@@ -3422,11 +3470,11 @@ const Dashboard = () => {
                       </Section>
                       <Section title="Network Interfaces">
                         {(sysInfo.interfaces || []).filter(iface => iface.type !== 'loopback').map((iface, i) => (
-                          <div key={i} style={{ marginBottom: '12px', padding: '10px 12px', background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.04)', borderRadius: '8px', border: `1px solid ${c.border}` }}>
+                          <div key={i} style={{ marginBottom: '12px', padding: '10px 12px', background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.04)', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', border: `1px solid ${c.border}` }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                               <span style={{ fontWeight: '700', fontSize: '14px', color: c.text }}>{iface.name}</span>
                               <span style={{ fontSize: '11px', color: c.textMuted }}>{iface.type}</span>
-                              <span style={{ fontSize: '11px', fontWeight: '700', padding: '1px 7px', borderRadius: '10px', background: iface.up ? '#16a34a20' : '#dc262620', color: iface.up ? '#16a34a' : '#dc2626' }}>{iface.up ? 'UP' : 'DOWN'}</span>
+                              <span style={{ fontSize: '11px', fontWeight: '700', padding: '1px 7px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', background: iface.up ? '#16a34a20' : '#dc262620', color: iface.up ? '#16a34a' : '#dc2626' }}>{iface.up ? 'UP' : 'DOWN'}</span>
                             </div>
                             {iface.mac && <Row label="MAC Address" value={iface.mac} />}
                             <Row label="MTU" value={String(iface.mtu)} />
@@ -3510,7 +3558,7 @@ const Dashboard = () => {
                             <td style={{ ...styles.td, fontFamily: 'monospace', fontWeight: '600' }}>{ct.name}</td>
                             <td style={{ ...styles.td, fontFamily: 'monospace', fontSize: '12px', color: c.textMuted }}>{ct.image}</td>
                             <td style={{ ...styles.td }}>
-                              <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', fontWeight: '700', background: ct.status?.startsWith('Up') ? '#16a34a20' : '#dc262620', color: ct.status?.startsWith('Up') ? '#16a34a' : '#dc2626' }}>{ct.status}</span>
+                              <span style={{ fontSize: '11px', padding: '2px 8px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '700', background: ct.status?.startsWith('Up') ? '#16a34a20' : '#dc262620', color: ct.status?.startsWith('Up') ? '#16a34a' : '#dc2626' }}>{ct.status}</span>
                             </td>
                           </tr>
                         ))}
@@ -3524,7 +3572,7 @@ const Dashboard = () => {
 
             {activeTab === 'actions' && (
               <div>
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '20px', padding: '4px', background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', borderRadius: '12px' }}>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '20px', padding: '4px', background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }}>
                   {(() => {
                     const isWindows = String(selectedServer?.platform || '').toLowerCase().includes('windows');
                     const commonActions = [
@@ -3561,7 +3609,7 @@ const Dashboard = () => {
                         onMouseLeave={() => setActionBtnHover(null)}
                         style={{
                           display: 'flex', alignItems: 'center', gap: '6px',
-                          padding: '7px 14px', borderRadius: '8px', border: 'none', cursor: 'pointer',
+                          padding: '7px 14px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', border: 'none', cursor: 'pointer',
                           fontSize: '13px', fontWeight: isActive ? '600' : '500',
                           background: isUpgrade
                             ? (isActive ? '#15803d' : isHover ? '#16a34a' : '#22c55e20')
@@ -3617,7 +3665,7 @@ const Dashboard = () => {
       {/* Bulk Action Progress Modal */}
       {showBulkModal && bulkProgress.length > 0 && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div style={{ background: c.card, borderRadius: '14px', border: `1px solid ${c.border}`, width: '100%', maxWidth: '640px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 48px rgba(0,0,0,0.4)' }}>
+          <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, width: '100%', maxWidth: '640px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 48px rgba(0,0,0,0.4)' }}>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `1px solid ${c.border}`, flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -3635,7 +3683,7 @@ const Dashboard = () => {
             {/* Progress list */}
             <div style={{ overflowY: 'auto', padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {bulkProgress.map(p => (
-                <div key={p.id} style={{ background: darkMode ? '#0f172a' : '#f8fafc', borderRadius: '8px', padding: '12px 14px', border: `1px solid ${c.border}` }}>
+                <div key={p.id} style={{ background: darkMode ? '#0d1820' : '#f0f5f8', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', padding: '12px 14px', border: `1px solid ${c.border}` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{ width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
@@ -3679,7 +3727,7 @@ const Dashboard = () => {
       )}
 
       {showToken && (
-        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: c.card, padding: '24px', borderRadius: '12px', border: `1px solid ${c.border}`, zIndex: 1001, boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: c.card, padding: '24px', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, zIndex: 1001, boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
           <h3 style={{ margin: '0 0 16px 0' }}>Deploy Agent on {showToken.host}</h3>
           <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '8px' }}>Run this on the target server as root or with sudo:</div>
           <div style={{ background: '#0d1117', color: '#86efac', padding: '12px', borderRadius: '6px', fontFamily: 'monospace', fontSize: '12px', wordBreak: 'break-all', marginBottom: '4px', position: 'relative' }}>
@@ -3701,7 +3749,7 @@ const Dashboard = () => {
           <div style={styles.modal} onClick={closeWizard}>
             <div style={{ ...styles.modalContent, maxWidth: '560px', padding: 0, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
               {/* Header */}
-              <div style={{ background: 'linear-gradient(135deg,#1e3a5f,#312e81)', padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ background: 'linear-gradient(135deg, #16232E, #25515E)', padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
                   <div style={{ fontSize: '17px', fontWeight: '700', color: '#fff' }}>Add New Host</div>
                   <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Step {wizardStep} of {steps.length} — {steps[wizardStep - 1]}</div>
@@ -3726,7 +3774,7 @@ const Dashboard = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       {osOptions.map(os => (
                         <div key={os.id} onClick={() => !os.disabled && setWizardOS(os.id)}
-                          style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 18px', borderRadius: '10px', border: `2px solid ${wizardOS === os.id ? '#3b82f6' : c.border}`, background: wizardOS === os.id ? 'rgba(59,130,246,0.08)' : 'rgba(30,41,59,0.4)', cursor: os.disabled ? 'not-allowed' : 'pointer', opacity: os.disabled ? 0.45 : 1, transition: 'all 0.15s' }}>
+                          style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 18px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', border: `2px solid ${wizardOS === os.id ? '#3b82f6' : c.border}`, background: wizardOS === os.id ? 'rgba(59,130,246,0.08)' : 'rgba(30,41,59,0.4)', cursor: os.disabled ? 'not-allowed' : 'pointer', opacity: os.disabled ? 0.45 : 1, transition: 'all 0.15s' }}>
                           <div style={{ fontSize: '32px' }}>{os.icon}</div>
                           <div>
                             <div style={{ fontWeight: '600', fontSize: '15px', color: c.text }}>{os.label}</div>
@@ -3806,7 +3854,7 @@ const Dashboard = () => {
                           ⊞ PowerShell — Run as Administrator (right-click → Run as Administrator)
                         </div>
                       )}
-                      <div style={{ background: 'rgba(0,0,0,0.35)', borderRadius: '8px', padding: '14px 16px', fontFamily: 'monospace', fontSize: '12px', color: '#86efac', wordBreak: 'break-all', position: 'relative', border: '1px solid rgba(34,197,94,0.2)', minHeight: '52px' }}>
+                      <div style={{ background: 'rgba(0,0,0,0.35)', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', padding: '14px 16px', fontFamily: 'monospace', fontSize: '12px', color: '#86efac', wordBreak: 'break-all', position: 'relative', border: '1px solid rgba(34,197,94,0.2)', minHeight: '52px' }}>
                         {wizardInstallCmdLoading ? <span style={{ color: '#60a5fa' }}>Loading...</span> : wizardInstallCmd}
                         {wizardInstallCmd && (
                           <button onClick={() => copyToClipboard(wizardInstallCmd)}
@@ -3910,7 +3958,7 @@ const Dashboard = () => {
           <div style={{ background: c.card, borderRadius: '16px', border: `1px solid ${c.border}`, width: '100%', maxWidth: '460px', boxShadow: '0 24px 48px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
             {/* Header */}
             <div style={{ padding: '20px 24px', borderBottom: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ef444420', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>↺</div>
+              <div style={{ width: '36px', height: '36px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', background: '#ef444420', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>↺</div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: '700', fontSize: '15px' }}>Odaberi servere za reboot</div>
                 <div style={{ fontSize: '12px', color: c.textMuted, marginTop: '2px' }}>Odznači servere koje ne želiš restartovati</div>
@@ -3941,7 +3989,7 @@ const Dashboard = () => {
                       <div style={{ fontSize: '13px', fontWeight: '600', color: checked ? c.text : c.textMuted }}>{s.name}</div>
                       <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: 'monospace' }}>{s.host}</div>
                     </div>
-                    <span style={{ fontSize: '11px', background: checked ? '#ef444420' : c.cardHover, color: checked ? '#ef4444' : c.textMuted, padding: '2px 8px', borderRadius: '8px', fontWeight: '600' }}>
+                    <span style={{ fontSize: '11px', background: checked ? '#ef444420' : c.cardHover, color: checked ? '#ef4444' : c.textMuted, padding: '2px 8px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', fontWeight: '600' }}>
                       {checked ? 'reboot' : 'preskoči'}
                     </span>
                   </label>
@@ -3954,7 +4002,7 @@ const Dashboard = () => {
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => setShowRebootConfirm(false)} style={{ ...styles.btn, ...styles.btnSecondary, padding: '8px 20px' }}>Otkaži</button>
                 <button onClick={executeReboot} disabled={rebootSelected.size === 0}
-                  style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 20px', fontWeight: '600', cursor: rebootSelected.size === 0 ? 'not-allowed' : 'pointer', fontSize: '13px', opacity: rebootSelected.size === 0 ? 0.4 : 1 }}>
+                  style={{ background: '#ef4444', color: '#fff', border: 'none', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', padding: '8px 20px', fontWeight: '600', cursor: rebootSelected.size === 0 ? 'not-allowed' : 'pointer', fontSize: '13px', opacity: rebootSelected.size === 0 ? 0.4 : 1 }}>
                   ↺ Rebootuj ({rebootSelected.size})
                 </button>
               </div>
@@ -3968,18 +4016,18 @@ const Dashboard = () => {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
           <div style={{ background: darkMode ? '#1e293b' : '#fff', borderRadius: '20px', padding: '36px 40px', maxWidth: '420px', width: '90%', boxShadow: '0 24px 80px rgba(0,0,0,0.4)', textAlign: 'center', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>
             <div style={{ fontSize: '48px', marginBottom: '12px' }}>☕</div>
-            <div style={{ fontSize: '22px', fontWeight: '800', marginBottom: '8px', background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Enjoying ServerCTL?</div>
+            <div style={{ fontSize: '22px', fontWeight: '800', marginBottom: '8px', background: 'linear-gradient(135deg, #A8987C, #467885)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', textShadow: 'none' }}>Enjoying ServerCTL?</div>
             <div style={{ fontSize: '14px', color: darkMode ? '#94a3b8' : '#64748b', lineHeight: 1.7, marginBottom: '28px' }}>
               ServerCTL is free and open-source. If it saves you time and makes your life easier, consider buying me a coffee — it helps keep the project alive and growing.
             </div>
             <a href="https://buymeacoffee.com/vilic355" target="_blank" rel="noreferrer"
-              style={{ display: 'block', background: '#FFDD00', color: '#000', fontWeight: '800', fontSize: '15px', padding: '13px 24px', borderRadius: '10px', textDecoration: 'none', marginBottom: '12px', transition: 'transform 0.15s, filter 0.15s' }}
+              style={{ display: 'block', background: '#FFDD00', color: '#000', fontWeight: '800', fontSize: '15px', padding: '13px 24px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', textDecoration: 'none', marginBottom: '12px', transition: 'transform 0.15s, filter 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.08)'}
               onMouseLeave={e => e.currentTarget.style.filter = ''}>
               ☕ Buy me a coffee
             </a>
             <button onClick={() => { localStorage.setItem('serverctl_donated', 'true'); setShowDonationModal(false); }}
-              style={{ display: 'block', width: '100%', background: darkMode ? '#0f172a' : '#f1f5f9', color: darkMode ? '#94a3b8' : '#475569', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`, borderRadius: '10px', padding: '11px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', marginBottom: '8px' }}>
+              style={{ display: 'block', width: '100%', background: darkMode ? '#0f172a' : '#f1f5f9', color: darkMode ? '#94a3b8' : '#475569', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`, clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', padding: '11px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', marginBottom: '8px' }}>
               I've donated — don't show again
             </button>
             <button onClick={() => setShowDonationModal(false)}
@@ -3994,7 +4042,7 @@ const Dashboard = () => {
       {toasts.length > 0 && (
         <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '380px' }}>
           {toasts.map(t => (
-            <div key={t.id} style={{ background: darkMode ? '#1e293b' : '#fff', border: `1px solid ${t.type === 'error' ? '#ef444440' : '#22c55e40'}`, borderLeft: `4px solid ${t.type === 'error' ? '#ef4444' : '#22c55e'}`, borderRadius: '10px', padding: '12px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.2)', display: 'flex', gap: '12px', alignItems: 'flex-start', animation: 'slideIn 0.2s ease' }}>
+            <div key={t.id} style={{ background: darkMode ? '#1e293b' : '#fff', border: `1px solid ${t.type === 'error' ? '#ef444440' : '#22c55e40'}`, borderLeft: `4px solid ${t.type === 'error' ? '#ef4444' : '#22c55e'}`, clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', padding: '12px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.2)', display: 'flex', gap: '12px', alignItems: 'flex-start', animation: 'slideIn 0.2s ease' }}>
               <span style={{ fontSize: '18px', flexShrink: 0 }}>{t.type === 'error' ? '⚠️' : '✅'}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '13px', fontWeight: '700', color: t.type === 'error' ? '#ef4444' : '#22c55e', marginBottom: '3px' }}>{t.title}</div>
