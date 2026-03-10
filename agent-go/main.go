@@ -245,7 +245,6 @@ func rebootRequired() bool {
 // ─── Metrics ─────────────────────────────────────────────────────────────────
 
 type Metrics struct {
-	Type            string  `json:"type"`
 	CPUPercent      float64 `json:"cpu_percent"`
 	RamPercent      float64 `json:"ram_percent"`
 	RamUsedGB       float64 `json:"ram_used_gb"`
@@ -284,7 +283,6 @@ func collectMetrics(upgradable int, reboot bool) (*Metrics, error) {
 	}
 
 	return &Metrics{
-		Type:            "metrics",
 		CPUPercent:      round2(cpuPct[0]),
 		RamPercent:      round2(memStat.UsedPercent),
 		RamUsedGB:       round2(float64(memStat.Used) / 1e9),
@@ -321,9 +319,16 @@ type ResultMsg struct {
 	Result    map[string]interface{} `json:"result"`
 }
 
+type PendingUpdates struct {
+	Count          int      `json:"count"`
+	Packages       []string `json:"packages"`
+	RebootRequired bool     `json:"reboot_required"`
+}
+
 type ReportMsg struct {
-	Type    string   `json:"type"`
-	Metrics *Metrics `json:"metrics,omitempty"`
+	Type           string          `json:"type"`
+	Metrics        *Metrics        `json:"metrics,omitempty"`
+	PendingUpdates *PendingUpdates `json:"pending_updates,omitempty"`
 }
 
 func handleCommand(command, target string, pm *pkgManager) string {
@@ -735,6 +740,10 @@ func sendMetrics(conn *websocket.Conn, mu *sync.Mutex, state *updateState) {
 	report := ReportMsg{
 		Type:    "report",
 		Metrics: m,
+		PendingUpdates: &PendingUpdates{
+			Count:          upgradable,
+			RebootRequired: reboot,
+		},
 	}
 	data, err := json.Marshal(report)
 	if err != nil {
