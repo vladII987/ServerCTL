@@ -401,6 +401,7 @@ const Dashboard = () => {
   const wizardPollRef = useRef(null);
   const wizardPreServersRef = useRef([]);
   const [wizardInstallCmd, setWizardInstallCmd] = useState('');
+  const [wizardInstallCmdWin, setWizardInstallCmdWin] = useState('');
   const [wizardInstallCmdLoading, setWizardInstallCmdLoading] = useState(false);
   const [navSection, setNavSection] = useState('servers');
   const [upgradeLoading, setUpgradeLoading] = useState(false);
@@ -637,6 +638,7 @@ const Dashboard = () => {
     setWizardNewServer(null);
     setWizardServerId('');
     setWizardInstallCmd('');
+    setWizardInstallCmdWin('');
     wizardServerIdRef.current = '';
     wizardPreServersRef.current = servers.map(s => s.id);
     setShowWizard(true);
@@ -647,16 +649,15 @@ const Dashboard = () => {
     if (wizardPollRef.current) { clearInterval(wizardPollRef.current); wizardPollRef.current = null; }
   };
 
-  const fetchWizardInstallCmd = async (server_id, os) => {
+  const fetchWizardInstallCmd = async (server_id) => {
     setWizardInstallCmdLoading(true);
     setWizardInstallCmd('');
+    setWizardInstallCmdWin('');
     try {
-      const endpoint = os === 'windows'
-        ? `/api/agent/install-windows-command?server_id=${encodeURIComponent(server_id)}`
-        : `/api/agent/install-command?server_id=${encodeURIComponent(server_id)}`;
-      const r = await fetch(endpoint, { headers: authHeader });
+      const r = await fetch(`/api/agent/install-command?server_id=${encodeURIComponent(server_id)}`, { headers: authHeader });
       const d = await r.json();
       setWizardInstallCmd(d.command || '');
+      setWizardInstallCmdWin(d.windows_command || '');
     } catch {
       setWizardInstallCmd('# Error fetching install command — check backend connection');
     }
@@ -3887,25 +3888,33 @@ const Dashboard = () => {
                 )}
                 {/* Step 3: Copy Command */}
                 {wizardStep === 3 && (() => {
-                  if (!wizardInstallCmd && !wizardInstallCmdLoading) {
-                    if (wizardServerId) fetchWizardInstallCmd(wizardServerId, wizardOS);
+                  if (!wizardInstallCmd && !wizardInstallCmdWin && !wizardInstallCmdLoading) {
+                    if (wizardServerId) fetchWizardInstallCmd(wizardServerId);
                   }
+                  const activeCmd = wizardOS === 'windows' ? wizardInstallCmdWin : wizardInstallCmd;
                   return (
                     <div>
                       <div style={{ fontSize: '14px', color: c.textMuted, marginBottom: '16px' }}>
-                        {wizardOS === 'windows'
-                          ? <>Run this command on <strong style={{ color: c.text }}>{wizardName || 'your server'}</strong> in <strong style={{ color: '#60a5fa' }}>PowerShell as Administrator</strong>:</>
-                          : <>Run this command on <strong style={{ color: c.text }}>{wizardName || 'your server'}</strong> as root or with sudo:</>}
+                        Run this command on <strong style={{ color: c.text }}>{wizardName || 'your server'}</strong>:
+                      </div>
+                      {/* OS tab switcher */}
+                      <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
+                        {[{id:'linux',label:'🐧 Linux (curl | sh)'},{id:'windows',label:'⊞ Windows (PowerShell)'}].map(tab => (
+                          <button key={tab.id} onClick={() => setWizardOS(tab.id)}
+                            style={{ padding: '5px 14px', fontSize: '12px', cursor: 'pointer', borderRadius: '5px', border: `1px solid ${wizardOS === tab.id ? '#3b82f6' : c.border}`, background: wizardOS === tab.id ? 'rgba(59,130,246,0.15)' : 'transparent', color: wizardOS === tab.id ? '#60a5fa' : c.textMuted }}>
+                            {tab.label}
+                          </button>
+                        ))}
                       </div>
                       {wizardOS === 'windows' && (
                         <div style={{ marginBottom: '10px', padding: '8px 12px', borderRadius: '6px', background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.3)', fontSize: '12px', color: '#60a5fa' }}>
-                          ⊞ PowerShell — Run as Administrator (right-click → Run as Administrator)
+                          Run in PowerShell as Administrator (right-click → Run as Administrator)
                         </div>
                       )}
                       <div style={{ background: 'rgba(0,0,0,0.35)', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', padding: '14px 16px', fontFamily: '"Hack", "Courier New", monospace', fontSize: '12px', color: '#86efac', wordBreak: 'break-all', position: 'relative', border: '1px solid rgba(34,197,94,0.2)', minHeight: '52px' }}>
-                        {wizardInstallCmdLoading ? <span style={{ color: '#60a5fa' }}>Loading...</span> : wizardInstallCmd}
-                        {wizardInstallCmd && (
-                          <button onClick={() => copyToClipboard(wizardInstallCmd)}
+                        {wizardInstallCmdLoading ? <span style={{ color: '#60a5fa' }}>Loading...</span> : activeCmd}
+                        {activeCmd && (
+                          <button onClick={() => copyToClipboard(activeCmd)}
                             style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(59,130,246,0.2)', border: '1px solid rgba(59,130,246,0.4)', color: '#60a5fa', borderRadius: '5px', padding: '3px 10px', fontSize: '11px', cursor: 'pointer' }}>
                             Copy
                           </button>
@@ -3913,11 +3922,11 @@ const Dashboard = () => {
                       </div>
                       <div style={{ marginTop: '12px', fontSize: '12px', color: c.textMuted }}>
                         {wizardOS === 'windows'
-                          ? 'The script will download Python (embedded), install the agent, and register it as a Windows Service (visible in services.msc).'
-                          : 'The script will install Python3, download the agent, configure it, and start it as a systemd service.'}
+                          ? 'Downloads the Go agent binary and installs it as a Windows Service (visible in services.msc).'
+                          : 'Downloads the Go agent binary, writes config, and starts it as a systemd service.'}
                       </div>
                       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between' }}>
-                        <button onClick={() => { setWizardStep(2); setWizardInstallCmd(''); }} style={{ ...styles.btn, ...styles.btnSecondary }}>← Back</button>
+                        <button onClick={() => { setWizardStep(2); setWizardInstallCmd(''); setWizardInstallCmdWin(''); }} style={{ ...styles.btn, ...styles.btnSecondary }}>← Back</button>
                         <button onClick={() => { setWizardStep(4); startWizardPolling(); }} style={{ ...styles.btn, ...styles.btnPrimary }}>Next → Wait for Connection</button>
                       </div>
                     </div>

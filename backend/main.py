@@ -18,7 +18,7 @@ import httpx
 import uvicorn
 import websockets as ws_lib
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, HTTPException, Depends, Header, Query, UploadFile, File
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -655,7 +655,7 @@ async def agent_update_command(request: Request):
 
 @app.get("/api/agent/install-command", dependencies=[Depends(verify)])
 async def agent_install_command(request: Request, server_id: str = Query("")):
-    """Return the one-liner install command using the per-server token."""
+    """Return the one-liner install commands (Linux + Windows) using the per-server token."""
     server = registry.get(server_id) if server_id else None
     if not server:
         raise HTTPException(404, "Server not found — add the server first")
@@ -664,103 +664,107 @@ async def agent_install_command(request: Request, server_id: str = Query("")):
     if not backend_host:
         req_host = request.headers.get("x-forwarded-host") or request.headers.get("host", "")
         backend_host = req_host.split(":")[0] if req_host else "localhost"
-    cmd = f'curl -fsSL "http://{backend_host}:{settings.BACKEND_PORT}/api/agent/install?token={token}" | sudo sh'
-    return {"command": cmd}
+    base = f"http://{backend_host}:{settings.BACKEND_PORT}"
+    linux_cmd   = f'curl -fsSL "{base}/api/agent/install?token={token}" | sudo sh'
+    windows_cmd = f"powershell -Command \"irm '{base}/api/agent/install-windows?token={token}' | iex\""
+    return {"command": linux_cmd, "windows_command": windows_cmd}
 
 
-@app.get("/api/agent/script")
-async def agent_script():
-    """Serve the agent.py source file for download during installation."""
-    script_path = os.path.join(os.path.dirname(__file__), "agent.py")
-    if not os.path.exists(script_path):
-        raise HTTPException(404, "Agent script not found on server")
-    with open(script_path) as f:
-        content = f.read()
-    return PlainTextResponse(content, media_type="text/plain")
+AGENT_BINS_DIR = os.environ.get("AGENT_BINS_DIR", "/app/agent-bins")
+
+PLATFORM_MAP = {
+    "linux-amd64":    "serverctl-agent-linux-amd64",
+    "linux-arm64":    "serverctl-agent-linux-arm64",
+    "windows-amd64":  "serverctl-agent-windows-amd64.exe",
+}
+
+
+@app.get("/api/agent/download/{platform}")
+async def agent_download(platform: str):
+    """Serve a pre-built agent binary. platform = linux-amd64 | linux-arm64 | windows-amd64"""
+    filename = PLATFORM_MAP.get(platform)
+    if not filename:
+        raise HTTPException(400, f"Unknown platform '{platform}'. Use: {', '.join(PLATFORM_MAP)}")
+    path = os.path.join(AGENT_BINS_DIR, filename)
+    if not os.path.exists(path):
+        raise HTTPException(404, f"Binary not found for {platform}. Build with: cd agent-go && make all")
+    media = "application/octet-stream"
+    return FileResponse(path, media_type=media, filename=filename)
 
 
 @app.get("/api/agent/install")
 async def agent_install(request: Request, token: str = Query(...)):
-    """Return a shell install script that sets up the ServerCTL agent on a Linux host."""
+    """Return a shell install script that downloads and installs the Go agent binary."""
     if not registry.get_by_token(token):
         raise HTTPException(403, "Invalid token")
 
-    # Detect the public host
     backend_host = os.environ.get("PUBLIC_HOST", "")
     if not backend_host:
         req_host = request.headers.get("x-forwarded-host") or request.headers.get("host", "")
         backend_host = req_host.split(":")[0] if req_host else "localhost"
 
-    ws_url = f"ws://{backend_host}:{settings.BACKEND_PORT}/ws/agent"
-    dl_url = f"http://{backend_host}:{settings.BACKEND_PORT}/api/agent/script"
+    base_url = f"http://{backend_host}:{settings.BACKEND_PORT}"
 
-    script = f"""#!/bin/bash
+    script = f"""#!/bin/sh
 set -e
 
 echo "=========================================="
-echo " ServerCTL Agent Installer"
+echo " ServerCtl Agent Installer"
 echo "=========================================="
 
-# Detect package manager
-if command -v apt-get &>/dev/null; then
-    PKG=apt
-elif command -v yum &>/dev/null; then
-    PKG=yum
-elif command -v dnf &>/dev/null; then
-    PKG=dnf
-else
-    PKG=unknown
-fi
+# Detect architecture
+ARCH=$(uname -m)
+case "$ARCH" in
+  x86_64|amd64)  PLATFORM="linux-amd64" ;;
+  aarch64|arm64) PLATFORM="linux-arm64" ;;
+  *)
+    echo "Unsupported architecture: $ARCH"
+    exit 1
+    ;;
+esac
 
-# Fix interrupted dpkg if needed (apt only)
-if [ "$PKG" = "apt" ]; then
-    if dpkg --audit 2>/dev/null | grep -q .; then
-        echo "[*] Detected interrupted dpkg — running dpkg --configure -a first..."
-        dpkg --configure -a
+INSTALL_DIR=/usr/local/bin
+CONFIG_DIR=/etc/serverctl-agent
+BIN=$INSTALL_DIR/serverctl-agent
+DL_URL="{base_url}/api/agent/download/$PLATFORM"
+
+# Install curl if missing (rare)
+if ! command -v curl >/dev/null 2>&1; then
+    if command -v apt-get >/dev/null 2>&1; then
+        apt-get update -qq && apt-get install -y curl
+    elif command -v dnf >/dev/null 2>&1; then
+        dnf install -y curl
+    elif command -v yum >/dev/null 2>&1; then
+        yum install -y curl
     fi
 fi
 
-# Install Python3 if missing
-if ! command -v python3 &>/dev/null; then
-    echo "[*] Installing python3..."
-    if [ "$PKG" = "apt" ]; then
-        apt-get update -qq && apt-get install -y python3 python3-pip curl
-    elif [ "$PKG" = "yum" ]; then
-        yum install -y python3 python3-pip curl
-    elif [ "$PKG" = "dnf" ]; then
-        dnf install -y python3 python3-pip curl
-    fi
-fi
+echo "[*] Downloading agent ($PLATFORM)..."
+curl -fsSL "$DL_URL" -o "$BIN"
+chmod 755 "$BIN"
 
-# Create directories
-mkdir -p /opt/serverctl-agent /etc/serverctl/logs
-
-# Download agent script
-echo "[*] Downloading agent..."
-curl -fsSL "{dl_url}" -o /opt/serverctl-agent/agent.py
-
-# Write config
 echo "[*] Writing config..."
-cat > /etc/serverctl/config.yml << 'CFGEOF'
-server_url: {ws_url}
-api_token: {token}
-log_file: /etc/serverctl/logs/agent.log
-report_interval: 60
+mkdir -p "$CONFIG_DIR"
+cat > "$CONFIG_DIR/config.yaml" << 'CFGEOF'
+server_url: {base_url}
+token: {token}
+interval: 30
 CFGEOF
+chmod 600 "$CONFIG_DIR/config.yaml"
 
-# Install systemd service
 echo "[*] Installing systemd service..."
 cat > /etc/systemd/system/serverctl-agent.service << 'SVCEOF'
 [Unit]
-Description=ServerCTL Agent
+Description=ServerCtl Agent
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /opt/serverctl-agent/agent.py
+ExecStart=/usr/local/bin/serverctl-agent
 Restart=always
 RestartSec=10
-StandardOutput=append:/etc/serverctl/logs/agent.log
-StandardError=append:/etc/serverctl/logs/agent.log
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=serverctl-agent
 
 [Install]
 WantedBy=multi-user.target
@@ -772,24 +776,13 @@ systemctl restart serverctl-agent
 
 echo ""
 echo "=========================================="
-echo " ServerCTL Agent installed successfully!"
-echo " Service: serverctl-agent (systemd)"
-echo " Config:  /etc/serverctl/config.yml"
-echo " Logs:    /etc/serverctl/logs/agent.log"
+echo " ServerCtl Agent installed!"
+echo " Binary:  $BIN"
+echo " Config:  $CONFIG_DIR/config.yaml"
+echo " Logs:    journalctl -u serverctl-agent -f"
 echo "=========================================="
 """
     return PlainTextResponse(script, media_type="text/plain")
-
-
-@app.get("/api/agent/script-windows")
-async def agent_script_windows():
-    """Serve the Windows agent script for download."""
-    script_path = os.path.join(os.path.dirname(__file__), "agent_windows.py")
-    if not os.path.exists(script_path):
-        raise HTTPException(404, "Windows agent script not found on server")
-    with open(script_path) as f:
-        content = f.read()
-    return PlainTextResponse(content, media_type="text/plain")
 
 
 @app.get("/api/agent/install-windows-command", dependencies=[Depends(verify)])
@@ -803,13 +796,13 @@ async def agent_install_windows_command(request: Request, server_id: str = Query
     if not backend_host:
         req_host = request.headers.get("x-forwarded-host") or request.headers.get("host", "")
         backend_host = req_host.split(":")[0] if req_host else "localhost"
-    cmd = f'powershell -Command "irm \'http://{backend_host}:{settings.BACKEND_PORT}/api/agent/install-windows?token={token}\' | iex"'
+    cmd = f"powershell -Command \"irm 'http://{backend_host}:{settings.BACKEND_PORT}/api/agent/install-windows?token={token}' | iex\""
     return {"command": cmd}
 
 
 @app.get("/api/agent/install-windows")
 async def agent_install_windows(request: Request, token: str = Query(...)):
-    """Return a PowerShell install script for Windows."""
+    """Return a PowerShell install script that downloads and installs the Go agent binary."""
     if not registry.get_by_token(token):
         raise HTTPException(403, "Invalid token")
 
@@ -818,135 +811,61 @@ async def agent_install_windows(request: Request, token: str = Query(...)):
         req_host = request.headers.get("x-forwarded-host") or request.headers.get("host", "")
         backend_host = req_host.split(":")[0] if req_host else "localhost"
 
-    ws_url  = f"ws://{backend_host}:{settings.BACKEND_PORT}/ws/agent"
-    dl_url  = f"http://{backend_host}:{settings.BACKEND_PORT}/api/agent/script-windows"
+    base_url = f"http://{backend_host}:{settings.BACKEND_PORT}"
 
-    script = f"""# ServerCTL Agent Installer — Windows (Embedded Python)
+    script = f"""# ServerCtl Agent Installer — Windows
 # Run as Administrator in PowerShell
 
 $ErrorActionPreference = "Stop"
 
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host " ServerCTL Agent Installer (Windows)"      -ForegroundColor Cyan
+Write-Host " ServerCtl Agent Installer (Windows)"      -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 
-# Check admin
-if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {{
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {{
     Write-Error "Run this script as Administrator."; exit 1
 }}
 
-# Paths
-$baseDir  = "C:\\ServerCTL"
-$pyDir    = "$baseDir\\python"
-$pyExe    = "$pyDir\\python.exe"
-$agentPy  = "$baseDir\\agent.py"
-$cfgFile  = "$baseDir\\config.yml"
-$logDir   = "$baseDir\\logs"
+$installDir = "C:\\Program Files\\serverctl-agent"
+$exe        = "$installDir\\serverctl-agent.exe"
+$cfgDir     = $installDir
+$cfgFile    = "$cfgDir\\config.yaml"
+$dlUrl      = "{base_url}/api/agent/download/windows-amd64"
+$svcName    = "serverctl-agent"
 
-# Create directories
-New-Item -ItemType Directory -Force -Path $logDir | Out-Null
+New-Item -ItemType Directory -Force -Path $installDir | Out-Null
 
-# Download embedded Python if not present
-if (-not (Test-Path $pyExe)) {{
-    Write-Host "[*] Downloading Python 3.12 embedded..." -ForegroundColor Yellow
-    $pyZip = "$env:TEMP\\python-embed.zip"
-    Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.12.9/python-3.12.9-embed-amd64.zip" -OutFile $pyZip -UseBasicParsing
-    Write-Host "[*] Extracting Python..." -ForegroundColor Yellow
-    Expand-Archive -Path $pyZip -DestinationPath $pyDir -Force
-    Remove-Item $pyZip -Force
+Write-Host "[*] Downloading agent binary..." -ForegroundColor Yellow
+Invoke-WebRequest -Uri $dlUrl -OutFile $exe -UseBasicParsing
 
-    # Enable site-packages (required for pip installs)
-    $pthFile = Get-ChildItem "$pyDir\\python*._pth" | Select-Object -First 1
-    if ($pthFile) {{
-        (Get-Content $pthFile.FullName) -replace '#import site','import site' | Set-Content $pthFile.FullName
-    }}
-
-    # Download and install pip
-    Write-Host "[*] Installing pip..." -ForegroundColor Yellow
-    $getPip = "$env:TEMP\\get-pip.py"
-    Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile $getPip -UseBasicParsing
-    & $pyExe $getPip --quiet
-    Remove-Item $getPip -Force
+if (-not (Test-Path $cfgFile)) {{
+    Write-Host "[*] Writing config..." -ForegroundColor Yellow
+    $cfg = "server_url: `"{base_url}`"`ntoken: `"{token}`"`ninterval: 30"
+    [System.IO.File]::WriteAllText($cfgFile, $cfg, [System.Text.UTF8Encoding]::new($false))
 }}
 
-# Install dependencies
-Write-Host "[*] Installing Python packages..." -ForegroundColor Yellow
-& $pyExe -m pip install --quiet pyyaml psutil "websockets>=12.0"
-
-# Download agent
-Write-Host "[*] Downloading agent..." -ForegroundColor Yellow
-Invoke-WebRequest -Uri "{dl_url}" -OutFile $agentPy -UseBasicParsing
-
-# Write config (UTF-8 without BOM)
-Write-Host "[*] Writing config..." -ForegroundColor Yellow
-$cfgContent = "server_url: {ws_url}`napi_token: {token}`nlog_file: C:\\ServerCTL\\logs\\agent.log`nreport_interval: 60"
-[System.IO.File]::WriteAllText($cfgFile, $cfgContent, [System.Text.UTF8Encoding]::new($false))
-
-# Download WinSW to run agent as a proper Windows Service
-Write-Host "[*] Downloading WinSW (service wrapper)..." -ForegroundColor Yellow
-$winswDir = "$baseDir\\winsw"
-$winswExe = "$winswDir\\winsw.exe"
-New-Item -ItemType Directory -Force -Path $winswDir | Out-Null
-if (-not (Test-Path $winswExe)) {{
-    try {{
-        Invoke-WebRequest -Uri "https://github.com/winsw/winsw/releases/download/v2.12.0/WinSW-x64.exe" -OutFile $winswExe -UseBasicParsing
-        Write-Host "[*] WinSW downloaded." -ForegroundColor Yellow
-    }} catch {{
-        Write-Warning "Could not download WinSW: $_"
-        $winswExe = $null
-    }}
+# Stop and remove existing service if present
+$existing = sc.exe query $svcName 2>&1
+if ($existing -notmatch "FAILED") {{
+    Write-Host "[*] Stopping existing service..." -ForegroundColor Yellow
+    sc.exe stop $svcName 2>&1 | Out-Null
+    Start-Sleep -Seconds 2
+    sc.exe delete $svcName 2>&1 | Out-Null
+    Start-Sleep -Seconds 1
 }}
 
-# Create WinSW XML config
-if ($winswExe -and (Test-Path $winswExe)) {{
-    $winswXml = "$winswDir\\winsw.xml"
-    $xmlContent = @"
-<service>
-  <id>ServerCTL-Agent</id>
-  <name>ServerCTL Agent</name>
-  <description>ServerCTL monitoring agent</description>
-  <executable>$pyExe</executable>
-  <arguments>$agentPy</arguments>
-  <log mode="roll">
-    <sizeThreshold>10240</sizeThreshold>
-    <keepFiles>3</keepFiles>
-  </log>
-  <logpath>$logDir</logpath>
-  <onfailure action="restart" delay="10 sec"/>
-  <onfailure action="restart" delay="20 sec"/>
-  <onfailure action="restart" delay="30 sec"/>
-</service>
-"@
-    [System.IO.File]::WriteAllText($winswXml, $xmlContent, [System.Text.UTF8Encoding]::new($false))
-}}
+Write-Host "[*] Installing Windows service..." -ForegroundColor Yellow
+sc.exe create $svcName binPath= "`"$exe`" -config `"$cfgFile`"" start= auto DisplayName= "ServerCtl Agent" | Out-Null
+sc.exe description $svcName "ServerCtl monitoring agent" | Out-Null
+sc.exe start $svcName | Out-Null
 
-# Stop and remove old installations
-Stop-Service "ServerCTL-Agent" -Force -ErrorAction SilentlyContinue
-if ($winswExe -and (Test-Path $winswExe)) {{
-    & $winswExe uninstall 2>$null
-}}
-Unregister-ScheduledTask -TaskName "ServerCTL Agent" -Confirm:$false -ErrorAction SilentlyContinue
-
-if ($winswExe -and (Test-Path $winswExe)) {{
-    # Install as Windows Service using WinSW
-    Write-Host "[*] Installing Windows Service (WinSW)..." -ForegroundColor Yellow
-    Push-Location $winswDir
-    & $winswExe install
-    Pop-Location
-    Start-Service "ServerCTL-Agent"
-    Write-Host ""
-    Write-Host "==========================================" -ForegroundColor Green
-    Write-Host " ServerCTL Agent installed successfully!" -ForegroundColor Green
-    Write-Host " Service: ServerCTL-Agent (Windows Service)" -ForegroundColor Green
-    Write-Host " Python:  C:\\ServerCTL\\python\\python.exe" -ForegroundColor Green
-    Write-Host " Config:  C:\\ServerCTL\\config.yml"         -ForegroundColor Green
-    Write-Host " Logs:    C:\\ServerCTL\\logs\\agent.log"    -ForegroundColor Green
-    Write-Host " Visible in services.msc as: ServerCTL Agent" -ForegroundColor Green
-    Write-Host "==========================================" -ForegroundColor Green
-}} else {{
-    Write-Error "WinSW download failed. Please check internet connectivity and try again."
-    exit 1
-}}
+Write-Host ""
+Write-Host "==========================================" -ForegroundColor Green
+Write-Host " ServerCtl Agent installed!" -ForegroundColor Green
+Write-Host " Binary:  $exe" -ForegroundColor Green
+Write-Host " Config:  $cfgFile" -ForegroundColor Green
+Write-Host " Service: $svcName (visible in services.msc)" -ForegroundColor Green
+Write-Host "==========================================" -ForegroundColor Green
 """
     return PlainTextResponse(script, media_type="text/plain")
 

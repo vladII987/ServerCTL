@@ -1,0 +1,11 @@
+# ServerCtl Agent configuration
+# Copy to /etc/serverctl-agent/config.yaml and fill in your values
+
+# URL of your ServerCtl backend (no trailing slash)
+server_url: "http://your-serverctl-host:8000"
+
+# Unique agent token — copy from the wizard (Step 3) when adding this server
+token: "your-unique-token-here"
+
+# How often to push metrics (seconds). Default: 30
+interval: 30

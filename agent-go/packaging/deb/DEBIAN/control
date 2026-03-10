@@ -1,0 +1,10 @@
+Package: serverctl-agent
+Version: 1.0.0
+Section: admin
+Priority: optional
+Architecture: amd64
+Maintainer: ServerCtl <admin@serverctl.local>
+Description: ServerCtl monitoring agent
+ Lightweight agent that connects to a ServerCtl backend over WebSocket,
+ reports system metrics, and executes remote management commands.
+ Supports Debian/Ubuntu and other dpkg-based distributions.

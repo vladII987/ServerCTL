@@ -1,0 +1,14 @@
+[Unit]
+Description=ServerCtl Agent
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/serverctl-agent
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=serverctl-agent
+
+[Install]
+WantedBy=multi-user.target

@@ -15,11 +15,11 @@ services:
       PROMETHEUS_URL: ${PROMETHEUS_URL:-http://localhost:9090}
       CORS_ORIGINS: "http://localhost,http://localhost:${FRONTEND_PORT:-8090},http://localhost:5173,${FRONTEND_URL:-}"
       SECRET_KEY: ${SECRET_KEY}
+      AGENT_BINS_DIR: /app/agent-bins
     volumes:
       - ./backend/servers.json:/app/servers.json
       - ./backend/users.json:/app/users.json
-      - ./agent/agent.py:/app/agent.py:ro
-      - ./agent/agent_windows.py:/app/agent_windows.py:ro
+      - ./agent-go/dist:/app/agent-bins:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT:-8765}/health"]
       interval: 10s

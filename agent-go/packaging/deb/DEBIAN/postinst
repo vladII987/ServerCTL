@@ -1,0 +1,25 @@
+#!/bin/bash
+set -e
+
+CONFIG_DIR=/etc/serverctl-agent
+CONFIG_FILE=$CONFIG_DIR/config.yaml
+EXAMPLE=$CONFIG_DIR/config.yaml.example
+
+# Create config from example if not already present
+if [ ! -f "$CONFIG_FILE" ] && [ -f "$EXAMPLE" ]; then
+    cp "$EXAMPLE" "$CONFIG_FILE"
+    chmod 600 "$CONFIG_FILE"
+    echo "Created $CONFIG_FILE — edit it and add your server_url and token."
+fi
+
+# Enable and start the service
+if command -v systemctl >/dev/null 2>&1; then
+    systemctl daemon-reload
+    systemctl enable serverctl-agent
+    if [ -f "$CONFIG_FILE" ] && grep -q "your-unique-token-here" "$CONFIG_FILE"; then
+        echo "NOTE: Edit $CONFIG_FILE with your server_url and token, then:"
+        echo "  systemctl start serverctl-agent"
+    else
+        systemctl start serverctl-agent || true
+    fi
+fi
