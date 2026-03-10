@@ -292,8 +292,10 @@ const Dashboard = () => {
   const [manualName, setManualName] = useState("");
   const [darkMode, setDarkMode] = useState(true);
   React.useEffect(() => {
-    document.body.style.background = darkMode ? '#16232E' : '#eef2f4';
+    const bg = darkMode ? '#16232E' : '#eef2f4';
+    document.body.style.background = bg;
     document.body.style.margin = '0';
+    document.documentElement.style.background = bg;
   }, [darkMode]);
   const [hoveredRow, setHoveredRow] = useState(null);
   const [btnHover, setBtnHover] = useState(null);
