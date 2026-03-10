@@ -2085,9 +2085,7 @@ const Dashboard = () => {
         .fut-btn { clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px)); }
       `}</style>
       {/* Background grid */}
-      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, backgroundImage: `linear-gradient(${darkMode ? 'rgba(70,120,133,0.06)' : 'rgba(37,81,94,0.05)'} 1px, transparent 1px), linear-gradient(90deg, ${darkMode ? 'rgba(70,120,133,0.06)' : 'rgba(37,81,94,0.05)'} 1px, transparent 1px)`, backgroundSize: '48px 48px', animation: 'bgGrid 6s ease-in-out infinite' }} />
-      {/* Scanline (dark mode only) */}
-      {darkMode && <div style={{ position: 'fixed', left: 0, right: 0, height: '120px', background: 'linear-gradient(transparent, rgba(70,120,133,0.03), transparent)', animation: 'scanline 12s linear infinite', pointerEvents: 'none', zIndex: 0 }} />}
+      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, backgroundImage: `linear-gradient(${darkMode ? 'rgba(70,120,133,0.06)' : 'rgba(37,81,94,0.05)'} 1px, transparent 1px), linear-gradient(90deg, ${darkMode ? 'rgba(70,120,133,0.06)' : 'rgba(37,81,94,0.05)'} 1px, transparent 1px)`, backgroundSize: '48px 48px' }} />
       {/* ── Left Nav Sidebar ── */}
       <nav style={{ width: '210px', position: 'fixed', top: 0, bottom: 0, left: 0, background: darkMode ? 'rgba(13,24,32,0.96)' : 'rgba(230,238,242,0.96)', backdropFilter: 'blur(16px)', borderRight: `1px solid ${darkMode ? '#1e3d4f' : '#b8cdd6'}`, display: 'flex', flexDirection: 'column', zIndex: 200, overflowY: 'auto' }}>
         {/* Logo */}
