@@ -291,16 +291,6 @@ const Dashboard = () => {
   const [manualHost, setManualHost] = useState("");
   const [manualName, setManualName] = useState("");
   const [darkMode, setDarkMode] = useState(true);
-  React.useEffect(() => {
-    const bg = darkMode ? '#16232E' : '#eef2f4';
-    document.body.style.background = bg;
-    document.body.style.margin = '0';
-    document.documentElement.style.background = bg;
-    // Update dynamic CSS vars instead of re-injecting style tags
-    const root = document.documentElement;
-    root.style.setProperty('--scrollbar-track', darkMode ? '#0f1e28' : '#e0e8ec');
-    root.style.setProperty('--color-scheme', darkMode ? 'dark' : 'light');
-  }, [darkMode]);
   const [hoveredRow, setHoveredRow] = useState(null);
   const [btnHover, setBtnHover] = useState(null);
   const [inputFocus, setInputFocus] = useState(null);
@@ -411,7 +401,6 @@ const Dashboard = () => {
   const wizardPollRef = useRef(null);
   const wizardPreServersRef = useRef([]);
   const [wizardInstallCmd, setWizardInstallCmd] = useState('');
-  const [wizardInstallCmdWin, setWizardInstallCmdWin] = useState('');
   const [wizardInstallCmdLoading, setWizardInstallCmdLoading] = useState(false);
   const [navSection, setNavSection] = useState('servers');
   const [upgradeLoading, setUpgradeLoading] = useState(false);
@@ -648,7 +637,6 @@ const Dashboard = () => {
     setWizardNewServer(null);
     setWizardServerId('');
     setWizardInstallCmd('');
-    setWizardInstallCmdWin('');
     wizardServerIdRef.current = '';
     wizardPreServersRef.current = servers.map(s => s.id);
     setShowWizard(true);
@@ -657,23 +645,18 @@ const Dashboard = () => {
   const closeWizard = () => {
     setShowWizard(false);
     if (wizardPollRef.current) { clearInterval(wizardPollRef.current); wizardPollRef.current = null; }
-    // If server was pre-created but agent never connected, delete it
-    const preCreatedId = wizardServerIdRef.current;
-    if (preCreatedId && !wizardConnected) {
-      fetch(`/api/servers/${encodeURIComponent(preCreatedId)}`, { method: 'DELETE', headers: authHeader })
-        .then(() => fetchServers());
-    }
   };
 
-  const fetchWizardInstallCmd = async (server_id) => {
+  const fetchWizardInstallCmd = async (server_id, os) => {
     setWizardInstallCmdLoading(true);
     setWizardInstallCmd('');
-    setWizardInstallCmdWin('');
     try {
-      const r = await fetch(`/api/agent/install-command?server_id=${encodeURIComponent(server_id)}`, { headers: authHeader });
+      const endpoint = os === 'windows'
+        ? `/api/agent/install-windows-command?server_id=${encodeURIComponent(server_id)}`
+        : `/api/agent/install-command?server_id=${encodeURIComponent(server_id)}`;
+      const r = await fetch(endpoint, { headers: authHeader });
       const d = await r.json();
       setWizardInstallCmd(d.command || '');
-      setWizardInstallCmdWin(d.windows_command || '');
     } catch {
       setWizardInstallCmd('# Error fetching install command — check backend connection');
     }
@@ -2078,14 +2061,14 @@ const Dashboard = () => {
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', color: c.text, fontFamily: '"Hack", "Courier New", monospace', transition: 'background 0.3s, color 0.3s', position: 'relative' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', color: c.text, fontFamily: '"Hack", "Courier New", monospace', transition: 'background 0.3s, color 0.3s', background: darkMode ? '#16232E' : '#eef2f4', position: 'relative' }}>
       <style>{`
         * { font-family: 'Hack', 'Courier New', monospace !important; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         @keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes bgGrid { 0%,100% { opacity: 0.8; } 50% { opacity: 0.4; } }
+        @keyframes bgGrid { 0%,100% { opacity: ${darkMode ? '1' : '0.6'}; } 50% { opacity: ${darkMode ? '0.6' : '0.3'}; } }
         @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100vh); } }
         .probe-info-wrap:hover .probe-info-icon { background: #A8987C !important; color: #16232E !important; }
         .probe-info-wrap:hover .probe-tooltip { display: block !important; }
@@ -2094,10 +2077,10 @@ const Dashboard = () => {
         button:not(:disabled) { transition: filter 0.12s, transform 0.1s, box-shadow 0.15s; }
         button:not(:disabled):hover { filter: brightness(1.12); }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: var(--scrollbar-track, #0f1e28); }
+        ::-webkit-scrollbar-track { background: ${darkMode ? '#0f1e28' : '#e0e8ec'}; }
         ::-webkit-scrollbar-thumb { background: #467885; border-radius: 2px; }
         ::-webkit-scrollbar-thumb:hover { background: #A8987C; }
-        input, select, textarea { color-scheme: var(--color-scheme, dark); }
+        input, select, textarea { color-scheme: ${darkMode ? 'dark' : 'light'}; }
         .fut-card { clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)); }
         .fut-btn { clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px)); }
       `}</style>
@@ -3904,33 +3887,25 @@ const Dashboard = () => {
                 )}
                 {/* Step 3: Copy Command */}
                 {wizardStep === 3 && (() => {
-                  if (!wizardInstallCmd && !wizardInstallCmdWin && !wizardInstallCmdLoading) {
-                    if (wizardServerId) fetchWizardInstallCmd(wizardServerId);
+                  if (!wizardInstallCmd && !wizardInstallCmdLoading) {
+                    if (wizardServerId) fetchWizardInstallCmd(wizardServerId, wizardOS);
                   }
-                  const activeCmd = wizardOS === 'windows' ? wizardInstallCmdWin : wizardInstallCmd;
                   return (
                     <div>
                       <div style={{ fontSize: '14px', color: c.textMuted, marginBottom: '16px' }}>
-                        Run this command on <strong style={{ color: c.text }}>{wizardName || 'your server'}</strong>:
-                      </div>
-                      {/* OS tab switcher */}
-                      <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
-                        {[{id:'linux',label:'🐧 Linux (curl | sh)'},{id:'windows',label:'⊞ Windows (PowerShell)'}].map(tab => (
-                          <button key={tab.id} onClick={() => setWizardOS(tab.id)}
-                            style={{ padding: '5px 14px', fontSize: '12px', cursor: 'pointer', borderRadius: '5px', border: `1px solid ${wizardOS === tab.id ? '#3b82f6' : c.border}`, background: wizardOS === tab.id ? 'rgba(59,130,246,0.15)' : 'transparent', color: wizardOS === tab.id ? '#60a5fa' : c.textMuted }}>
-                            {tab.label}
-                          </button>
-                        ))}
+                        {wizardOS === 'windows'
+                          ? <>Run this command on <strong style={{ color: c.text }}>{wizardName || 'your server'}</strong> in <strong style={{ color: '#60a5fa' }}>PowerShell as Administrator</strong>:</>
+                          : <>Run this command on <strong style={{ color: c.text }}>{wizardName || 'your server'}</strong> as root or with sudo:</>}
                       </div>
                       {wizardOS === 'windows' && (
                         <div style={{ marginBottom: '10px', padding: '8px 12px', borderRadius: '6px', background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.3)', fontSize: '12px', color: '#60a5fa' }}>
-                          Run in PowerShell as Administrator (right-click → Run as Administrator)
+                          ⊞ PowerShell — Run as Administrator (right-click → Run as Administrator)
                         </div>
                       )}
                       <div style={{ background: 'rgba(0,0,0,0.35)', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', padding: '14px 16px', fontFamily: '"Hack", "Courier New", monospace', fontSize: '12px', color: '#86efac', wordBreak: 'break-all', position: 'relative', border: '1px solid rgba(34,197,94,0.2)', minHeight: '52px' }}>
-                        {wizardInstallCmdLoading ? <span style={{ color: '#60a5fa' }}>Loading...</span> : activeCmd}
-                        {activeCmd && (
-                          <button onClick={() => copyToClipboard(activeCmd)}
+                        {wizardInstallCmdLoading ? <span style={{ color: '#60a5fa' }}>Loading...</span> : wizardInstallCmd}
+                        {wizardInstallCmd && (
+                          <button onClick={() => copyToClipboard(wizardInstallCmd)}
                             style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(59,130,246,0.2)', border: '1px solid rgba(59,130,246,0.4)', color: '#60a5fa', borderRadius: '5px', padding: '3px 10px', fontSize: '11px', cursor: 'pointer' }}>
                             Copy
                           </button>
@@ -3938,11 +3913,11 @@ const Dashboard = () => {
                       </div>
                       <div style={{ marginTop: '12px', fontSize: '12px', color: c.textMuted }}>
                         {wizardOS === 'windows'
-                          ? 'Downloads the Go agent binary and installs it as a Windows Service (visible in services.msc).'
-                          : 'Downloads the Go agent binary, writes config, and starts it as a systemd service.'}
+                          ? 'The script will download Python (embedded), install the agent, and register it as a Windows Service (visible in services.msc).'
+                          : 'The script will install Python3, download the agent, configure it, and start it as a systemd service.'}
                       </div>
                       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between' }}>
-                        <button onClick={() => { setWizardStep(2); setWizardInstallCmd(''); setWizardInstallCmdWin(''); }} style={{ ...styles.btn, ...styles.btnSecondary }}>← Back</button>
+                        <button onClick={() => { setWizardStep(2); setWizardInstallCmd(''); }} style={{ ...styles.btn, ...styles.btnSecondary }}>← Back</button>
                         <button onClick={() => { setWizardStep(4); startWizardPolling(); }} style={{ ...styles.btn, ...styles.btnPrimary }}>Next → Wait for Connection</button>
                       </div>
                     </div>
