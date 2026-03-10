@@ -190,7 +190,7 @@ func countUpgradable(pm *pkgManager) int {
 	}
 	var out string
 	if pm.name == "apt" {
-		out, _, _ = runShell("apt list --upgradable --quiet 2>/dev/null")
+		out, _ = runShell("apt list --upgradable --quiet 2>/dev/null")
 	} else {
 		out, _, _ = runCmd(pm.list...)
 	}
