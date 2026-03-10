@@ -326,7 +326,7 @@ type ReportMsg struct {
 	Metrics *Metrics `json:"metrics,omitempty"`
 }
 
-func handleCommand(command string, pm *pkgManager) string {
+func handleCommand(command, target string, pm *pkgManager) string {
 	switch command {
 	case "check_reboot":
 		if rebootRequired() {
@@ -338,25 +338,88 @@ func handleCommand(command string, pm *pkgManager) string {
 		if pm == nil {
 			return "0"
 		}
-		n := countUpgradable(pm)
-		return strconv.Itoa(n)
+		return strconv.Itoa(countUpgradable(pm))
 
 	case "system_info":
-		out, _ := runShell(systemInfoCmd())
+		out, _ := runShell("uname -a")
+		return out
+
+	case "cpu_info":
+		if runtime.GOOS == "windows" {
+			out, _ := runShell("wmic cpu get Name,NumberOfCores,MaxClockSpeed /format:list")
+			return out
+		}
+		out, _ := runShell("lscpu 2>/dev/null || cat /proc/cpuinfo")
+		return out
+
+	case "top_processes":
+		if runtime.GOOS == "windows" {
+			out, _ := runShell("tasklist /fo csv")
+			return out
+		}
+		out, _ := runShell("ps aux --sort=-%cpu 2>/dev/null || ps aux")
 		return out
 
 	case "list_services":
 		out, _ := runShell(listServicesCmd())
 		return out
 
+	case "service_status":
+		svc := target
+		if svc == "" {
+			return "no service specified"
+		}
+		out, _ := runShell(serviceCmd("status", svc))
+		return out
+
+	case "list_logs":
+		return listLogFiles()
+
+	case "view_log":
+		if target == "" {
+			return "no path specified"
+		}
+		return readLogFile(target)
+
+	case "update":
+		if pm == nil {
+			return "No package manager found"
+		}
+		out, _ := runCmd(pm.update...)
+		return out
+
+	case "upgrade":
+		if pm == nil {
+			return "No package manager found"
+		}
+		runCmd(pm.update...)
+		out, _ := runShell(strings.Join(pm.upgrade, " "))
+		return out
+
 	case "update_packages":
 		if pm == nil {
 			return "No package manager found"
 		}
-		// refresh then upgrade
 		runCmd(pm.update...)
 		out, _ := runShell(strings.Join(pm.upgrade, " "))
 		return out
+
+	case "docker_ps":
+		out, _ := runShell("docker ps --format 'table {{.ID}}\\t{{.Names}}\\t{{.Image}}\\t{{.Status}}\\t{{.Ports}}' 2>/dev/null || echo 'docker not available'")
+		return out
+
+	case "kill_process":
+		if target == "" {
+			return "no PID specified"
+		}
+		out, _ := runShell("kill -9 " + target)
+		if out == "" {
+			return "killed"
+		}
+		return out
+
+	case "sysinfo_json":
+		return sysInfoJSON()
 
 	case "df":
 		out, _ := runShell("df -h")
@@ -375,12 +438,10 @@ func handleCommand(command string, pm *pkgManager) string {
 		return out
 
 	default:
-		// Arbitrary shell command (prefixed with "shell:")
 		if strings.HasPrefix(command, "shell:") {
 			out, _ := runShell(strings.TrimPrefix(command, "shell:"))
 			return out
 		}
-		// Service commands: "service:start:nginx", "service:stop:nginx", etc.
 		if strings.HasPrefix(command, "service:") {
 			parts := strings.SplitN(command, ":", 3)
 			if len(parts) == 3 {
@@ -391,6 +452,95 @@ func handleCommand(command string, pm *pkgManager) string {
 		}
 		return "unknown command: " + command
 	}
+}
+
+func listLogFiles() string {
+	dirs := []string{"/var/log"}
+	var files []map[string]interface{}
+	for _, dir := range dirs {
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			continue
+		}
+		for _, e := range entries {
+			if e.IsDir() {
+				continue
+			}
+			name := e.Name()
+			if strings.HasSuffix(name, ".log") || strings.HasSuffix(name, ".log.1") ||
+				name == "syslog" || name == "auth.log" || name == "kern.log" ||
+				name == "messages" || name == "dmesg" {
+				info, _ := e.Info()
+				size := int64(0)
+				if info != nil {
+					size = info.Size()
+				}
+				files = append(files, map[string]interface{}{
+					"name": name,
+					"path": dir + "/" + name,
+					"size": size,
+				})
+			}
+		}
+	}
+	if files == nil {
+		files = []map[string]interface{}{}
+	}
+	data, _ := json.Marshal(files)
+	return string(data)
+}
+
+func readLogFile(path string) string {
+	// Only allow reading from /var/log for safety
+	if !strings.HasPrefix(path, "/var/log/") {
+		return "access denied: only /var/log/* allowed"
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "error reading file: " + err.Error()
+	}
+	// Return last 500 lines
+	lines := strings.Split(string(data), "\n")
+	if len(lines) > 500 {
+		lines = lines[len(lines)-500:]
+	}
+	return strings.Join(lines, "\n")
+}
+
+func sysInfoJSON() string {
+	hostStat, _ := host.Info()
+	cpuStat, _ := cpu.Info()
+	memStat, _ := mem.VirtualMemory()
+	diskStat, _ := disk.Usage("/")
+
+	cpuModel := ""
+	cpuCores := 0
+	if len(cpuStat) > 0 {
+		cpuModel = cpuStat[0].ModelName
+		cpuCores = int(cpuStat[0].Cores)
+	}
+
+	info := map[string]interface{}{
+		"hostname":       hostname(),
+		"ip":             localIP(),
+		"os":             "",
+		"platform":       "",
+		"kernel":         "",
+		"arch":           runtime.GOARCH,
+		"uptime":         uint64(0),
+		"cpu_model":      cpuModel,
+		"cpu_cores":      cpuCores,
+		"ram_total_gb":   round2(float64(memStat.Total) / 1e9),
+		"disk_total_gb":  round2(float64(diskStat.Total) / 1e9),
+	}
+	if hostStat != nil {
+		info["os"] = hostStat.Platform + " " + hostStat.PlatformVersion
+		info["platform"] = hostStat.Platform
+		info["kernel"] = hostStat.KernelVersion
+		info["uptime"] = hostStat.Uptime
+	}
+	data, _ := json.Marshal(info)
+	return string(data)
 }
 
 func systemInfoCmd() string {
@@ -561,7 +711,7 @@ func connect(url string, cfg *Config, pm *pkgManager, state *updateState) error 
 		}
 		go func(in IncomingMsg) {
 			log.Printf("[agent] command: %s", in.Command)
-			output := handleCommand(in.Command, pm)
+			output := handleCommand(in.Command, in.Target, pm)
 			resp := ResultMsg{
 				Type:      "result",
 				RequestID: in.RequestID,
