@@ -309,14 +309,21 @@ func round2(f float64) float64 {
 // ─── Command handler ──────────────────────────────────────────────────────────
 
 type IncomingMsg struct {
-	Command string `json:"command"`
+	Type      string `json:"type"`
+	Command   string `json:"command"`
+	RequestID string `json:"request_id"`
+	Target    string `json:"target"`
 }
 
-type OutgoingMsg struct {
-	Type    string `json:"type"`
-	Command string `json:"command,omitempty"`
-	Output  string `json:"output,omitempty"`
-	Error   string `json:"error,omitempty"`
+type ResultMsg struct {
+	Type      string                 `json:"type"`
+	RequestID string                 `json:"request_id"`
+	Result    map[string]interface{} `json:"result"`
+}
+
+type ReportMsg struct {
+	Type    string   `json:"type"`
+	Metrics *Metrics `json:"metrics,omitempty"`
 }
 
 func handleCommand(command string, pm *pkgManager) string {
@@ -552,19 +559,19 @@ func connect(url string, cfg *Config, pm *pkgManager, state *updateState) error 
 			log.Printf("[agent] bad message: %s", msg)
 			continue
 		}
-		go func(cmd string) {
-			log.Printf("[agent] command: %s", cmd)
-			output := handleCommand(cmd, pm)
-			resp := OutgoingMsg{
-				Type:    "command_output",
-				Command: cmd,
-				Output:  output,
+		go func(in IncomingMsg) {
+			log.Printf("[agent] command: %s", in.Command)
+			output := handleCommand(in.Command, pm)
+			resp := ResultMsg{
+				Type:      "result",
+				RequestID: in.RequestID,
+				Result:    map[string]interface{}{"output": output},
 			}
 			data, _ := json.Marshal(resp)
 			mu.Lock()
 			conn.WriteMessage(websocket.TextMessage, data)
 			mu.Unlock()
-		}(incoming.Command)
+		}(incoming)
 	}
 }
 
@@ -575,7 +582,11 @@ func sendMetrics(conn *websocket.Conn, mu *sync.Mutex, state *updateState) {
 		log.Printf("[agent] metrics error: %v", err)
 		return
 	}
-	data, err := json.Marshal(m)
+	report := ReportMsg{
+		Type:    "report",
+		Metrics: m,
+	}
+	data, err := json.Marshal(report)
 	if err != nil {
 		return
 	}
