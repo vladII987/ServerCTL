@@ -245,21 +245,21 @@ func rebootRequired() bool {
 // ─── Metrics ─────────────────────────────────────────────────────────────────
 
 type Metrics struct {
-	Type             string  `json:"type"`
-	CPUPercent       float64 `json:"cpu_percent"`
-	MemPercent       float64 `json:"mem_percent"`
-	MemUsedGB        float64 `json:"mem_used_gb"`
-	MemTotalGB       float64 `json:"mem_total_gb"`
-	DiskPercent      float64 `json:"disk_percent"`
-	DiskUsedGB       float64 `json:"disk_used_gb"`
-	DiskTotalGB      float64 `json:"disk_total_gb"`
-	Uptime           uint64  `json:"uptime"`
-	Hostname         string  `json:"hostname"`
-	IP               string  `json:"ip"`
-	OS               string  `json:"os"`
-	KernelVersion    string  `json:"kernel_version"`
-	UpgradableCount  int     `json:"upgradable_count"`
-	RebootRequired   bool    `json:"reboot_required"`
+	Type            string  `json:"type"`
+	CPUPercent      float64 `json:"cpu_percent"`
+	RamPercent      float64 `json:"ram_percent"`
+	RamUsedGB       float64 `json:"ram_used_gb"`
+	RamTotalGB      float64 `json:"ram_total_gb"`
+	DiskPercent     float64 `json:"disk_percent"`
+	DiskUsedGB      float64 `json:"disk_used_gb"`
+	DiskTotalGB     float64 `json:"disk_total_gb"`
+	Uptime          uint64  `json:"uptime"`
+	Hostname        string  `json:"hostname"`
+	IP              string  `json:"ip"`
+	OS              string  `json:"os"`
+	KernelVersion   string  `json:"kernel_version"`
+	UpgradableCount int     `json:"upgradable_count"`
+	RebootRequired  bool    `json:"reboot_required"`
 }
 
 func collectMetrics(upgradable int, reboot bool) (*Metrics, error) {
@@ -286,9 +286,9 @@ func collectMetrics(upgradable int, reboot bool) (*Metrics, error) {
 	return &Metrics{
 		Type:            "metrics",
 		CPUPercent:      round2(cpuPct[0]),
-		MemPercent:      round2(memStat.UsedPercent),
-		MemUsedGB:       round2(float64(memStat.Used) / 1e9),
-		MemTotalGB:      round2(float64(memStat.Total) / 1e9),
+		RamPercent:      round2(memStat.UsedPercent),
+		RamUsedGB:       round2(float64(memStat.Used) / 1e9),
+		RamTotalGB:      round2(float64(memStat.Total) / 1e9),
 		DiskPercent:     round2(diskStat.UsedPercent),
 		DiskUsedGB:      round2(float64(diskStat.Used) / 1e9),
 		DiskTotalGB:     round2(float64(diskStat.Total) / 1e9),
