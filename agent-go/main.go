@@ -509,7 +509,18 @@ func connect(url string, cfg *Config, pm *pkgManager, state *updateState) error 
 	defer conn.Close()
 	log.Printf("[agent] connected")
 
-	// reset backoff on successful connect (caller handles backoff)
+	// Send register message first — backend expects this as the first message
+	registerMsg := map[string]string{
+		"type":     "register",
+		"ip":       localIP(),
+		"hostname": hostname(),
+		"platform": runtime.GOOS,
+	}
+	regData, _ := json.Marshal(registerMsg)
+	if err := conn.WriteMessage(websocket.TextMessage, regData); err != nil {
+		return fmt.Errorf("register: %w", err)
+	}
+
 	var mu sync.Mutex
 	done := make(chan struct{})
 
