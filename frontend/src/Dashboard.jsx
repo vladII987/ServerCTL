@@ -296,6 +296,10 @@ const Dashboard = () => {
     document.body.style.background = bg;
     document.body.style.margin = '0';
     document.documentElement.style.background = bg;
+    // Update dynamic CSS vars instead of re-injecting style tags
+    const root = document.documentElement;
+    root.style.setProperty('--scrollbar-track', darkMode ? '#0f1e28' : '#e0e8ec');
+    root.style.setProperty('--color-scheme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
   const [hoveredRow, setHoveredRow] = useState(null);
   const [btnHover, setBtnHover] = useState(null);
@@ -2077,12 +2081,11 @@ const Dashboard = () => {
     <div style={{ display: 'flex', minHeight: '100vh', color: c.text, fontFamily: '"Hack", "Courier New", monospace', transition: 'background 0.3s, color 0.3s', position: 'relative' }}>
       <style>{`
         * { font-family: 'Hack', 'Courier New', monospace !important; }
-
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         @keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes bgGrid { 0%,100% { opacity: ${darkMode ? '1' : '0.6'}; } 50% { opacity: ${darkMode ? '0.6' : '0.3'}; } }
+        @keyframes bgGrid { 0%,100% { opacity: 0.8; } 50% { opacity: 0.4; } }
         @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100vh); } }
         .probe-info-wrap:hover .probe-info-icon { background: #A8987C !important; color: #16232E !important; }
         .probe-info-wrap:hover .probe-tooltip { display: block !important; }
@@ -2091,10 +2094,10 @@ const Dashboard = () => {
         button:not(:disabled) { transition: filter 0.12s, transform 0.1s, box-shadow 0.15s; }
         button:not(:disabled):hover { filter: brightness(1.12); }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: ${darkMode ? '#0f1e28' : '#e0e8ec'}; }
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track, #0f1e28); }
         ::-webkit-scrollbar-thumb { background: #467885; border-radius: 2px; }
         ::-webkit-scrollbar-thumb:hover { background: #A8987C; }
-        input, select, textarea { color-scheme: ${darkMode ? 'dark' : 'light'}; }
+        input, select, textarea { color-scheme: var(--color-scheme, dark); }
         .fut-card { clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)); }
         .fut-btn { clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px)); }
       `}</style>
