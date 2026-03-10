@@ -728,6 +728,12 @@ CONFIG_DIR=/etc/serverctl-agent
 BIN=$INSTALL_DIR/serverctl-agent
 DL_URL="{base_url}/api/agent/download/$PLATFORM"
 
+# Stop existing agent if running (so binary is not locked)
+if systemctl is-active --quiet serverctl-agent 2>/dev/null; then
+    echo "[*] Stopping existing agent..."
+    systemctl stop serverctl-agent
+fi
+
 # Install curl if missing (rare)
 if ! command -v curl >/dev/null 2>&1; then
     if command -v apt-get >/dev/null 2>&1; then
