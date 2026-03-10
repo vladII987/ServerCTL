@@ -291,6 +291,10 @@ const Dashboard = () => {
   const [manualHost, setManualHost] = useState("");
   const [manualName, setManualName] = useState("");
   const [darkMode, setDarkMode] = useState(true);
+  React.useEffect(() => {
+    document.body.style.background = darkMode ? '#16232E' : '#eef2f4';
+    document.body.style.margin = '0';
+  }, [darkMode]);
   const [hoveredRow, setHoveredRow] = useState(null);
   const [btnHover, setBtnHover] = useState(null);
   const [inputFocus, setInputFocus] = useState(null);
@@ -2071,7 +2075,7 @@ const Dashboard = () => {
     <div style={{ display: 'flex', minHeight: '100vh', color: c.text, fontFamily: '"Hack", "Courier New", monospace', transition: 'background 0.3s, color 0.3s', position: 'relative' }}>
       <style>{`
         * { font-family: 'Hack', 'Courier New', monospace !important; }
-        html, body { background: ${darkMode ? '#16232E' : '#eef2f4'} !important; margin: 0; }
+
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
