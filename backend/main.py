@@ -40,8 +40,8 @@ app = FastAPI(title="ServerCTL Backend", version="3.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_list,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -641,18 +641,6 @@ async def backend_speedtest():
     return {"output": "\n".join(lines)}
 
 
-@app.get("/api/agent/update-command", dependencies=[Depends(verify)])
-async def agent_update_command(request: Request):
-    """Return a one-liner that updates an existing agent (download latest + restart)."""
-    backend_host = os.environ.get("PUBLIC_HOST", "")
-    if not backend_host:
-        req_host = request.headers.get("x-forwarded-host") or request.headers.get("host", "")
-        backend_host = req_host.split(":")[0] if req_host else "localhost"
-    dl_url = f"http://{backend_host}:{settings.BACKEND_PORT}/api/agent/script"
-    cmd = f'sudo curl -fsSL "{dl_url}" -o /opt/serverctl-agent/agent.py && sudo systemctl restart serverctl-agent'
-    return {"command": cmd}
-
-
 @app.get("/api/agent/install-command", dependencies=[Depends(verify)])
 async def agent_install_command(request: Request, server_id: str = Query("")):
     """Return the one-liner install commands (Linux + Windows) using the per-server token."""
@@ -693,10 +681,18 @@ async def agent_download(platform: str):
 
 
 @app.get("/api/agent/install")
-async def agent_install(request: Request, token: str = Query(...)):
+async def agent_install(request: Request, token: str = Query("")):
     """Return a shell install script that downloads and installs the Go agent binary."""
+    if not token:
+        return PlainTextResponse(
+            '#!/bin/sh\necho "ERROR: Missing token. Use the install command from the ServerCTL dashboard."\nexit 1\n',
+            media_type="text/plain",
+        )
     if not registry.get_by_token(token):
-        raise HTTPException(403, "Invalid token")
+        return PlainTextResponse(
+            '#!/bin/sh\necho "ERROR: Invalid token. Use the install command from the ServerCTL dashboard."\nexit 1\n',
+            media_type="text/plain",
+        )
 
     backend_host = os.environ.get("PUBLIC_HOST", "")
     if not backend_host:
@@ -734,7 +730,7 @@ if systemctl is-active --quiet serverctl-agent 2>/dev/null; then
     systemctl stop serverctl-agent
 fi
 
-# Install curl if missing (rare)
+# Install curl if missing
 if ! command -v curl >/dev/null 2>&1; then
     if command -v apt-get >/dev/null 2>&1; then
         apt-get update -qq && apt-get install -y curl

@@ -13,7 +13,7 @@ services:
       DASHBOARD_TOKEN: ${DASHBOARD_TOKEN}
       AGENT_TOKEN: ${AGENT_TOKEN}
       PROMETHEUS_URL: ${PROMETHEUS_URL:-http://localhost:9090}
-      CORS_ORIGINS: "http://localhost,http://localhost:${FRONTEND_PORT:-8090},http://localhost:5173,${FRONTEND_URL:-}"
+      CORS_ORIGINS: "*"
       SECRET_KEY: ${SECRET_KEY}
       AGENT_BINS_DIR: /app/agent-bins
     volumes:

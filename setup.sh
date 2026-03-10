@@ -319,7 +319,7 @@ Environment="AGENT_TOKEN=${AGENT_TOKEN}"
 Environment="DASHBOARD_TOKEN=${DASHBOARD_TOKEN}"
 Environment="SECRET_KEY=${SECRET_KEY}"
 Environment="PROMETHEUS_URL=${PROMETHEUS_URL}"
-Environment="CORS_ORIGINS=http://localhost,http://localhost:${FRONTEND_PORT},http://$(hostname -I | awk '{print $1}'):${FRONTEND_PORT}"
+Environment="CORS_ORIGINS=*"
 ExecStart=${VENV}/bin/python -m uvicorn main:app --host 0.0.0.0 --port ${BACKEND_PORT}
 Restart=always
 RestartSec=5

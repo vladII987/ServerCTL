@@ -293,12 +293,11 @@ const Dashboard = () => {
   const [darkMode, setDarkMode] = useState(true);
   React.useEffect(() => {
     const bg = darkMode ? '#16232E' : '#eef2f4';
-    const root = document.documentElement;
-    root.style.background = bg;
+    document.documentElement.style.background = bg;
     document.body.style.background = bg;
     document.body.style.margin = '0';
-    root.style.setProperty('--scrollbar-track', darkMode ? '#0f1e28' : '#e0e8ec');
-    root.style.setProperty('--color-scheme', darkMode ? 'dark' : 'light');
+    document.documentElement.style.setProperty('--scrollbar-track', darkMode ? '#0f1e28' : '#e0e8ec');
+    document.documentElement.style.setProperty('--color-scheme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
   const [hoveredRow, setHoveredRow] = useState(null);
   const [btnHover, setBtnHover] = useState(null);
@@ -497,19 +496,13 @@ const Dashboard = () => {
       const list = data.servers || [];
       setServers(list);
       setLoading(false);
-      const onlineServers = list.filter(s => s.online);
-      if (onlineServers.length > 0) {
-        const results = await Promise.all(onlineServers.map(async s => {
-          try {
-            const r = await fetch(`/api/metrics/${s.id}`, { headers: { ...authHeader } });
-            const d = await r.json();
-            return d.metrics ? [s.id, d.metrics] : null;
-          } catch { return null; }
-        }));
-        const newMap = {};
-        results.filter(Boolean).forEach(([id, m]) => { newMap[id] = m; });
-        setServerMetricsMap(prev => ({ ...prev, ...newMap }));
-      }
+      list.filter(s => s.online).forEach(async s => {
+        try {
+          const r = await fetch(`/api/metrics/${s.id}`, { headers: { ...authHeader } });
+          const d = await r.json();
+          if (d.metrics) setServerMetricsMap(prev => ({ ...prev, [s.id]: d.metrics }));
+        } catch {}
+      });
     } catch (err) {
       console.error("Error loading servers:", err);
       setLoading(false);
@@ -666,12 +659,9 @@ const Dashboard = () => {
     setWizardInstallCmdLoading(true);
     setWizardInstallCmd('');
     try {
-      const endpoint = os === 'windows'
-        ? `/api/agent/install-windows-command?server_id=${encodeURIComponent(server_id)}`
-        : `/api/agent/install-command?server_id=${encodeURIComponent(server_id)}`;
-      const r = await fetch(endpoint, { headers: authHeader });
+      const r = await fetch(`/api/agent/install-command?server_id=${encodeURIComponent(server_id)}`, { headers: authHeader });
       const d = await r.json();
-      setWizardInstallCmd(d.command || '');
+      setWizardInstallCmd(os === 'windows' ? (d.windows_command || d.command || '') : (d.command || ''));
     } catch {
       setWizardInstallCmd('# Error fetching install command — check backend connection');
     }
@@ -1741,7 +1731,7 @@ const Dashboard = () => {
     },
     modalContent: {
       background: c.card,
-      clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))',
+      borderRadius: '4px',
       width: '90%',
       maxWidth: '960px',
       minWidth: '480px',
@@ -1749,7 +1739,7 @@ const Dashboard = () => {
       maxHeight: '92vh',
       overflow: 'auto',
       border: `1px solid ${c.border}`,
-      resize: 'vertical',
+      resize: 'both',
       display: 'flex',
       flexDirection: 'column',
     },
@@ -2076,7 +2066,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', color: c.text, fontFamily: '"Hack", "Courier New", monospace', position: 'relative' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', color: c.text, fontFamily: '"Hack", "Courier New", monospace', background: darkMode ? '#16232E' : '#eef2f4', position: 'relative' }}>
       <style dangerouslySetInnerHTML={{ __html: `
         * { font-family: 'Hack', 'Courier New', monospace !important; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -2090,17 +2080,17 @@ const Dashboard = () => {
         button:not(:disabled) { transition: filter 0.12s, transform 0.1s, box-shadow 0.15s; }
         button:not(:disabled):hover { filter: brightness(1.12); }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: var(--scrollbar-track, #0f1e28); }
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
         ::-webkit-scrollbar-thumb { background: #467885; border-radius: 2px; }
         ::-webkit-scrollbar-thumb:hover { background: #A8987C; }
-        input, select, textarea { color-scheme: var(--color-scheme, dark); }
+        input, select, textarea { color-scheme: var(--color-scheme); }
         .fut-card { clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)); }
         .fut-btn { clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px)); }
-      ` }} />
-      {/* Background grid */}
+      `}} />
+      {/* Background grid (static, no animation) */}
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, backgroundImage: `linear-gradient(${darkMode ? 'rgba(70,120,133,0.06)' : 'rgba(37,81,94,0.05)'} 1px, transparent 1px), linear-gradient(90deg, ${darkMode ? 'rgba(70,120,133,0.06)' : 'rgba(37,81,94,0.05)'} 1px, transparent 1px)`, backgroundSize: '48px 48px' }} />
       {/* ── Left Nav Sidebar ── */}
-      <nav style={{ width: '210px', position: 'fixed', top: 0, bottom: 0, left: 0, background: darkMode ? 'rgba(13,24,32,0.96)' : 'rgba(230,238,242,0.96)', backdropFilter: 'blur(16px)', borderRight: `1px solid ${darkMode ? '#1e3d4f' : '#b8cdd6'}`, display: 'flex', flexDirection: 'column', zIndex: 200, overflowY: 'auto' }}>
+      <nav style={{ width: '210px', position: 'fixed', top: 0, bottom: 0, left: 0, background: darkMode ? '#0d1820' : '#e6eef2', borderRight: `1px solid ${darkMode ? '#1e3d4f' : '#b8cdd6'}`, display: 'flex', flexDirection: 'column', zIndex: 200, overflowY: 'auto' }}>
         {/* Logo */}
         <div style={{ padding: '14px 16px 12px', borderBottom: `1px solid ${darkMode ? '#1e3d4f' : '#b8cdd6'}`, textAlign: 'center' }}>
           <img src={customLogo || '/logo.png'} alt="logo" style={{ maxWidth: '160px', maxHeight: '80px', objectFit: 'contain', marginBottom: '8px', filter: darkMode ? 'drop-shadow(0 0 10px rgba(168,152,124,0.35))' : 'none' }} />
@@ -2115,7 +2105,7 @@ const Dashboard = () => {
               ? servers.reduce((sum, s) => sum + (s.pending_updates?.count || 0), 0) : 0;
             return (
               <button key={item.key} onClick={() => { setNavSection(item.key); if (item.key === 'servers') setServerQuickFilter('all'); if (item.key === 'settings' && isAdmin) fetchUsers(); }}
-                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 16px', border: 'none', borderLeft: `2px solid ${active ? '#A8987C' : 'transparent'}`, background: active ? (darkMode ? 'rgba(168,152,124,0.08)' : 'rgba(37,81,94,0.08)') : 'transparent', color: active ? '#A8987C' : c.textMuted, cursor: 'pointer', fontSize: '12px', fontWeight: active ? '700' : '400', width: '100%', textAlign: 'left', transition: 'all 0.15s', letterSpacing: active ? '0.04em' : '0', position: 'relative' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 16px', border: 'none', borderLeft: `2px solid ${active ? '#A8987C' : 'transparent'}`, background: active ? (darkMode ? 'rgba(168,152,124,0.08)' : 'rgba(37,81,94,0.08)') : 'transparent', color: active ? '#A8987C' : c.textMuted, cursor: 'pointer', fontSize: '12px', fontWeight: active ? '700' : '400', width: '100%', textAlign: 'left', letterSpacing: active ? '0.04em' : '0', position: 'relative' }}>
                 <span style={{ fontSize: '13px', width: '18px', textAlign: 'center', flexShrink: 0, filter: active ? (darkMode ? 'drop-shadow(0 0 4px #A8987C)' : 'none') : 'none' }}>{item.icon}</span>
                 <span style={{ flex: 1 }}>{item.label}</span>
                 {updatesBadge > 0 && <span style={{ background: '#e8a838', color: '#16232E', fontSize: '9px', fontWeight: '800', padding: '1px 5px', letterSpacing: '0.05em' }}>{updatesBadge}</span>}
@@ -2128,13 +2118,14 @@ const Dashboard = () => {
           <div style={{ fontWeight: '700', color: '#A8987C', marginBottom: '1px', letterSpacing: '0.06em', fontFamily: '"Hack", "Courier New", monospace' }}>{user?.username}</div>
           <div style={{ color: '#467885', marginBottom: '10px', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{isAdmin ? '// Administrator' : '// User'}</div>
           <button onClick={handleLogout} style={{ ...styles.btn, background: 'transparent', color: '#f06060', border: '1px solid #f0606040', fontSize: '11px', padding: '5px 10px', width: '100%', justifyContent: 'center', letterSpacing: '0.08em', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))' }}>Sign Out</button>
+          <div style={{ textAlign: 'center', marginTop: '8px', fontSize: '9px', color: '#467885', letterSpacing: '0.1em' }}>v1.0.0</div>
         </div>
       </nav>
 
       {/* ── Main content area ── */}
       <div style={{ marginLeft: '210px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'relative', zIndex: 1 }}>
         {/* Top Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px', borderBottom: `1px solid ${darkMode ? '#1e3d4f' : '#b8cdd6'}`, background: darkMode ? 'rgba(13,24,32,0.92)' : 'rgba(230,238,242,0.92)', backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px', borderBottom: `1px solid ${darkMode ? '#1e3d4f' : '#b8cdd6'}`, background: darkMode ? '#0d1820' : '#e6eef2', position: 'sticky', top: 0, zIndex: 100 }}>
           <div>
             <div style={{ fontSize: '16px', fontWeight: '800', letterSpacing: '0.08em', color: '#A8987C', textTransform: 'uppercase', fontFamily: '"Hack", "Courier New", monospace', textShadow: darkMode ? '0 0 16px rgba(168,152,124,0.25)' : 'none' }}>
               {navSection === 'manage' && selectedServer ? selectedServer.name : (navItems.find(n => n.key === navSection)?.label || customTabTitle)}
@@ -3599,9 +3590,12 @@ const Dashboard = () => {
                     const isCheckUpdates = cmd === '__check_updates__';
                     const handleClick = () => {
                       setActiveAction(cmd);
+                      setUpgradeOutput('');
+                      setActionOutput('');
+                      setActionView(null);
                       if (isUpgrade) handleUpgrade();
                       else if (isUpdateAgent) handleUpdateAgent();
-                      else if (isCheckUpdates) { setActionOutput(''); setUpgradeOutput(''); showUpdates(); }
+                      else if (isCheckUpdates) { showUpdates(); }
                       else { runAction(cmd); }
                     };
                     return (
@@ -3924,8 +3918,8 @@ const Dashboard = () => {
                       </div>
                       <div style={{ marginTop: '12px', fontSize: '12px', color: c.textMuted }}>
                         {wizardOS === 'windows'
-                          ? 'The script will download Python (embedded), install the agent, and register it as a Windows Service (visible in services.msc).'
-                          : 'The script will install Python3, download the agent, configure it, and start it as a systemd service.'}
+                          ? 'The script will download the agent binary and register it as a Windows Service (visible in services.msc).'
+                          : 'The script will download the agent binary, configure it, and start it as a systemd service.'}
                       </div>
                       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between' }}>
                         <button onClick={() => { setWizardStep(2); setWizardInstallCmd(''); }} style={{ ...styles.btn, ...styles.btnSecondary }}>← Back</button>

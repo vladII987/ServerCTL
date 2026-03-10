@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -331,7 +333,7 @@ type ReportMsg struct {
 	PendingUpdates *PendingUpdates `json:"pending_updates,omitempty"`
 }
 
-func handleCommand(command, target string, pm *pkgManager) string {
+func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 	switch command {
 	case "check_reboot":
 		if rebootRequired() {
@@ -346,8 +348,74 @@ func handleCommand(command, target string, pm *pkgManager) string {
 		return strconv.Itoa(countUpgradable(pm))
 
 	case "system_info":
-		out, _ := runShell("uname -a")
+		if runtime.GOOS == "windows" {
+			out, _ := runShell("systeminfo")
+			return out
+		}
+		out, _ := runShell("echo '=== OS ===' && cat /etc/os-release 2>/dev/null && echo '' && echo '=== Kernel ===' && uname -a && echo '' && echo '=== Uptime ===' && uptime && echo '' && echo '=== Memory ===' && free -h && echo '' && echo '=== Disk ===' && df -h && echo '' && echo '=== CPU ===' && lscpu 2>/dev/null | head -20 || cat /proc/cpuinfo | head -20")
 		return out
+
+	case "disk_usage":
+		if runtime.GOOS == "windows" {
+			out, _ := runShell("wmic logicaldisk get size,freespace,caption /format:list")
+			return out
+		}
+		out, _ := runShell("df -h")
+		return out
+
+	case "memory":
+		if runtime.GOOS == "windows" {
+			out, _ := runShell("systeminfo | findstr Memory")
+			return out
+		}
+		out, _ := runShell("free -h")
+		return out
+
+	case "netstat":
+		if runtime.GOOS == "windows" {
+			out, _ := runShell("ipconfig /all & echo. & echo ===== LISTENING PORTS ===== & netstat -an | findstr LISTENING & echo. & echo ===== FIREWALL STATUS ===== & netsh advfirewall show allprofiles state")
+			return out
+		}
+		var sb strings.Builder
+		sb.WriteString("══════════════════════════════════════════\n")
+		sb.WriteString("  IP CONFIGURATION\n")
+		sb.WriteString("══════════════════════════════════════════\n")
+		ipOut, _ := runShell("ip -br addr show 2>/dev/null || ip addr show 2>/dev/null || ifconfig 2>/dev/null")
+		sb.WriteString(ipOut)
+		sb.WriteString("\n")
+		gw, _ := runShell("ip route show default 2>/dev/null")
+		if strings.TrimSpace(gw) != "" {
+			sb.WriteString("\nDefault Gateway: " + strings.TrimSpace(gw) + "\n")
+		}
+		dns, _ := runShell("grep -v '^#' /etc/resolv.conf 2>/dev/null | grep nameserver")
+		if strings.TrimSpace(dns) != "" {
+			sb.WriteString("\nDNS Servers:\n" + dns + "\n")
+		}
+		sb.WriteString("\n══════════════════════════════════════════\n")
+		sb.WriteString("  LISTENING PORTS\n")
+		sb.WriteString("══════════════════════════════════════════\n")
+		ports, _ := runShell("ss -tulnp 2>/dev/null || netstat -tulnp 2>/dev/null")
+		sb.WriteString(ports)
+		sb.WriteString("\n══════════════════════════════════════════\n")
+		sb.WriteString("  FIREWALL STATUS\n")
+		sb.WriteString("══════════════════════════════════════════\n")
+		ufwOut, _ := runShell("ufw status 2>/dev/null")
+		if strings.Contains(ufwOut, "Status:") {
+			sb.WriteString(ufwOut)
+		} else {
+			fwdOut, _ := runShell("firewall-cmd --state 2>/dev/null && firewall-cmd --list-all 2>/dev/null")
+			if strings.TrimSpace(fwdOut) != "" && !strings.Contains(fwdOut, "not running") {
+				sb.WriteString(fwdOut)
+			} else {
+				iptOut, _ := runShell("iptables -L -n --line-numbers 2>/dev/null")
+				if strings.TrimSpace(iptOut) != "" && !strings.Contains(iptOut, "Permission denied") && !strings.Contains(iptOut, "not found") {
+					sb.WriteString(iptOut)
+				} else {
+					sb.WriteString("No firewall detected (ufw/firewalld/iptables not active or not installed)\n")
+				}
+			}
+		}
+		return sb.String()
 
 	case "cpu_info":
 		if runtime.GOOS == "windows" {
@@ -390,14 +458,14 @@ func handleCommand(command, target string, pm *pkgManager) string {
 		if pm == nil {
 			return "No package manager found"
 		}
-		out, _ := runCmd(pm.update...)
+		out, _, _ := runCmd(pm.update...)
 		return out
 
 	case "upgrade":
 		if pm == nil {
 			return "No package manager found"
 		}
-		runCmd(pm.update...)
+		runCmd(pm.update...) //nolint:errcheck
 		out, _ := runShell(strings.Join(pm.upgrade, " "))
 		return out
 
@@ -422,6 +490,20 @@ func handleCommand(command, target string, pm *pkgManager) string {
 			return "killed"
 		}
 		return out
+
+	case "repo_speedtest":
+		return repoSpeedTest()
+
+	case "reboot":
+		if runtime.GOOS == "windows" {
+			out, _ := runShell("shutdown /r /t 5 /c \"ServerCTL reboot\"")
+			return "Rebooting in 5 seconds...\n" + out
+		}
+		out, _ := runShell("sudo reboot || reboot || shutdown -r now")
+		return "Reboot initiated.\n" + out
+
+	case "update_agent":
+		return updateAgent(cfg)
 
 	case "sysinfo_json":
 		return sysInfoJSON()
@@ -512,37 +594,280 @@ func readLogFile(path string) string {
 	return strings.Join(lines, "\n")
 }
 
+func updateAgent(cfg *Config) string {
+	// Determine platform
+	platform := runtime.GOOS + "-" + runtime.GOARCH
+	// Build download URL from server_url
+	baseURL := strings.TrimRight(cfg.ServerURL, "/")
+	// Replace ws:// with http://
+	baseURL = strings.Replace(baseURL, "ws://", "http://", 1)
+	baseURL = strings.Replace(baseURL, "wss://", "https://", 1)
+	dlURL := baseURL + "/api/agent/download/" + platform
+
+	if runtime.GOOS == "windows" {
+		// Windows: download to temp, stop service, replace, start service
+		script := fmt.Sprintf(`
+$ErrorActionPreference = 'Stop'
+$dlUrl = '%s'
+$binPath = (Get-Process -Id $PID).Path
+if (-not $binPath) { $binPath = 'C:\serverctl-agent\serverctl-agent.exe' }
+$tmpPath = "$binPath.new"
+Write-Output "[*] Downloading update from $dlUrl ..."
+Invoke-WebRequest -Uri $dlUrl -OutFile $tmpPath -UseBasicParsing
+Write-Output "[*] Stopping service..."
+Stop-Service serverctl-agent -Force -ErrorAction SilentlyContinue
+Start-Sleep -Seconds 1
+Move-Item -Force $tmpPath $binPath
+Write-Output "[*] Starting service..."
+Start-Service serverctl-agent
+Write-Output "[OK] Agent updated successfully."
+`, dlURL)
+		out, _ := runShell("powershell -Command \"" + strings.ReplaceAll(script, "\"", "\\\"") + "\"")
+		return out
+	}
+
+	// Linux: download new binary, replace, restart service
+	exePath, err := os.Executable()
+	if err != nil {
+		exePath = "/usr/local/bin/serverctl-agent"
+	}
+
+	cmds := fmt.Sprintf(
+		`echo "[*] Downloading update from %s ..." && `+
+			`curl -sL -o "%s.new" "%s" && `+
+			`chmod +x "%s.new" && `+
+			`echo "[*] Stopping service..." && `+
+			`(systemctl stop serverctl-agent 2>/dev/null || true) && `+
+			`mv -f "%s.new" "%s" && `+
+			`echo "[*] Starting service..." && `+
+			`(systemctl start serverctl-agent 2>/dev/null || nohup "%s" &) && `+
+			`echo "[OK] Agent updated successfully."`,
+		dlURL, exePath, dlURL, exePath, exePath, exePath, exePath)
+
+	out, _ := runShell(cmds)
+	return out
+}
+
+func repoSpeedTest() string {
+	repos := []struct{ name, url string }{
+		{"Ubuntu Archive", "http://archive.ubuntu.com/ubuntu/dists/noble/Release"},
+		{"Ubuntu Security", "http://security.ubuntu.com/ubuntu/dists/noble-security/Release"},
+		{"Ubuntu Updates", "http://archive.ubuntu.com/ubuntu/dists/noble-updates/Release"},
+	}
+	var lines []string
+	lines = append(lines, "[From agent]")
+	client := &http.Client{Timeout: 10 * time.Second}
+	for _, r := range repos {
+		start := time.Now()
+		resp, err := client.Get(r.url)
+		if err != nil {
+			lines = append(lines, fmt.Sprintf("%s: Error — %v", r.name, err))
+			continue
+		}
+		data, _ := io.ReadAll(io.LimitReader(resp.Body, 512*1024))
+		resp.Body.Close()
+		elapsed := time.Since(start).Seconds()
+		speed := float64(len(data)) / elapsed / 1024 / 1024 * 8
+		lines = append(lines, fmt.Sprintf("%s: %.2f Mbps  (%d KB in %.2fs)", r.name, speed, len(data)/1024, elapsed))
+	}
+	return strings.Join(lines, "\n")
+}
+
 func sysInfoJSON() string {
 	hostStat, _ := host.Info()
 	cpuStat, _ := cpu.Info()
 	memStat, _ := mem.VirtualMemory()
-	diskStat, _ := disk.Usage("/")
+	swapStat, _ := mem.SwapMemory()
 
 	cpuModel := ""
 	cpuCores := 0
+	cpuCoresPhysical := 0
 	if len(cpuStat) > 0 {
 		cpuModel = cpuStat[0].ModelName
 		cpuCores = int(cpuStat[0].Cores)
 	}
+	cpuCoresPhysical = runtime.NumCPU()
+
+	// Uptime as human-readable string
+	uptimeStr := ""
+	if hostStat != nil && hostStat.Uptime > 0 {
+		u := hostStat.Uptime
+		days := u / 86400
+		hours := (u % 86400) / 3600
+		mins := (u % 3600) / 60
+		if days > 0 {
+			uptimeStr = fmt.Sprintf("%dd %dh %dm", days, hours, mins)
+		} else if hours > 0 {
+			uptimeStr = fmt.Sprintf("%dh %dm", hours, mins)
+		} else {
+			uptimeStr = fmt.Sprintf("%dm", mins)
+		}
+	}
+
+	// Load average
+	loadAvg := ""
+	if runtime.GOOS != "windows" {
+		if la, err := os.ReadFile("/proc/loadavg"); err == nil {
+			parts := strings.Fields(string(la))
+			if len(parts) >= 3 {
+				loadAvg = strings.Join(parts[:3], " ")
+			}
+		}
+	}
+
+	// SELinux
+	selinux := "Disabled"
+	if runtime.GOOS != "windows" {
+		if out, err := runShell("getenforce 2>/dev/null"); err == nil && strings.TrimSpace(out) != "" {
+			selinux = strings.TrimSpace(out)
+		}
+	}
+
+	// Kernel info
+	kernelRunning := ""
+	if hostStat != nil {
+		kernelRunning = hostStat.KernelVersion
+	}
+
+	// Disks
+	var disks []map[string]interface{}
+	partitions, _ := disk.Partitions(false)
+	seen := map[string]bool{}
+	for _, p := range partitions {
+		if seen[p.Mountpoint] {
+			continue
+		}
+		// Skip virtual filesystems
+		if strings.HasPrefix(p.Mountpoint, "/snap") || strings.HasPrefix(p.Mountpoint, "/sys") ||
+			strings.HasPrefix(p.Mountpoint, "/proc") || strings.HasPrefix(p.Mountpoint, "/dev") ||
+			strings.HasPrefix(p.Mountpoint, "/run") {
+			continue
+		}
+		if p.Fstype == "tmpfs" || p.Fstype == "devtmpfs" || p.Fstype == "squashfs" || p.Fstype == "overlay" {
+			continue
+		}
+		usage, err := disk.Usage(p.Mountpoint)
+		if err != nil || usage.Total == 0 {
+			continue
+		}
+		seen[p.Mountpoint] = true
+		disks = append(disks, map[string]interface{}{
+			"device":   p.Device,
+			"mount":    p.Mountpoint,
+			"pct":      fmt.Sprintf("%d%%", int(usage.UsedPercent)),
+			"total_gb": fmt.Sprintf("%.1f", float64(usage.Total)/1e9),
+			"used_gb":  fmt.Sprintf("%.1f", float64(usage.Used)/1e9),
+			"free_gb":  fmt.Sprintf("%.1f", float64(usage.Free)/1e9),
+		})
+	}
+	if disks == nil {
+		disks = []map[string]interface{}{}
+	}
+
+	// DNS servers
+	var dnsServers []string
+	if runtime.GOOS != "windows" {
+		if data, err := os.ReadFile("/etc/resolv.conf"); err == nil {
+			for _, line := range strings.Split(string(data), "\n") {
+				line = strings.TrimSpace(line)
+				if strings.HasPrefix(line, "nameserver") {
+					parts := strings.Fields(line)
+					if len(parts) >= 2 {
+						dnsServers = append(dnsServers, parts[1])
+					}
+				}
+			}
+		}
+	}
+	if dnsServers == nil {
+		dnsServers = []string{}
+	}
+
+	// Network interfaces
+	var interfaces []map[string]interface{}
+	if runtime.GOOS != "windows" {
+		out, _ := runShell("ip -j addr show 2>/dev/null")
+		if out != "" {
+			var ipData []struct {
+				IfName    string `json:"ifname"`
+				OperState string `json:"operstate"`
+				Mtu       int    `json:"mtu"`
+				Address   string `json:"address"`
+				Link      string `json:"link_type"`
+				AddrInfo  []struct {
+					Family    string `json:"family"`
+					Local     string `json:"local"`
+					PrefixLen int    `json:"prefixlen"`
+				} `json:"addr_info"`
+			}
+			if json.Unmarshal([]byte(out), &ipData) == nil {
+				// Get default gateway
+				gateway := ""
+				if gw, _ := runShell("ip route show default 2>/dev/null | awk '{print $3}' | head -1"); gw != "" {
+					gateway = strings.TrimSpace(gw)
+				}
+				for _, iface := range ipData {
+					ifType := iface.Link
+					if iface.IfName == "lo" {
+						ifType = "loopback"
+					}
+					var addrs []map[string]string
+					for _, a := range iface.AddrInfo {
+						addrs = append(addrs, map[string]string{
+							"family":  a.Family,
+							"address": fmt.Sprintf("%s/%d", a.Local, a.PrefixLen),
+						})
+					}
+					if addrs == nil {
+						addrs = []map[string]string{}
+					}
+					interfaces = append(interfaces, map[string]interface{}{
+						"name":      iface.IfName,
+						"type":      ifType,
+						"up":        strings.EqualFold(iface.OperState, "UP") || strings.EqualFold(iface.OperState, "UNKNOWN"),
+						"mac":       iface.Address,
+						"mtu":       iface.Mtu,
+						"addresses": addrs,
+						"gateway":   gateway,
+					})
+				}
+			}
+		}
+	}
+	if interfaces == nil {
+		interfaces = []map[string]interface{}{}
+	}
+
+	// RAM
+	ramTotalGiB := 0.0
+	swapTotalGiB := 0.0
+	if memStat != nil {
+		ramTotalGiB = round2(float64(memStat.Total) / (1024 * 1024 * 1024))
+	}
+	if swapStat != nil {
+		swapTotalGiB = round2(float64(swapStat.Total) / (1024 * 1024 * 1024))
+	}
 
 	info := map[string]interface{}{
-		"hostname":       hostname(),
-		"ip":             localIP(),
-		"os":             "",
-		"platform":       "",
-		"kernel":         "",
-		"arch":           runtime.GOARCH,
-		"uptime":         uint64(0),
-		"cpu_model":      cpuModel,
-		"cpu_cores":      cpuCores,
-		"ram_total_gb":   round2(float64(memStat.Total) / 1e9),
-		"disk_total_gb":  round2(float64(diskStat.Total) / 1e9),
+		"hostname":            hostname(),
+		"ip":                  localIP(),
+		"architecture":        runtime.GOARCH,
+		"kernel_running":      kernelRunning,
+		"selinux":             selinux,
+		"uptime":              uptimeStr,
+		"cpu_model":           cpuModel,
+		"cpu_cores":           cpuCoresPhysical,
+		"cpu_cores_physical":  cpuCores,
+		"ram_total_gib":       ramTotalGiB,
+		"swap_total_gib":      swapTotalGiB,
+		"load_avg":            loadAvg,
+		"disks":               disks,
+		"dns_servers":         dnsServers,
+		"interfaces":          interfaces,
 	}
 	if hostStat != nil {
 		info["os"] = hostStat.Platform + " " + hostStat.PlatformVersion
 		info["platform"] = hostStat.Platform
-		info["kernel"] = hostStat.KernelVersion
-		info["uptime"] = hostStat.Uptime
 	}
 	data, _ := json.Marshal(info)
 	return string(data)
@@ -716,11 +1041,11 @@ func connect(url string, cfg *Config, pm *pkgManager, state *updateState) error 
 		}
 		go func(in IncomingMsg) {
 			log.Printf("[agent] command: %s", in.Command)
-			output := handleCommand(in.Command, in.Target, pm)
+			output := handleCommand(in.Command, in.Target, pm, cfg)
 			resp := ResultMsg{
 				Type:      "result",
 				RequestID: in.RequestID,
-				Result:    map[string]interface{}{"output": output},
+				Result:    map[string]interface{}{"output": output, "returncode": 0, "status": "completed"},
 			}
 			data, _ := json.Marshal(resp)
 			mu.Lock()
