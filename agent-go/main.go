@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -27,17 +28,24 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const agentVersion = "1.1.0"
+
 // ─── Config ──────────────────────────────────────────────────────────────────
 
 type Config struct {
 	ServerURL string `yaml:"server_url"`
 	Token     string `yaml:"token"`
 	Interval  int    `yaml:"interval"` // seconds between metric pushes
+	path      string `yaml:"-"`        // config file path (not serialized)
 }
+
+var agentStartTime = time.Now()
 
 var defaultConfigPaths = []string{
 	"/etc/serverctl-agent/config.yaml",
 	"/etc/serverctl-agent/config.yml",
+	`C:\serverctl-agent\config.yaml`,
+	`C:\Program Files\serverctl-agent\config.yaml`,
 }
 
 func loadConfig(path string) (*Config, error) {
@@ -52,6 +60,7 @@ func loadConfig(path string) (*Config, error) {
 	if cfg.Interval <= 0 {
 		cfg.Interval = 30
 	}
+	cfg.path = path
 	return &cfg, nil
 }
 
@@ -152,17 +161,22 @@ func runCmd(args ...string) (string, int, error) {
 }
 
 func runShell(command string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
-		cmd = exec.Command("cmd", "/C", command)
+		cmd = exec.CommandContext(ctx, "cmd", "/C", command)
 	} else {
-		cmd = exec.Command("bash", "-c", command)
+		cmd = exec.CommandContext(ctx, "bash", "-c", command)
 	}
 	var out bytes.Buffer
 	var errOut bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &errOut
 	err := cmd.Run()
+	if ctx.Err() == context.DeadlineExceeded {
+		return strings.TrimSpace(out.String() + errOut.String()), fmt.Errorf("command timed out after 60 seconds")
+	}
 	result := out.String() + errOut.String()
 	return strings.TrimSpace(result), err
 }
@@ -335,6 +349,27 @@ type ReportMsg struct {
 
 func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 	switch command {
+	case "agent_info":
+		exePath, _ := os.Executable()
+		info, _ := os.Stat(exePath)
+		buildDate := ""
+		if info != nil {
+			buildDate = info.ModTime().Format("2006-01-02 15:04:05")
+		}
+		uptime := time.Since(agentStartTime).Round(time.Second).String()
+		data, _ := json.Marshal(map[string]string{
+			"version":    agentVersion,
+			"go_version": runtime.Version(),
+			"os":         runtime.GOOS,
+			"arch":       runtime.GOARCH,
+			"binary":     exePath,
+			"build_date": buildDate,
+			"uptime":     uptime,
+			"config":     cfg.path,
+			"server_url": cfg.ServerURL,
+		})
+		return string(data)
+
 	case "check_reboot":
 		if rebootRequired() {
 			return "1"
@@ -357,7 +392,7 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 
 	case "disk_usage":
 		if runtime.GOOS == "windows" {
-			out, _ := runShell("wmic logicaldisk get size,freespace,caption /format:list")
+			out, _ := runShell("powershell -Command \"Get-PSDrive -PSProvider FileSystem | Format-Table Name,@{N='Used(GB)';E={[math]::Round($_.Used/1GB,2)}},@{N='Free(GB)';E={[math]::Round($_.Free/1GB,2)}},@{N='Total(GB)';E={[math]::Round(($_.Used+$_.Free)/1GB,2)}},@{N='Used%';E={if(($_.Used+$_.Free) -gt 0){[math]::Round($_.Used/($_.Used+$_.Free)*100,1)}else{0}}} -AutoSize\"")
 			return out
 		}
 		out, _ := runShell("df -h")
@@ -419,7 +454,7 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 
 	case "cpu_info":
 		if runtime.GOOS == "windows" {
-			out, _ := runShell("wmic cpu get Name,NumberOfCores,MaxClockSpeed /format:list")
+			out, _ := runShell("powershell -Command \"Get-CimInstance Win32_Processor | Format-List Name,NumberOfCores,NumberOfLogicalProcessors,MaxClockSpeed,CurrentClockSpeed,L2CacheSize,L3CacheSize,Architecture\"")
 			return out
 		}
 		out, _ := runShell("lscpu 2>/dev/null || cat /proc/cpuinfo")
@@ -455,6 +490,10 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 		return readLogFile(target)
 
 	case "update":
+		if runtime.GOOS == "windows" {
+			out, _ := runShell("powershell -Command \"Get-WindowsUpdate -AcceptAll 2>$null; if ($?) { Write-Output 'Windows Update check complete.' } else { Write-Output 'Windows Update module not installed. Run: Install-Module PSWindowsUpdate' }\"")
+			return out
+		}
 		if pm == nil {
 			return "No package manager found"
 		}
@@ -462,6 +501,10 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 		return out
 
 	case "upgrade":
+		if runtime.GOOS == "windows" {
+			out, _ := runShell("powershell -Command \"Get-WindowsUpdate -Install -AcceptAll -AutoReboot:$false 2>$null; if ($?) { Write-Output 'Windows Update complete.' } else { Write-Output 'Windows Update module not installed. Run: Install-Module PSWindowsUpdate' }\"")
+			return out
+		}
 		if pm == nil {
 			return "No package manager found"
 		}
@@ -470,6 +513,10 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 		return out
 
 	case "update_packages":
+		if runtime.GOOS == "windows" {
+			out, _ := runShell("powershell -Command \"Get-WindowsUpdate -Install -AcceptAll -AutoReboot:$false 2>$null; if ($?) { Write-Output 'Windows Update complete.' } else { Write-Output 'Windows Update module not installed. Run: Install-Module PSWindowsUpdate' }\"")
+			return out
+		}
 		if pm == nil {
 			return "No package manager found"
 		}
@@ -502,8 +549,32 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 		out, _ := runShell("sudo reboot || reboot || shutdown -r now")
 		return "Reboot initiated.\n" + out
 
+	case "uninstall_agent":
+		if runtime.GOOS == "windows" {
+			tmpScript := filepath.Join(os.TempDir(), "serverctl-uninstall.ps1")
+			script := "Start-Sleep 2\r\n" +
+				"sc.exe stop serverctl-agent 2>$null\r\n" +
+				"Get-Process -Name serverctl-agent -ErrorAction SilentlyContinue | Stop-Process -Force\r\n" +
+				"Start-Sleep 2\r\n" +
+				"sc.exe delete serverctl-agent 2>$null\r\n" +
+				"Remove-Item -Recurse -Force C:\\serverctl-agent -ErrorAction SilentlyContinue\r\n"
+			os.WriteFile(tmpScript, []byte(script), 0644)
+			exec.Command("powershell", "-ExecutionPolicy", "Bypass", "-File", tmpScript).Start()
+			return "Agent uninstall initiated. Service will be removed."
+		}
+		// Linux: write detached uninstall script
+		uninstallScript := "#!/bin/sh\nsleep 2\nsystemctl stop serverctl-agent 2>/dev/null\nsystemctl disable serverctl-agent 2>/dev/null\nrm -f /etc/systemd/system/serverctl-agent.service\nsystemctl daemon-reload\nrm -f /usr/local/bin/serverctl-agent\nrm -rf /etc/serverctl-agent\n"
+		os.WriteFile("/tmp/serverctl-uninstall.sh", []byte(uninstallScript), 0755)
+		exec.Command("nohup", "sh", "/tmp/serverctl-uninstall.sh").Start()
+		return "Agent uninstall initiated. Service will be removed."
+
 	case "update_agent":
-		return updateAgent(cfg)
+		// Run update in background after response is sent
+		go func() {
+			time.Sleep(2 * time.Second) // give time for response to be sent
+			updateAgent(cfg)
+		}()
+		return "Agent update initiated. The agent will restart momentarily."
 
 	case "sysinfo_json":
 		return sysInfoJSON()
@@ -524,6 +595,35 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 		out, _ := runShell("who")
 		return out
 
+	case "ping_count":
+		if target == "" {
+			return "No target specified"
+		}
+		if runtime.GOOS == "windows" {
+			out, _ := runShell(fmt.Sprintf("ping -n 4 %s", target))
+			return out
+		}
+		out, _ := runShell(fmt.Sprintf("ping -c 4 %s", target))
+		return out
+
+	case "traceroute":
+		if target == "" {
+			return "No target specified"
+		}
+		if runtime.GOOS == "windows" {
+			out, _ := runShell(fmt.Sprintf("tracert %s", target))
+			return out
+		}
+		out, _ := runShell(fmt.Sprintf("traceroute %s 2>/dev/null || tracepath %s 2>/dev/null", target, target))
+		return out
+
+	case "nslookup":
+		if target == "" {
+			return "No target specified"
+		}
+		out, _ := runShell(fmt.Sprintf("nslookup %s", target))
+		return out
+
 	default:
 		if strings.HasPrefix(command, "shell:") {
 			out, _ := runShell(strings.TrimPrefix(command, "shell:"))
@@ -542,7 +642,33 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 }
 
 func listLogFiles() string {
-	dirs := []string{"/var/log"}
+	var dirs []string
+	if runtime.GOOS == "windows" {
+		// Windows Event Log — return virtual entries for event log channels
+		out, _ := runShell("powershell -Command \"Get-WinEvent -ListLog Application,System,Security -ErrorAction SilentlyContinue | ForEach-Object { $_.LogName + '|' + $_.RecordCount + '|' + $_.LastWriteTime }\"")
+		var files []map[string]interface{}
+		for _, line := range strings.Split(strings.TrimSpace(out), "\n") {
+			parts := strings.SplitN(strings.TrimSpace(line), "|", 3)
+			if len(parts) < 1 || parts[0] == "" {
+				continue
+			}
+			count := int64(0)
+			if len(parts) > 1 {
+				fmt.Sscanf(parts[1], "%d", &count)
+			}
+			files = append(files, map[string]interface{}{
+				"name": parts[0],
+				"path": "winlog:" + parts[0],
+				"size": count,
+			})
+		}
+		if files == nil {
+			files = []map[string]interface{}{}
+		}
+		data, _ := json.Marshal(files)
+		return string(data)
+	}
+	dirs = []string{"/var/log"}
 	var files []map[string]interface{}
 	for _, dir := range dirs {
 		entries, err := os.ReadDir(dir)
@@ -578,7 +704,16 @@ func listLogFiles() string {
 }
 
 func readLogFile(path string) string {
-	// Only allow reading from /var/log for safety
+	// Windows Event Log
+	if strings.HasPrefix(path, "winlog:") {
+		logName := strings.TrimPrefix(path, "winlog:")
+		out, _ := runShell(fmt.Sprintf("powershell -Command \"Get-WinEvent -LogName '%s' -MaxEvents 200 -ErrorAction SilentlyContinue | Format-Table -AutoSize TimeCreated,Id,LevelDisplayName,Message -Wrap\"", logName))
+		if strings.TrimSpace(out) == "" {
+			return "No events found in " + logName
+		}
+		return out
+	}
+	// Linux: only allow /var/log for safety
 	if !strings.HasPrefix(path, "/var/log/") {
 		return "access denied: only /var/log/* allowed"
 	}
@@ -605,47 +740,50 @@ func updateAgent(cfg *Config) string {
 	dlURL := baseURL + "/api/agent/download/" + platform
 
 	if runtime.GOOS == "windows" {
-		// Windows: download to temp, stop service, replace, start service
-		script := fmt.Sprintf(`
-$ErrorActionPreference = 'Stop'
-$dlUrl = '%s'
-$binPath = (Get-Process -Id $PID).Path
-if (-not $binPath) { $binPath = 'C:\serverctl-agent\serverctl-agent.exe' }
-$tmpPath = "$binPath.new"
-Write-Output "[*] Downloading update from $dlUrl ..."
-Invoke-WebRequest -Uri $dlUrl -OutFile $tmpPath -UseBasicParsing
-Write-Output "[*] Stopping service..."
-Stop-Service serverctl-agent -Force -ErrorAction SilentlyContinue
-Start-Sleep -Seconds 1
-Move-Item -Force $tmpPath $binPath
-Write-Output "[*] Starting service..."
-Start-Service serverctl-agent
-Write-Output "[OK] Agent updated successfully."
-`, dlURL)
-		out, _ := runShell("powershell -Command \"" + strings.ReplaceAll(script, "\"", "\\\"") + "\"")
+		// Windows: write PS1 script to temp file, execute it
+		tmpScript := filepath.Join(os.TempDir(), "serverctl-update.ps1")
+		script := "$ErrorActionPreference = 'Stop'\r\n" +
+			"$dlUrl = '" + dlURL + "'\r\n" +
+			"$binPath = 'C:\\serverctl-agent\\serverctl-agent.exe'\r\n" +
+			"$tmpPath = $binPath + '.new'\r\n" +
+			"Write-Output '[*] Downloading update...'\r\n" +
+			"Invoke-WebRequest -Uri $dlUrl -OutFile $tmpPath -UseBasicParsing\r\n" +
+			"Write-Output '[*] Stopping service...'\r\n" +
+			"Get-Process -Name serverctl-agent -ErrorAction SilentlyContinue | Stop-Process -Force\r\n" +
+			"Start-Sleep -Seconds 2\r\n" +
+			"Move-Item -Force $tmpPath $binPath\r\n" +
+			"Write-Output '[*] Starting service...'\r\n" +
+			"sc.exe start serverctl-agent\r\n" +
+			"Write-Output '[OK] Agent updated successfully.'\r\n"
+		os.WriteFile(tmpScript, []byte(script), 0644)
+		out, _ := runShell("powershell -ExecutionPolicy Bypass -File \"" + tmpScript + "\"")
+		os.Remove(tmpScript)
 		return out
 	}
 
-	// Linux: download new binary, replace, restart service
+	// Linux: download new binary, replace in-place, then use systemd-run
+	// to restart the service from outside the current cgroup
 	exePath, err := os.Executable()
 	if err != nil {
 		exePath = "/usr/local/bin/serverctl-agent"
 	}
 
-	cmds := fmt.Sprintf(
-		`echo "[*] Downloading update from %s ..." && `+
-			`curl -sL -o "%s.new" "%s" && `+
-			`chmod +x "%s.new" && `+
-			`echo "[*] Stopping service..." && `+
-			`(systemctl stop serverctl-agent 2>/dev/null || true) && `+
-			`mv -f "%s.new" "%s" && `+
-			`echo "[*] Starting service..." && `+
-			`(systemctl start serverctl-agent 2>/dev/null || nohup "%s" &) && `+
-			`echo "[OK] Agent updated successfully."`,
-		dlURL, exePath, dlURL, exePath, exePath, exePath, exePath)
+	// Download first while agent is still running
+	tmpBin := exePath + ".new"
+	dlCmd := fmt.Sprintf(`curl -sL -o "%s" "%s" && chmod +x "%s"`, tmpBin, dlURL, tmpBin)
+	out, _ := runShell(dlCmd)
+	if _, err := os.Stat(tmpBin); err != nil {
+		return "Download failed: " + out
+	}
 
-	out, _ := runShell(cmds)
-	return out
+	// Replace the binary
+	if err := os.Rename(tmpBin, exePath); err != nil {
+		return "Failed to replace binary: " + err.Error()
+	}
+
+	// Use systemd-run to restart outside our cgroup (survives service stop)
+	exec.Command("systemd-run", "--no-block", "systemctl", "restart", "serverctl-agent").Start()
+	return "Agent binary updated. Service restarting..."
 }
 
 func repoSpeedTest() string {
@@ -882,7 +1020,7 @@ func systemInfoCmd() string {
 
 func listServicesCmd() string {
 	if runtime.GOOS == "windows" {
-		return "sc query type= all state= all"
+		return "powershell -Command \"Get-Service | Sort-Object Status -Descending | Format-Table -AutoSize Name,DisplayName,Status,StartType\""
 	}
 	return "systemctl list-units --type=service --no-pager --plain 2>/dev/null || service --status-all 2>&1"
 }
@@ -972,10 +1110,15 @@ func runAgent(cfg *Config) {
 	maxBackoff := 5 * time.Minute
 
 	for {
+		connStart := time.Now()
 		if err := connect(url, cfg, pm, state); err != nil {
 			log.Printf("[agent] disconnected: %v — reconnecting in %s", err, backoff)
 		} else {
 			log.Printf("[agent] disconnected — reconnecting in %s", backoff)
+		}
+		// Reset backoff if we were connected for more than 30 seconds
+		if time.Since(connStart) > 30*time.Second {
+			backoff = 5 * time.Second
 		}
 		time.Sleep(backoff)
 		backoff *= 2
@@ -1002,6 +1145,7 @@ func connect(url string, cfg *Config, pm *pkgManager, state *updateState) error 
 		"ip":       localIP(),
 		"hostname": hostname(),
 		"platform": runtime.GOOS,
+		"version":  agentVersion,
 	}
 	regData, _ := json.Marshal(registerMsg)
 	if err := conn.WriteMessage(websocket.TextMessage, regData); err != nil {
@@ -1102,7 +1246,7 @@ func main() {
 	flag.Parse()
 
 	if version {
-		fmt.Println("serverctl-agent version 1.0.0 (go)")
+		fmt.Printf("serverctl-agent version %s (go)\n", agentVersion)
 		os.Exit(0)
 	}
 
@@ -1130,7 +1274,12 @@ func main() {
 		log.Fatalf("[agent] server_url and token are required in config")
 	}
 
-	runAgent(cfg)
+	if isWindowsService() {
+		log.Println("[agent] running as Windows service")
+		runWindowsService(cfg)
+	} else {
+		runAgent(cfg)
+	}
 }
 
 func installService() error {

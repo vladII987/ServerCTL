@@ -4,5 +4,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
+ARG APP_VERSION=dev
+RUN echo "$APP_VERSION" > /app/VERSION
 EXPOSE 9090
 CMD ["python", "main.py"]

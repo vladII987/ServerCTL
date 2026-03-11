@@ -343,6 +343,8 @@ const Dashboard = () => {
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [bulkProgress, setBulkProgress] = useState([]); // [{id, name, host, status, output}]
   const [toasts, setToasts] = useState([]); // [{id, type, title, message}]
+  const [globalTasks, setGlobalTasks] = useState([]); // [{id, server, command, status, output, startTime}]
+  const [showTaskPanel, setShowTaskPanel] = useState(true);
   const [showDonationModal, setShowDonationModal] = useState(() => localStorage.getItem('serverctl_donated') !== 'true');
   const [showRebootConfirm, setShowRebootConfirm] = useState(false);
   const [rebootTargets, setRebootTargets] = useState([]); // [{id, name, host}] — all candidates
@@ -437,6 +439,8 @@ const Dashboard = () => {
   // Sysinfo state
   const [sysInfo, setSysInfo] = useState(null);
   const [sysInfoLoading, setSysInfoLoading] = useState(false);
+  const [agentInfo, setAgentInfo] = useState(null);
+  const [agentInfoLoading, setAgentInfoLoading] = useState(false);
   // Branding
   const [customLogo, setCustomLogo] = useState(() => localStorage.getItem('serverctl_logo') || '');
   const [customTabTitle, setCustomTabTitle] = useState(() => localStorage.getItem('serverctl_tab_title') || 'ServerCTL');
@@ -550,6 +554,13 @@ const Dashboard = () => {
 
   useEffect(() => { fetchServers(); fetchHostStatus(); }, []);
   useEffect(() => { document.title = customTabTitle; }, [customTabTitle]);
+  // Timer to update elapsed time on running tasks
+  const [, setTaskTick] = useState(0);
+  useEffect(() => {
+    if (!globalTasks.some(t => t.status === 'running')) return;
+    const id = setInterval(() => setTaskTick(n => n + 1), 1000);
+    return () => clearInterval(id);
+  }, [globalTasks.some(t => t.status === 'running')]); // eslint-disable-line
   useEffect(() => {
     if (navSection !== 'updates') return;
     const id = setInterval(fetchServers, 15 * 60 * 1000);
@@ -650,9 +661,17 @@ const Dashboard = () => {
     setShowWizard(true);
   };
 
-  const closeWizard = () => {
+  const closeWizard = async () => {
     setShowWizard(false);
     if (wizardPollRef.current) { clearInterval(wizardPollRef.current); wizardPollRef.current = null; }
+    // Delete the server if it was created but agent never connected
+    const sid = wizardServerId || wizardServerIdRef.current;
+    if (sid && !wizardConnected) {
+      try {
+        await fetch(`/api/servers/${encodeURIComponent(sid)}`, { method: 'DELETE', headers: authHeader });
+        fetchServers();
+      } catch {}
+    }
   };
 
   const fetchWizardInstallCmd = async (server_id, os) => {
@@ -905,19 +924,30 @@ const Dashboard = () => {
     setActionLoading(true);
     setActionOutput('');
     setActionView(null);
+    const cmdLabels = { system_info: 'System Info', disk_usage: 'Disk Usage', memory: 'Memory', cpu_info: 'CPU Info', netstat: 'Network', update_agent: 'Update Agent', uninstall_agent: 'Uninstall Agent' };
+    const taskId = addTask(selectedServer.name, command, cmdLabels[command] || command);
     try {
       const response = await fetch('/api/action', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          ...authHeader 
+          ...authHeader
         },
         body: JSON.stringify({ server_id: selectedServer.id, command, target })
       });
-      const data = await response.json();
-      setActionOutput(data.output || JSON.stringify(data, null, 2));
+      const text = await response.text();
+      let output;
+      try {
+        const data = JSON.parse(text);
+        output = data.output || data.detail || JSON.stringify(data, null, 2);
+      } catch {
+        output = response.ok ? text : `Error ${response.status}: ${text.substring(0, 500)}`;
+      }
+      setActionOutput(output);
+      updateTask(taskId, { status: 'done', output: output.substring(0, 200) });
     } catch (err) {
       setActionOutput('Error: ' + err.message);
+      updateTask(taskId, { status: 'error', output: err.message });
     }
     setActionLoading(false);
   };
@@ -959,17 +989,20 @@ const Dashboard = () => {
     };
   };
 
-  const addScannedServer = async (server) => {
-    await fetch('/api/servers', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        ...authHeader 
-      },
-      body: JSON.stringify({ host: server.host, name: server.name || server.host })
-    });
-    fetchServers();
-    setFoundServers(prev => prev.filter(s => s.host !== server.host));
+  const addScannedServer = (server) => {
+    setShowScan(false);
+    setWizardStep(1);
+    setWizardOS('linux');
+    setWizardName(server.hostname || server.name || server.host);
+    setWizardHost(server.host);
+    setWizardGroup('');
+    setWizardConnected(false);
+    setWizardNewServer(null);
+    setWizardServerId('');
+    setWizardInstallCmd('');
+    wizardServerIdRef.current = '';
+    wizardPreServersRef.current = servers.map(s => s.id);
+    setShowWizard(true);
   };
 
   const addAllScanned = async () => {
@@ -987,7 +1020,8 @@ const Dashboard = () => {
       headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify({ server_id: selectedServer.id, command, target }),
     });
-    return response.json();
+    const text = await response.text();
+    try { return JSON.parse(text); } catch { return { output: text, returncode: response.ok ? 0 : 1 }; }
   };
 
   const runAgentAction = async (serverId, command, target = null) => {
@@ -996,7 +1030,8 @@ const Dashboard = () => {
       headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify({ server_id: serverId, command, target }),
     });
-    return response.json();
+    const text = await response.text();
+    try { return JSON.parse(text); } catch { return { output: text, returncode: response.ok ? 0 : 1 }; }
   };
 
   const showMetricGraphic = async (view) => {
@@ -1060,8 +1095,10 @@ const Dashboard = () => {
     setActionView(null);
     setUpdatesData(null);
     setActionLoading(true);
+    const taskId = addTask(selectedServer.name, 'check_updates', 'Check Updates');
     try {
       const updateRes = await agentAction('update');
+      updateTask(taskId, { output: 'Checking packages...' });
       const lines = (updateRes.output || '').split('\n').filter(Boolean);
       const fetched = lines.filter(l => l.startsWith('Get:') || l.startsWith('Hit:') || l.startsWith('Ign:'));
       const summary = lines.find(l => l.includes('Fetched') || l.includes('up to date') || l.includes('Reading package'));
@@ -1079,7 +1116,7 @@ const Dashboard = () => {
       } catch {}
       setUpdatesData({ fetched: fetched.length, summary, packages, success: updateRes.returncode === 0 });
       setActionView('updates');
-      // push fresh count to registry so sidebar/badges update
+      updateTask(taskId, { status: 'done', output: `${packages.length} update${packages.length !== 1 ? 's' : ''} available` });
       await fetch(`/api/servers/${selectedServer.id}/pending-updates`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeader },
@@ -1088,6 +1125,7 @@ const Dashboard = () => {
       fetchServers();
     } catch (e) {
       setActionOutput('Error: ' + e.message);
+      updateTask(taskId, { status: 'error', output: e.message });
     }
     setActionLoading(false);
   };
@@ -1116,19 +1154,62 @@ const Dashboard = () => {
     setUpgradeLoading(true);
     setUpgradeOutput('');
     setActionView('upgradeResult');
+    const taskId = addTask(selectedServer.name, 'upgrade', 'Upgrade Packages');
     try {
       const res = await agentAction('upgrade');
       setUpgradeOutput(res.output || res.error || 'Upgrade complete.');
-      if (res.returncode === 0) await refreshPendingUpdates();
+      if (res.returncode === 0) {
+        await refreshPendingUpdates();
+        updateTask(taskId, { status: 'done', output: 'Upgrade complete' });
+      } else {
+        updateTask(taskId, { status: 'error', output: (res.output || '').substring(0, 200) });
+      }
     } catch (e) {
       setUpgradeOutput('Error: ' + e.message);
+      updateTask(taskId, { status: 'error', output: e.message });
     }
     setUpgradeLoading(false);
+  };
+
+  const fetchAgentInfo = async () => {
+    if (!selectedServer) return;
+    setAgentInfoLoading(true);
+    setAgentInfo(null);
+    try {
+      const data = await agentAction('agent_info');
+      const info = JSON.parse(data.output || '{}');
+      // Also include version from server list
+      info.server_version = selectedServer.agent_version || '';
+      setAgentInfo(info);
+    } catch (e) {
+      setAgentInfo({ error: e.message });
+    }
+    setAgentInfoLoading(false);
   };
 
   const handleUpdateAgent = async () => {
     if (!window.confirm('Update agent on this server to the latest version?')) return;
     runAction('update_agent');
+  };
+
+  const handleUninstallAgent = async () => {
+    if (!window.confirm('Uninstall the agent from this server? The server will go offline and be removed from the list.')) return;
+    const serverName = selectedServer.name;
+    const taskId = addTask(serverName, 'uninstall_agent', 'Uninstall Agent');
+    try {
+      await agentAction('uninstall_agent');
+      if (selectedServer?.id) {
+        await fetch(`/api/servers/${encodeURIComponent(selectedServer.id)}`, { method: 'DELETE', headers: authHeader });
+        setSelectedServer(null);
+        setNavSection('servers');
+        fetchServers();
+      }
+      updateTask(taskId, { status: 'done', output: 'Agent removed' });
+      addToast('success', 'Agent uninstalled', 'The agent has been removed from the server.');
+    } catch (err) {
+      updateTask(taskId, { status: 'error', output: err.message });
+      addToast('error', 'Uninstall failed', err.message);
+    }
   };
 
   const killProcess = async (pid) => {
@@ -1204,9 +1285,9 @@ const Dashboard = () => {
       const data = await agentAction('list_services');
       const lines = (data.output || '').trim().split('\n');
       const services = isWindows
-        ? lines.map(l => l.trim()).filter(s => s.length > 0)
+        ? lines.map(l => l.trim()).filter(s => s.length > 0 && !s.startsWith('Name') && !s.startsWith('----')).map(l => l.split(/\s{2,}/)[0]).filter(Boolean)
         : lines.map(l => l.trim().split(/\s+/)[0]).filter(s => s.endsWith('.service')).map(s => s.replace('.service', ''));
-      setServicesList(services);
+      setServicesList([...new Set(services)]);
     } catch (err) {
       setServicesList([]);
     }
@@ -1322,9 +1403,27 @@ const Dashboard = () => {
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 8000);
   };
 
+  const addTask = (serverName, command, label) => {
+    const id = Date.now() + Math.random();
+    setGlobalTasks(prev => [...prev, { id, server: serverName, command, label: label || command, status: 'running', output: '', startTime: Date.now() }]);
+    setShowTaskPanel(true);
+    return id;
+  };
+  const updateTask = (taskId, updates) => {
+    setGlobalTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updates } : t));
+  };
+  const removeTask = (taskId) => {
+    setGlobalTasks(prev => prev.filter(t => t.id !== taskId));
+  };
+  const clearFinishedTasks = () => {
+    setGlobalTasks(prev => prev.filter(t => t.status === 'running'));
+  };
+
   const runBulkAction = async (command) => {
     if (selectedServers.length === 0) return alert('Select at least one server');
     setBulkActionLoading(true);
+    const bulkLabels = { update: 'Check Updates', upgrade: 'Upgrade', update_agent: 'Update Agent' };
+    const bulkTaskId = addTask(`${selectedServers.length} servers`, command, `Bulk: ${bulkLabels[command] || command}`);
     const initial = selectedServers.map(id => {
       const s = servers.find(x => x.id === id);
       return { id, name: s?.name || id, host: s?.host || '', status: 'pending', output: '' };
@@ -1403,6 +1502,7 @@ const Dashboard = () => {
       }
     }));
     setBulkActionLoading(false);
+    updateTask(bulkTaskId, { status: 'done', output: `Completed on ${selectedServers.length} servers` });
     // Refresh server list so counts update in UI
     if (command === 'upgrade') fetchServers();
   };
@@ -2073,6 +2173,7 @@ const Dashboard = () => {
         @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         @keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes progressIndeterminate { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
         .probe-info-wrap:hover .probe-info-icon { background: #A8987C !important; color: #16232E !important; }
         .probe-info-wrap:hover .probe-tooltip { display: block !important; }
         button:not(:disabled):active { transform: scale(0.96) !important; }
@@ -2118,7 +2219,7 @@ const Dashboard = () => {
           <div style={{ fontWeight: '700', color: '#A8987C', marginBottom: '1px', letterSpacing: '0.06em', fontFamily: '"Hack", "Courier New", monospace' }}>{user?.username}</div>
           <div style={{ color: '#467885', marginBottom: '10px', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{isAdmin ? '// Administrator' : '// User'}</div>
           <button onClick={handleLogout} style={{ ...styles.btn, background: 'transparent', color: '#f06060', border: '1px solid #f0606040', fontSize: '11px', padding: '5px 10px', width: '100%', justifyContent: 'center', letterSpacing: '0.08em', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))' }}>Sign Out</button>
-          <div style={{ textAlign: 'center', marginTop: '8px', fontSize: '9px', color: '#467885', letterSpacing: '0.1em' }}>v1.0.0</div>
+          <div style={{ textAlign: 'center', marginTop: '8px', fontSize: '9px', color: '#467885', letterSpacing: '0.1em' }}>v{import.meta.env.VITE_APP_VERSION || '1.1.0'}</div>
         </div>
       </nav>
 
@@ -3393,6 +3494,7 @@ const Dashboard = () => {
                 { key: 'docker', label: 'Docker', action: () => { setActiveTab('docker'); fetchDocker(); } },
                 { key: 'actions', label: 'Actions', action: () => setActiveTab('actions') },
                 { key: 'network', label: 'Network', action: () => setActiveTab('network') },
+                { key: 'agent', label: 'Agent', action: () => { setActiveTab('agent'); fetchAgentInfo(); } },
               ].map(({ key, label, action }) => (
                 <button
                   key={key}
@@ -3579,14 +3681,14 @@ const Dashboard = () => {
                     const adminActions = isAdmin ? [
                       { label: 'Check Updates', cmd: '__check_updates__', icon: '🔄' },
                       { label: 'Upgrade Now', cmd: '__upgrade__', icon: '⬆', green: true },
-                      { label: 'Update Agent', cmd: '__update_agent__', icon: '🔁' },
                     ] : [];
                     return [...commonActions, ...adminActions];
-                  })().map(({ label, cmd, icon, green }) => {
+                  })().map(({ label, cmd, icon, green, danger }) => {
                     const isActive = activeAction === cmd;
                     const isHover = actionBtnHover === cmd;
                     const isUpgrade = cmd === '__upgrade__';
                     const isUpdateAgent = cmd === '__update_agent__';
+                    const isUninstallAgent = cmd === '__uninstall_agent__';
                     const isCheckUpdates = cmd === '__check_updates__';
                     const handleClick = () => {
                       setActiveAction(cmd);
@@ -3595,6 +3697,7 @@ const Dashboard = () => {
                       setActionView(null);
                       if (isUpgrade) handleUpgrade();
                       else if (isUpdateAgent) handleUpdateAgent();
+                      else if (isUninstallAgent) handleUninstallAgent();
                       else if (isCheckUpdates) { showUpdates(); }
                       else { runAction(cmd); }
                     };
@@ -3607,10 +3710,14 @@ const Dashboard = () => {
                           display: 'flex', alignItems: 'center', gap: '6px',
                           padding: '7px 14px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', border: 'none', cursor: 'pointer',
                           fontSize: '13px', fontWeight: isActive ? '600' : '500',
-                          background: isUpgrade
+                          background: danger
+                            ? (isActive ? '#991b1b' : isHover ? '#b91c1c' : '#ef444420')
+                            : isUpgrade
                             ? (isActive ? '#15803d' : isHover ? '#16a34a' : '#22c55e20')
                             : (isActive ? c.primary : isHover ? (darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)') : 'transparent'),
-                          color: isUpgrade
+                          color: danger
+                            ? (isActive || isHover ? '#fff' : '#ef4444')
+                            : isUpgrade
                             ? (isActive || isHover ? '#fff' : '#22c55e')
                             : (isActive ? '#fff' : isHover ? c.text : c.textMuted),
                           transition: 'all 0.15s',
@@ -3706,6 +3813,73 @@ const Dashboard = () => {
                   {networkLoading && <button onClick={stopNetworkTool} style={{ ...styles.btn, ...styles.btnDanger }}>Stop</button>}
                 </div>
                 {networkOutput && <div style={styles.sshTerminal}>{networkOutput}</div>}
+              </div>
+            )}
+
+            {activeTab === 'agent' && (
+              <div>
+                {agentInfoLoading && <div style={{ padding: '20px', textAlign: 'center', color: c.textMuted, fontSize: '13px' }}>Loading agent info...</div>}
+                {agentInfo && !agentInfo.error && (
+                  <div>
+                    {/* Agent Info Cards */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '24px' }}>
+                      {[
+                        { label: 'VERSION', value: agentInfo.version || '?', color: '#A8987C' },
+                        { label: 'UPTIME', value: agentInfo.uptime || '?', color: '#3dd68c' },
+                        { label: 'PLATFORM', value: `${(agentInfo.os || '').toUpperCase()} / ${agentInfo.arch || ''}`, color: '#467885' },
+                        { label: 'GO VERSION', value: agentInfo.go_version || '?', color: '#4888e8' },
+                      ].map(card => (
+                        <div key={card.label} style={{ padding: '16px 18px', background: darkMode ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.04)', border: `1px solid ${card.color}30`, clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)' }}>
+                          <div style={{ fontSize: '9px', letterSpacing: '0.18em', color: c.textMuted, marginBottom: '6px' }}>{card.label}</div>
+                          <div style={{ fontSize: '18px', fontWeight: '800', color: card.color }}>{card.value}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Agent Details Table */}
+                    <div style={{ border: `1px solid ${c.border}`, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', overflow: 'hidden', marginBottom: '24px' }}>
+                      <div style={{ padding: '10px 16px', borderBottom: `1px solid ${c.border}`, fontSize: '10px', letterSpacing: '0.15em', color: '#A8987C', background: darkMode ? 'rgba(168,152,124,0.06)' : 'rgba(168,152,124,0.04)', fontWeight: '700' }}>
+                        AGENT DETAILS
+                      </div>
+                      {[
+                        { label: 'Binary Path', value: agentInfo.binary },
+                        { label: 'Config Path', value: agentInfo.config },
+                        { label: 'Server URL', value: agentInfo.server_url },
+                        { label: 'Build Date', value: agentInfo.build_date },
+                      ].map((row, i) => (
+                        <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: `1px solid ${c.border}20`, background: i % 2 === 0 ? 'transparent' : (darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)') }}>
+                          <span style={{ fontSize: '12px', color: c.textMuted, fontWeight: '600' }}>{row.label}</span>
+                          <span style={{ fontSize: '12px', color: c.text, fontFamily: '"Hack","Courier New",monospace' }}>{row.value || '—'}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Agent Actions */}
+                    {isAdmin && (
+                      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        <button onClick={() => fetchAgentInfo()} style={{ ...styles.btn, ...styles.btnSecondary, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>↺</span> Refresh
+                        </button>
+                        <button onClick={handleUpdateAgent} style={{ ...styles.btn, ...styles.btnPrimary, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>⬆</span> Update Agent
+                        </button>
+                        <button onClick={handleUninstallAgent} style={{ ...styles.btn, background: '#ef444420', color: '#ef4444', border: '1px solid #ef444440', display: 'flex', alignItems: 'center', gap: '6px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))' }}>
+                          <span>🗑</span> Uninstall Agent
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {agentInfo?.error && (
+                  <div style={{ padding: '20px', textAlign: 'center', color: '#f06060', fontSize: '13px', border: '1px solid #f0606030', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }}>
+                    Error: {agentInfo.error}
+                  </div>
+                )}
+                {!agentInfoLoading && !agentInfo && (
+                  <div style={{ padding: '20px', textAlign: 'center', color: c.textMuted, fontSize: '13px' }}>
+                    Agent is offline or not responding.
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -4087,6 +4261,61 @@ const Dashboard = () => {
               style={{ background: 'none', border: 'none', color: darkMode ? '#475569' : '#94a3b8', fontSize: '12px', cursor: 'pointer', padding: '4px' }}>
               Maybe later
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Global Task Progress Panel */}
+      {globalTasks.length > 0 && (
+        <div style={{ position: 'fixed', bottom: '24px', left: '224px', zIndex: 9998, width: '360px', background: darkMode ? '#0f1a24' : '#fff', border: `1px solid ${darkMode ? '#1e3d4f' : '#c0d4da'}`, borderRadius: '4px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: `1px solid ${darkMode ? '#1e3d4f' : '#c0d4da'}`, background: darkMode ? '#0d1820' : '#e6eef2' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {globalTasks.some(t => t.status === 'running') && (
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3dd68c', animation: 'pulse 1s infinite', flexShrink: 0 }} />
+              )}
+              <span style={{ fontSize: '11px', fontWeight: '700', color: '#A8987C', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                Tasks {globalTasks.filter(t => t.status === 'running').length > 0 && `(${globalTasks.filter(t => t.status === 'running').length} running)`}
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              {globalTasks.some(t => t.status !== 'running') && (
+                <button onClick={clearFinishedTasks} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.textMuted, fontSize: '10px', padding: '2px 6px' }}>Clear</button>
+              )}
+              <button onClick={() => setGlobalTasks([])} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.textMuted, fontSize: '14px', padding: 0, lineHeight: 1 }}>×</button>
+            </div>
+          </div>
+          {/* Task list */}
+          <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+            {globalTasks.slice().reverse().map(task => {
+              const elapsed = Math.round((Date.now() - task.startTime) / 1000);
+              const elapsedStr = elapsed < 60 ? `${elapsed}s` : `${Math.floor(elapsed / 60)}m ${elapsed % 60}s`;
+              return (
+                <div key={task.id} style={{ display: 'flex', gap: '10px', padding: '10px 14px', borderBottom: `1px solid ${darkMode ? '#1e3d4f20' : '#e2e8f020'}`, alignItems: 'flex-start' }}>
+                  <div style={{ flexShrink: 0, marginTop: '2px' }}>
+                    {task.status === 'running' && <div style={{ width: '14px', height: '14px', border: '2px solid #A8987C40', borderTopColor: '#A8987C', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />}
+                    {task.status === 'done' && <span style={{ color: '#3dd68c', fontSize: '14px' }}>✓</span>}
+                    {task.status === 'error' && <span style={{ color: '#f06060', fontSize: '14px' }}>✗</span>}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: '600', color: c.text }}>{task.label}</span>
+                      <span style={{ fontSize: '10px', color: c.textMuted }}>{elapsedStr}</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: c.textMuted, marginBottom: task.status === 'running' ? '6px' : '0' }}>{task.server}</div>
+                    {task.status === 'running' && (
+                      <div style={{ height: '3px', background: darkMode ? '#1e3d4f' : '#c0d4da', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', background: '#A8987C', borderRadius: '2px', animation: 'progressIndeterminate 1.5s ease-in-out infinite', width: '40%' }} />
+                      </div>
+                    )}
+                    {task.output && task.status !== 'running' && (
+                      <div style={{ fontSize: '10px', color: task.status === 'error' ? '#f06060' : '#3dd68c', marginTop: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.output}</div>
+                    )}
+                  </div>
+                  <button onClick={() => removeTask(task.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.textMuted, fontSize: '12px', padding: 0, flexShrink: 0, opacity: 0.5 }}>×</button>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

@@ -36,7 +36,8 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="ServerCTL Backend", version="3.0.0", lifespan=lifespan)
+APP_VERSION = open("/app/VERSION").read().strip() if os.path.exists("/app/VERSION") else "dev"
+app = FastAPI(title="ServerCTL Backend", version=APP_VERSION, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -50,6 +51,7 @@ app.add_middleware(
 agent_connections: dict[str, WebSocket] = {}
 agent_pending: dict[str, asyncio.Future] = {}
 agent_metrics: dict[str, dict] = {}
+agent_versions: dict[str, str] = {}
 
 
 # ─── Auth ─────────────────────────────────────────────────────
@@ -173,12 +175,9 @@ async def change_password(username: str, body: dict, user: dict = Depends(verify
 @app.websocket("/ws/agent")
 async def agent_connect(websocket: WebSocket, token: str = Query(...)):
     server = registry.get_by_token(token)
-    if not server:
-        await websocket.close(1008)
-        return
 
     await websocket.accept()
-    host = server["host"]
+    host = server["host"] if server else ""
 
     try:
         raw = await asyncio.wait_for(websocket.receive_text(), timeout=15.0)
@@ -189,19 +188,53 @@ async def agent_connect(websocket: WebSocket, token: str = Query(...)):
             hostname = msg.get("hostname", "")
             platform = msg.get("platform", "Linux")
 
-            # Update host IP if it changed (e.g. DHCP)
-            if actual_host and actual_host != host:
-                registry.update_host(server["id"], actual_host)
-                host = actual_host
+            # Auto-register: agent has a token but no server entry exists
+            if not server:
+                # Check if server already exists by IP or hostname
+                existing = registry.get_by_host(actual_host)
+                if not existing and hostname:
+                    existing = registry.get_by_hostname(hostname)
 
-            if hostname:
-                registry.update_name(server["id"], hostname)
-            registry.update_platform(server["id"], platform)
+                if existing:
+                    # Server exists — just update its token to match the agent
+                    existing["agent_token"] = token
+                    registry.save()
+                    server = existing
+                    host = existing["host"]
+                    print(f"[Agent] Re-linked: {hostname or actual_host} ({actual_host}) — token updated")
+                else:
+                    s_id = actual_host.replace(".", "-")
+                    server = {
+                        "id": s_id,
+                        "name": hostname or actual_host,
+                        "host": actual_host,
+                        "group": "auto",
+                        "agent_url": f"http://{actual_host}:8080",
+                        "agent_token": token,
+                        "prometheus_instance": f"{actual_host}:9100",
+                        "tags": ["auto-registered"],
+                        "platform": platform,
+                        "pending_updates": {"count": 0, "packages": None, "reboot_required": False},
+                    }
+                    registry.add(server)
+                    host = actual_host
+                    print(f"[Agent] Auto-registered: {hostname or actual_host} ({actual_host}) [{platform}]")
+            else:
+                # Update host IP if it changed (e.g. DHCP)
+                if actual_host and actual_host != host:
+                    registry.update_host(server["id"], actual_host)
+                    host = actual_host
+
+                if hostname:
+                    registry.update_name(server["id"], hostname)
+                registry.update_platform(server["id"], platform)
 
             agent_connections[host] = websocket
+            if msg.get("version"):
+                agent_versions[host] = msg["version"]
             if msg.get("metrics"):
                 agent_metrics[host] = msg["metrics"]
-            print(f"[Agent] Connected: {hostname or host} ({host}) [{platform}]")
+            print(f"[Agent] Connected: {hostname or host} ({host}) [{platform}] v{msg.get('version', '?')}")
 
         while True:
             raw = await websocket.receive_text()
@@ -239,6 +272,7 @@ async def _ping(server: dict) -> dict:
     host = server["host"]
     online = host in agent_connections
     return {**server, "online": online,
+            "agent_version": agent_versions.get(host, ""),
             "last_seen": datetime.utcnow().isoformat() if online else None}
 
 
@@ -648,17 +682,25 @@ async def agent_install_command(request: Request, server_id: str = Query("")):
     if not server:
         raise HTTPException(404, "Server not found — add the server first")
     token = server["agent_token"]
-    backend_host = os.environ.get("PUBLIC_HOST", "")
-    if not backend_host:
-        req_host = request.headers.get("x-forwarded-host") or request.headers.get("host", "")
-        backend_host = req_host.split(":")[0] if req_host else "localhost"
-    base = f"http://{backend_host}:{settings.BACKEND_PORT}"
+    base = _get_base_url(request)
     linux_cmd   = f'curl -fsSL "{base}/api/agent/install?token={token}" | sudo sh'
     windows_cmd = f"powershell -Command \"irm '{base}/api/agent/install-windows?token={token}' | iex\""
     return {"command": linux_cmd, "windows_command": windows_cmd}
 
 
 AGENT_BINS_DIR = os.environ.get("AGENT_BINS_DIR", "/app/agent-bins")
+
+def _get_base_url(request: Request):
+    """Build the base URL for agent install scripts.
+    Uses PUBLIC_HOST env if set, otherwise extracts the host IP from
+    the incoming request and combines with BACKEND_PORT."""
+    public_host = os.environ.get("PUBLIC_HOST", "")
+    if public_host:
+        return f"http://{public_host}:{settings.BACKEND_PORT}"
+    # Extract IP from request Host header (user accesses from this IP)
+    req_host = request.headers.get("x-forwarded-host") or request.headers.get("host", "")
+    host_ip = req_host.split(":")[0] if req_host else "localhost"
+    return f"http://{host_ip}:{settings.BACKEND_PORT}"
 
 PLATFORM_MAP = {
     "linux-amd64":    "serverctl-agent-linux-amd64",
@@ -694,12 +736,7 @@ async def agent_install(request: Request, token: str = Query("")):
             media_type="text/plain",
         )
 
-    backend_host = os.environ.get("PUBLIC_HOST", "")
-    if not backend_host:
-        req_host = request.headers.get("x-forwarded-host") or request.headers.get("host", "")
-        backend_host = req_host.split(":")[0] if req_host else "localhost"
-
-    base_url = f"http://{backend_host}:{settings.BACKEND_PORT}"
+    base_url = _get_base_url(request)
 
     script = f"""#!/bin/sh
 set -e
@@ -794,11 +831,8 @@ async def agent_install_windows_command(request: Request, server_id: str = Query
     if not server:
         raise HTTPException(404, "Server not found — add the server first")
     token = server["agent_token"]
-    backend_host = os.environ.get("PUBLIC_HOST", "")
-    if not backend_host:
-        req_host = request.headers.get("x-forwarded-host") or request.headers.get("host", "")
-        backend_host = req_host.split(":")[0] if req_host else "localhost"
-    cmd = f"powershell -Command \"irm 'http://{backend_host}:{settings.BACKEND_PORT}/api/agent/install-windows?token={token}' | iex\""
+    base = _get_base_url(request)
+    cmd = f"powershell -Command \"irm '{base}/api/agent/install-windows?token={token}' | iex\""
     return {"command": cmd}
 
 
@@ -808,12 +842,7 @@ async def agent_install_windows(request: Request, token: str = Query(...)):
     if not registry.get_by_token(token):
         raise HTTPException(403, "Invalid token")
 
-    backend_host = os.environ.get("PUBLIC_HOST", "")
-    if not backend_host:
-        req_host = request.headers.get("x-forwarded-host") or request.headers.get("host", "")
-        backend_host = req_host.split(":")[0] if req_host else "localhost"
-
-    base_url = f"http://{backend_host}:{settings.BACKEND_PORT}"
+    base_url = _get_base_url(request)
 
     script = f"""# ServerCtl Agent Installer — Windows
 # Run as Administrator in PowerShell
@@ -828,46 +857,50 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     Write-Error "Run this script as Administrator."; exit 1
 }}
 
-$installDir = "C:\\Program Files\\serverctl-agent"
+$installDir = 'C:\\serverctl-agent'
 $exe        = "$installDir\\serverctl-agent.exe"
-$cfgDir     = $installDir
-$cfgFile    = "$cfgDir\\config.yaml"
-$dlUrl      = "{base_url}/api/agent/download/windows-amd64"
-$svcName    = "serverctl-agent"
+$cfgFile    = "$installDir\\config.yaml"
+$dlUrl      = '{base_url}/api/agent/download/windows-amd64'
+$svcName    = 'serverctl-agent'
+
+# Stop and remove existing service/process
+Get-Process -Name 'serverctl-agent' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+$existing = sc.exe query $svcName 2>&1
+if ($existing -notmatch 'FAILED') {{
+    Write-Host '[*] Removing existing service...' -ForegroundColor Yellow
+    sc.exe stop $svcName 2>&1 | Out-Null
+    Start-Sleep 2
+    Get-Process -Name 'serverctl-agent' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+    Start-Sleep 1
+    sc.exe delete $svcName 2>&1 | Out-Null
+    Start-Sleep 1
+}}
 
 New-Item -ItemType Directory -Force -Path $installDir | Out-Null
 
-Write-Host "[*] Downloading agent binary..." -ForegroundColor Yellow
+Write-Host '[*] Downloading agent binary...' -ForegroundColor Yellow
 Invoke-WebRequest -Uri $dlUrl -OutFile $exe -UseBasicParsing
 
-if (-not (Test-Path $cfgFile)) {{
-    Write-Host "[*] Writing config..." -ForegroundColor Yellow
-    $cfg = "server_url: `"{base_url}`"`ntoken: `"{token}`"`ninterval: 30"
-    [System.IO.File]::WriteAllText($cfgFile, $cfg, [System.Text.UTF8Encoding]::new($false))
-}}
+Write-Host '[*] Writing config...' -ForegroundColor Yellow
+$cfgContent = "server_url: {base_url}`ntoken: {token}`ninterval: 30"
+[System.IO.File]::WriteAllText($cfgFile, $cfgContent)
 
-# Stop and remove existing service if present
-$existing = sc.exe query $svcName 2>&1
-if ($existing -notmatch "FAILED") {{
-    Write-Host "[*] Stopping existing service..." -ForegroundColor Yellow
-    sc.exe stop $svcName 2>&1 | Out-Null
-    Start-Sleep -Seconds 2
-    sc.exe delete $svcName 2>&1 | Out-Null
-    Start-Sleep -Seconds 1
-}}
-
-Write-Host "[*] Installing Windows service..." -ForegroundColor Yellow
-sc.exe create $svcName binPath= "`"$exe`" -config `"$cfgFile`"" start= auto DisplayName= "ServerCtl Agent" | Out-Null
+Write-Host '[*] Installing Windows service...' -ForegroundColor Yellow
+$binPath = "`"$exe`" -config `"$cfgFile`""
+sc.exe create $svcName binPath= $binPath start= auto DisplayName= "ServerCtl Agent"
 sc.exe description $svcName "ServerCtl monitoring agent" | Out-Null
-sc.exe start $svcName | Out-Null
+sc.exe failure $svcName reset= 60 actions= restart/5000/restart/10000/restart/30000 | Out-Null
 
-Write-Host ""
-Write-Host "==========================================" -ForegroundColor Green
-Write-Host " ServerCtl Agent installed!" -ForegroundColor Green
+Write-Host '[*] Starting service...' -ForegroundColor Yellow
+sc.exe start $svcName
+
+Write-Host ''
+Write-Host '==========================================' -ForegroundColor Green
+Write-Host ' ServerCtl Agent installed!' -ForegroundColor Green
 Write-Host " Binary:  $exe" -ForegroundColor Green
 Write-Host " Config:  $cfgFile" -ForegroundColor Green
-Write-Host " Service: $svcName (visible in services.msc)" -ForegroundColor Green
-Write-Host "==========================================" -ForegroundColor Green
+Write-Host " Service: $svcName (services.msc)" -ForegroundColor Green
+Write-Host '==========================================' -ForegroundColor Green
 """
     return PlainTextResponse(script, media_type="text/plain")
 

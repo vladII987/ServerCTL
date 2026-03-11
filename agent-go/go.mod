@@ -1,10 +1,11 @@
 module github.com/serverctl/agent
 
-go 1.21
+go 1.25.0
 
 require (
 	github.com/gorilla/websocket v1.5.1
 	github.com/shirou/gopsutil/v3 v3.23.12
+	golang.org/x/sys v0.42.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -17,5 +18,4 @@ require (
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	golang.org/x/net v0.17.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
 )

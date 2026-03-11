@@ -84,6 +84,11 @@ if [[ "$SKIP_GEN" == "false" ]]; then
     read -rp "  Prometheus URL [http://localhost:9090]: " PROM
     PROMETHEUS_URL="${PROM:-http://localhost:9090}"
 
+    # Auto-detect host LAN IP
+    HOST_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+    [ -z "$HOST_IP" ] && HOST_IP=$(ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -1)
+    [ -z "$HOST_IP" ] && HOST_IP="localhost"
+
     cat > "$ENV" << EOF
 # ServerCTL — generated $(date "+%Y-%m-%d %H:%M:%S")
 # DO NOT commit this file!
@@ -94,6 +99,7 @@ SECRET_KEY=${SECRET_KEY}
 PROMETHEUS_URL=${PROMETHEUS_URL}
 FRONTEND_PORT=${FRONTEND_PORT}
 BACKEND_PORT=${BACKEND_PORT}
+PUBLIC_HOST=${HOST_IP}
 EOF
     ok ".env created"
     grep -q "^\.env$" "$DIR/.gitignore" 2>/dev/null || echo ".env" >> "$DIR/.gitignore"

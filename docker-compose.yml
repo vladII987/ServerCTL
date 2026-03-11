@@ -4,6 +4,8 @@ services:
   backend:
     build:
       context: ./backend
+      args:
+        APP_VERSION: "1.1.0"
     container_name: serverctl-backend
     restart: unless-stopped
     ports:
@@ -16,6 +18,7 @@ services:
       CORS_ORIGINS: "*"
       SECRET_KEY: ${SECRET_KEY}
       AGENT_BINS_DIR: /app/agent-bins
+      PUBLIC_HOST: ${PUBLIC_HOST:-}
     volumes:
       - ./backend/servers.json:/app/servers.json
       - ./backend/users.json:/app/users.json
@@ -34,6 +37,7 @@ services:
       args:
         VITE_API_URL: ""
         VITE_DASHBOARD_TOKEN: ${DASHBOARD_TOKEN}
+        VITE_APP_VERSION: "1.1.0"
         BACKEND_PORT: ${BACKEND_PORT:-8765}
     container_name: serverctl-frontend
     restart: unless-stopped

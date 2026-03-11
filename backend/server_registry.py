@@ -15,13 +15,22 @@ class ServerRegistry:
 
     def _load(self):
         if self._path.exists():
-            with open(self._path) as f:
-                data = json.load(f)
-            for s in data.get("servers", []):
-                self._servers[s["id"]] = s
-            print(f"[Registry] Učitano {len(self._servers)} servera iz servers.json")
+            try:
+                text = self._path.read_text().strip()
+                if not text:
+                    print("[Registry] servers.json je prazan — resetujem.")
+                    self._path.write_text('{"servers":[]}')
+                    return
+                data = json.loads(text)
+                for s in data.get("servers", []):
+                    self._servers[s["id"]] = s
+                print(f"[Registry] Učitano {len(self._servers)} servera iz servers.json")
+            except (json.JSONDecodeError, KeyError) as e:
+                print(f"[Registry] Greška u servers.json: {e} — resetujem.")
+                self._path.write_text('{"servers":[]}')
         else:
             print("[Registry] servers.json nije pronađen — prazan registry.")
+            self._path.write_text('{"servers":[]}')
 
     def save(self):
         """Snima trenutni registry u servers.json."""
@@ -44,6 +53,12 @@ class ServerRegistry:
     def get_by_host(self, host: str) -> Optional[dict]:
         for s in self._servers.values():
             if s.get("host") == host:
+                return s
+        return None
+
+    def get_by_hostname(self, hostname: str) -> Optional[dict]:
+        for s in self._servers.values():
+            if s.get("name") == hostname:
                 return s
         return None
 
