@@ -361,6 +361,9 @@ const Dashboard = () => {
   const [probeProto, setProbeProto] = useState('tcp');
   const [probeUrl, setProbeUrl] = useState('');
   const [probeDb, setProbeDb] = useState('mysql');
+  const [networkSubTab, setNetworkSubTab] = useState('ip');
+  const [networkInfoOutput, setNetworkInfoOutput] = useState('');
+  const [networkInfoLoading, setNetworkInfoLoading] = useState(false);
   const [networkTool, setNetworkTool] = useState('ping');
   const [networkTarget, setNetworkTarget] = useState('');
   const [networkOutput, setNetworkOutput] = useState('');
@@ -914,7 +917,7 @@ const Dashboard = () => {
     setSysInfo(null);
     try {
       const data = await runAgentAction(target.id, 'sysinfo_json');
-      if (data.output) setSysInfo(JSON.parse(data.output));
+      if (data.output && data.output.startsWith('{')) setSysInfo(JSON.parse(data.output));
     } catch {}
     setSysInfoLoading(false);
   };
@@ -1177,10 +1180,19 @@ const Dashboard = () => {
     setAgentInfo(null);
     try {
       const data = await agentAction('agent_info');
-      const info = JSON.parse(data.output || '{}');
-      // Also include version from server list
-      info.server_version = selectedServer.agent_version || '';
-      setAgentInfo(info);
+      const raw = data.output || '';
+      if (raw.startsWith('{')) {
+        const info = JSON.parse(raw);
+        info.server_version = selectedServer.agent_version || '';
+        setAgentInfo(info);
+      } else {
+        // Old agent without agent_info command — show version from server list
+        setAgentInfo({
+          version: selectedServer.agent_version || 'unknown',
+          error_detail: raw.includes('nknown') ? 'Agent needs update to support this tab. Use "Update Agent" below.' : raw,
+          server_version: selectedServer.agent_version || '',
+        });
+      }
     } catch (e) {
       setAgentInfo({ error: e.message });
     }
@@ -1560,6 +1572,19 @@ const Dashboard = () => {
     setPingRunning(true);
     await doPingAll(pingSelected);
     setPingRunning(false);
+  };
+
+  const fetchNetworkInfo = async (cmd) => {
+    if (!selectedServer) return;
+    setNetworkInfoLoading(true);
+    setNetworkInfoOutput('');
+    try {
+      const data = await agentAction(cmd);
+      setNetworkInfoOutput(data.output || data.detail || 'No output');
+    } catch (e) {
+      setNetworkInfoOutput('Error: ' + e.message);
+    }
+    setNetworkInfoLoading(false);
   };
 
   const runNetworkTool = async () => {
@@ -3676,7 +3701,6 @@ const Dashboard = () => {
                       { label: 'Disk Usage', cmd: 'disk_usage', icon: '💾' },
                       { label: 'Memory', cmd: 'memory', icon: '⚡' },
                       { label: 'CPU Info', cmd: 'cpu_info', icon: '🔧' },
-                      { label: 'Netstat', cmd: 'netstat', icon: '🌐' },
                     ];
                     const adminActions = isAdmin ? [
                       { label: 'Check Updates', cmd: '__check_updates__', icon: '🔄' },
@@ -3798,21 +3822,78 @@ const Dashboard = () => {
 
             {activeTab === 'network' && (
               <div>
-                <div style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: c.textMuted }}>Tool</label>
-                  <select value={networkTool} onChange={e => setNetworkTool(e.target.value)} style={{ ...styles.input, width: '100%', boxSizing: 'border-box', marginBottom: '12px' }}>
-                    <option value="ping">Ping</option>
-                    <option value="traceroute">Traceroute</option>
-                    <option value="nslookup">NSLookup</option>
-                  </select>
-                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: c.textMuted }}>Target</label>
-                  <input type="text" value={networkTarget} onChange={e => setNetworkTarget(e.target.value)} placeholder="8.8.8.8" style={{ ...styles.input, width: '100%', boxSizing: 'border-box' }} />
+                {/* Sub-tabs */}
+                <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', padding: '4px', background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }}>
+                  {[
+                    { key: 'ip', label: 'IP Information', icon: '⬡' },
+                    { key: 'ports', label: 'Listening Ports', icon: '▦' },
+                    { key: 'firewall', label: 'Firewall', icon: '⛊' },
+                    { key: 'tools', label: 'Tools', icon: '>_' },
+                  ].map(sub => {
+                    const active = networkSubTab === sub.key;
+                    return (
+                      <button key={sub.key}
+                        onClick={() => {
+                          setNetworkSubTab(sub.key);
+                          setNetworkInfoOutput('');
+                          if (sub.key === 'ip') fetchNetworkInfo('ip_info');
+                          else if (sub.key === 'ports') fetchNetworkInfo('listening_ports');
+                          else if (sub.key === 'firewall') fetchNetworkInfo('firewall_status');
+                        }}
+                        style={{
+                          padding: '8px 16px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: active ? '700' : '500',
+                          background: active ? c.primary : 'transparent', color: active ? '#fff' : c.textMuted,
+                          clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
+                          display: 'flex', alignItems: 'center', gap: '6px',
+                        }}>
+                        <span style={{ fontSize: '13px' }}>{sub.icon}</span> {sub.label}
+                      </button>
+                    );
+                  })}
                 </div>
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                  <button onClick={runNetworkTool} style={{ ...styles.btn, ...styles.btnPrimary }} disabled={networkLoading}>Run</button>
-                  {networkLoading && <button onClick={stopNetworkTool} style={{ ...styles.btn, ...styles.btnDanger }}>Stop</button>}
-                </div>
-                {networkOutput && <div style={styles.sshTerminal}>{networkOutput}</div>}
+
+                {/* IP Info / Ports / Firewall */}
+                {networkSubTab !== 'tools' && (
+                  <div>
+                    {networkInfoLoading && <div style={{ padding: '20px', textAlign: 'center', color: c.textMuted, fontSize: '13px' }}>Loading...</div>}
+                    {!networkInfoLoading && networkInfoOutput && <pre style={{ margin: 0, padding: '16px', background: darkMode ? '#0a1218' : '#f0f5f8', border: `1px solid ${c.border}`, color: c.text, fontSize: '12px', lineHeight: '1.7', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '500px', overflow: 'auto', fontFamily: '"Hack","Courier New",monospace', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }}>{networkInfoOutput}</pre>}
+                    {!networkInfoLoading && !networkInfoOutput && (
+                      <div style={{ padding: '20px', textAlign: 'center', color: c.textMuted, fontSize: '13px' }}>
+                        Select a category above to load network information.
+                      </div>
+                    )}
+                    {!networkInfoLoading && networkInfoOutput && (
+                      <button onClick={() => {
+                        if (networkSubTab === 'ip') fetchNetworkInfo('ip_info');
+                        else if (networkSubTab === 'ports') fetchNetworkInfo('listening_ports');
+                        else if (networkSubTab === 'firewall') fetchNetworkInfo('firewall_status');
+                      }} style={{ ...styles.btn, ...styles.btnSecondary, marginTop: '12px', fontSize: '11px' }}>
+                        ↺ Refresh
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Tools */}
+                {networkSubTab === 'tools' && (
+                  <div>
+                    <div style={{ marginBottom: '16px' }}>
+                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: c.textMuted }}>Tool</label>
+                      <select value={networkTool} onChange={e => setNetworkTool(e.target.value)} style={{ ...styles.input, width: '100%', boxSizing: 'border-box', marginBottom: '12px' }}>
+                        <option value="ping">Ping</option>
+                        <option value="traceroute">Traceroute</option>
+                        <option value="nslookup">NSLookup</option>
+                      </select>
+                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: c.textMuted }}>Target</label>
+                      <input type="text" value={networkTarget} onChange={e => setNetworkTarget(e.target.value)} placeholder="8.8.8.8" style={{ ...styles.input, width: '100%', boxSizing: 'border-box' }} />
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                      <button onClick={runNetworkTool} style={{ ...styles.btn, ...styles.btnPrimary }} disabled={networkLoading}>Run</button>
+                      {networkLoading && <button onClick={stopNetworkTool} style={{ ...styles.btn, ...styles.btnDanger }}>Stop</button>}
+                    </div>
+                    {networkOutput && <pre style={{ margin: 0, padding: '16px', background: darkMode ? '#0a1218' : '#f0f5f8', border: `1px solid ${c.border}`, color: c.text, fontSize: '12px', lineHeight: '1.7', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '500px', overflow: 'auto', fontFamily: '"Hack","Courier New",monospace', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }}>{networkOutput}</pre>}
+                  </div>
+                )}
               </div>
             )}
 
@@ -3868,6 +3949,22 @@ const Dashboard = () => {
                         </button>
                       </div>
                     )}
+                  </div>
+                )}
+                {agentInfo?.error_detail && !agentInfo?.error && (
+                  <div style={{ padding: '16px 20px', marginBottom: '16px', background: darkMode ? 'rgba(232,168,56,0.06)' : 'rgba(232,168,56,0.04)', border: '1px solid #e8a83840', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontSize: '18px' }}>⚠</span>
+                    <div>
+                      <div style={{ fontSize: '12px', fontWeight: '700', color: '#e8a838', marginBottom: '2px' }}>Agent Update Required</div>
+                      <div style={{ fontSize: '11px', color: c.textMuted }}>{agentInfo.error_detail}</div>
+                    </div>
+                  </div>
+                )}
+                {agentInfo?.error_detail && isAdmin && (
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                    <button onClick={handleUpdateAgent} style={{ ...styles.btn, ...styles.btnPrimary, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>⬆</span> Update Agent
+                    </button>
                   </div>
                 )}
                 {agentInfo?.error && (

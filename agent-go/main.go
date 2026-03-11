@@ -28,7 +28,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const agentVersion = "1.1.0"
+const agentVersion = "1.2.0"
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -451,6 +451,51 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 			}
 		}
 		return sb.String()
+
+	case "ip_info":
+		if runtime.GOOS == "windows" {
+			out, _ := runShell("powershell -Command \"Get-NetIPConfiguration | Format-List InterfaceAlias,IPv4Address,IPv4DefaultGateway,DNSServer\"")
+			return out
+		}
+		var ipSb strings.Builder
+		ipOut2, _ := runShell("ip -br addr show 2>/dev/null || ip addr show 2>/dev/null || ifconfig 2>/dev/null")
+		ipSb.WriteString(ipOut2)
+		gw2, _ := runShell("ip route show default 2>/dev/null")
+		if strings.TrimSpace(gw2) != "" {
+			ipSb.WriteString("\nDefault Gateway: " + strings.TrimSpace(gw2) + "\n")
+		}
+		dns2, _ := runShell("grep -v '^#' /etc/resolv.conf 2>/dev/null | grep nameserver")
+		if strings.TrimSpace(dns2) != "" {
+			ipSb.WriteString("\nDNS Servers:\n" + dns2)
+		}
+		return ipSb.String()
+
+	case "firewall_status":
+		if runtime.GOOS == "windows" {
+			out, _ := runShell("powershell -Command \"Get-NetFirewallProfile | Format-Table Name,Enabled,DefaultInboundAction,DefaultOutboundAction -AutoSize\"")
+			return out
+		}
+		ufwOut2, _ := runShell("ufw status verbose 2>/dev/null")
+		if strings.Contains(ufwOut2, "Status:") {
+			return ufwOut2
+		}
+		fwdOut2, _ := runShell("firewall-cmd --state 2>/dev/null && firewall-cmd --list-all 2>/dev/null")
+		if strings.TrimSpace(fwdOut2) != "" && !strings.Contains(fwdOut2, "not running") {
+			return fwdOut2
+		}
+		iptOut2, _ := runShell("iptables -L -n --line-numbers 2>/dev/null")
+		if strings.TrimSpace(iptOut2) != "" && !strings.Contains(iptOut2, "Permission denied") && !strings.Contains(iptOut2, "not found") {
+			return iptOut2
+		}
+		return "No firewall detected (ufw/firewalld/iptables not active or not installed)"
+
+	case "listening_ports":
+		if runtime.GOOS == "windows" {
+			out, _ := runShell("powershell -Command \"Get-NetTCPConnection -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess | Sort-Object LocalPort | Format-Table -AutoSize\"")
+			return out
+		}
+		out, _ := runShell("ss -tulnp 2>/dev/null || netstat -tulnp 2>/dev/null")
+		return out
 
 	case "cpu_info":
 		if runtime.GOOS == "windows" {
