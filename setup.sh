@@ -119,6 +119,12 @@ set -a; source "$ENV"; set +a
 FRONTEND_PORT="${FRONTEND_PORT}"
 BACKEND_PORT="${BACKEND_PORT}"
 
+# Ensure HOST_IP is always set (even when reusing existing .env)
+HOST_IP="${PUBLIC_HOST:-}"
+[ -z "$HOST_IP" ] && HOST_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+[ -z "$HOST_IP" ] && HOST_IP=$(ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -1)
+[ -z "$HOST_IP" ] && HOST_IP="localhost"
+
 echo ""
 info "Configuration:"
 echo -e "  AGENT_TOKEN     = ${W}${AGENT_TOKEN:0:16}...${NC}"
@@ -206,8 +212,8 @@ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
     echo ""
     ok "All services started!"
     echo ""
-    echo -e "  ${W}Dashboard:${NC}  http://$(hostname -I | awk '{print $1}'):${FRONTEND_PORT}"
-    echo -e "  ${W}Backend:${NC}    http://$(hostname -I | awk '{print $1}'):${BACKEND_PORT}/health"
+    echo -e "  ${W}Dashboard:${NC}  http://${HOST_IP}:${FRONTEND_PORT}"
+    echo -e "  ${W}Backend:${NC}    http://${HOST_IP}:${BACKEND_PORT}/health"
     echo -e "  ${W}Logs:${NC}       docker compose logs -f"
     echo -e "  ${W}Stop:${NC}       docker compose down"
 
@@ -217,6 +223,8 @@ fi
 # NATIVE MODE
 # ══════════════════════════════════════════════════════════════
 if [[ "$MODE" == "native" ]]; then
+
+    APP_VERSION=$(cat "$DIR/VERSION" 2>/dev/null || echo "dev")
 
     _install_pkg() {
         if command -v apt-get >/dev/null 2>&1; then
@@ -230,6 +238,26 @@ if [[ "$MODE" == "native" ]]; then
         fi
     }
 
+    # ── Sync system clock ─────────────────────────────────────
+    info "Syncing system clock..."
+    timedatectl set-ntp true 2>/dev/null
+    systemctl restart systemd-timesyncd 2>/dev/null
+    for i in {1..10}; do
+        if timedatectl status 2>/dev/null | grep -q "synchronized: yes"; then
+            ok "Clock synchronized."
+            break
+        fi
+        sleep 1
+    done
+    if ! timedatectl status 2>/dev/null | grep -q "synchronized: yes"; then
+        warn "NTP sync pending, trying ntpdate fallback..."
+        if ! command -v ntpdate >/dev/null 2>&1; then
+            wait_for_apt; apt-get install -y ntpdate -qq 2>/dev/null
+        fi
+        ntpdate pool.ntp.org 2>/dev/null && ok "Clock synced via ntpdate." || warn "Clock sync failed — continuing anyway."
+    fi
+
+    # ── Prerequisites ─────────────────────────────────────────
     # Python
     if ! command -v python3 >/dev/null 2>&1; then
         info "Installing Python3..."
@@ -241,6 +269,12 @@ if [[ "$MODE" == "native" ]]; then
     if ! python3 -m venv --help >/dev/null 2>&1; then
         info "Installing python3-venv..."
         _install_pkg python3-venv
+    fi
+
+    # curl
+    if ! command -v curl >/dev/null 2>&1; then
+        info "Installing curl..."
+        _install_pkg curl
     fi
 
     # Node.js / npm
@@ -264,6 +298,13 @@ if [[ "$MODE" == "native" ]]; then
         ok "nginx available."
     fi
 
+    # ── Ensure data files ─────────────────────────────────────
+    [[ -f "$DIR/backend/servers.json" ]] || echo '{"servers":[]}' > "$DIR/backend/servers.json"
+    [[ -f "$DIR/backend/users.json"   ]] || echo '[]'             > "$DIR/backend/users.json"
+
+    # ── Write VERSION file for backend ────────────────────────
+    echo "$APP_VERSION" > "$DIR/backend/VERSION"
+
     # ── Python venv for backend ───────────────────────────────
     VENV="$DIR/backend/.venv"
     if [[ ! -d "$VENV" ]]; then
@@ -280,14 +321,24 @@ if [[ "$MODE" == "native" ]]; then
     cd "$DIR/frontend"
     npm install --silent
 
-    info "Building frontend..."
-    VITE_API_URL="http://$(hostname -I | awk '{print $1}'):${BACKEND_PORT}" \
+    info "Building frontend (v${APP_VERSION})..."
+    VITE_API_URL="" \
     VITE_DASHBOARD_TOKEN="${DASHBOARD_TOKEN}" \
+    VITE_APP_VERSION="${APP_VERSION}" \
         npm run build -- --logLevel silent
     ok "Frontend built → frontend/dist/"
+    cd "$DIR"
 
     # ── nginx config ──────────────────────────────────────────
-    NGINX_CONF="/etc/nginx/sites-available/serverctl"
+    # Support both sites-available (Debian/Ubuntu) and conf.d (RHEL/Alpine)
+    if [[ -d /etc/nginx/sites-available ]]; then
+        NGINX_CONF="/etc/nginx/sites-available/serverctl"
+        NGINX_LINK="/etc/nginx/sites-enabled/serverctl"
+    else
+        NGINX_CONF="/etc/nginx/conf.d/serverctl.conf"
+        NGINX_LINK=""
+    fi
+
     info "Configuring nginx (port ${FRONTEND_PORT} → frontend, /api/ and /ws/ → :${BACKEND_PORT})..."
     cat > "$NGINX_CONF" << NGINXEOF
 server {
@@ -305,6 +356,8 @@ server {
         proxy_pass http://127.0.0.1:${BACKEND_PORT};
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_read_timeout 120;
     }
 
     location /ws/ {
@@ -318,11 +371,15 @@ server {
 }
 NGINXEOF
 
-    rm -f /etc/nginx/sites-enabled/default
-    ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/serverctl
+    if [[ -d /etc/nginx/sites-enabled ]]; then
+        rm -f /etc/nginx/sites-enabled/default
+        ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/serverctl
+    fi
 
-    nginx -t && systemctl reload nginx || err "nginx config is invalid."
-    ok "nginx configured and reloaded."
+    nginx -t || err "nginx config is invalid."
+    systemctl enable nginx --now 2>/dev/null
+    systemctl reload nginx 2>/dev/null || systemctl restart nginx || err "Failed to start nginx."
+    ok "nginx configured and running."
 
     # ── systemd service for backend ───────────────────────────
     SVCFILE="/etc/systemd/system/serverctl-backend.service"
@@ -340,6 +397,8 @@ Environment="DASHBOARD_TOKEN=${DASHBOARD_TOKEN}"
 Environment="SECRET_KEY=${SECRET_KEY}"
 Environment="PROMETHEUS_URL=${PROMETHEUS_URL}"
 Environment="CORS_ORIGINS=*"
+Environment="AGENT_BINS_DIR=${DIR}/agent-go/dist"
+Environment="PUBLIC_HOST=${PUBLIC_HOST:-${HOST_IP}}"
 ExecStart=${VENV}/bin/python -m uvicorn main:app --host 0.0.0.0 --port ${BACKEND_PORT}
 Restart=always
 RestartSec=5
@@ -362,13 +421,14 @@ SVCEOF
     fi
 
     echo ""
-    ok "Setup complete!"
+    ok "Setup complete (v${APP_VERSION})!"
     echo ""
-    echo -e "  ${W}Dashboard:${NC}   http://$(hostname -I | awk '{print $1}'):${FRONTEND_PORT}"
-    echo -e "  ${W}Backend:${NC}     http://$(hostname -I | awk '{print $1}'):${BACKEND_PORT}/health"
+    echo -e "  ${W}Dashboard:${NC}   http://${HOST_IP}:${FRONTEND_PORT}"
+    echo -e "  ${W}Backend:${NC}     http://${HOST_IP}:${BACKEND_PORT}/health"
     echo -e "  ${W}Backend log:${NC} journalctl -u serverctl-backend -f"
     echo -e "  ${W}Stop:${NC}        systemctl stop serverctl-backend"
     echo -e "  ${W}Restart:${NC}     systemctl restart serverctl-backend"
+    echo -e "  ${W}Update:${NC}      cd ${DIR} && git pull && bash setup.sh"
 
 fi
 
