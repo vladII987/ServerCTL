@@ -275,4 +275,4 @@ Full documentation for all features, buttons, and controls: **[DOCS.md](DOCS.md)
 
 ## License
 
-[AGPL-3.0](LICENSE)
+License & Contributions: This project is licensed under CC BY-ND 4.0. It is free for everyone to use (including companies). However, to maintain the integrity of the tool, code modifications and redistributing altered versions are not allowed. I am the sole maintainer, but I welcome bug reports and feature suggestions!
