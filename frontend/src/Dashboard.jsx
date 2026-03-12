@@ -454,6 +454,7 @@ const Dashboard = () => {
   const [agentsPageInfo, setAgentsPageInfo] = useState({});
   const [agentsPageLoading, setAgentsPageLoading] = useState(false);
   const [agentsExpandedId, setAgentsExpandedId] = useState(null);
+  const [selectedAgentIds, setSelectedAgentIds] = useState(new Set());
   // Branding
   const [customLogo, setCustomLogo] = useState(() => localStorage.getItem('serverctl_logo') || '');
   const [customTabTitle, setCustomTabTitle] = useState(() => localStorage.getItem('serverctl_tab_title') || 'ServerCTL');
@@ -3122,9 +3123,17 @@ const Dashboard = () => {
               <button onClick={fetchAgentsPageInfo} disabled={agentsPageLoading} style={{ ...styles.btn, ...styles.btnSecondary, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span>{agentsPageLoading ? '◑' : '↺'}</span> {agentsPageLoading ? 'Syncing...' : 'Sync Status'}
               </button>
-              {isAdmin && (
-                <button onClick={updateAllAgents} disabled={updatingAgents} style={{ ...styles.btn, ...styles.btnPrimary, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>{updatingAgents ? '⟳' : '⬆'}</span> {updatingAgents ? 'Updating...' : `Update All${outdatedAgents.length > 0 ? ` (${outdatedAgents.length} outdated)` : ''}`}
+              {isAdmin && selectedAgentIds.size > 0 && (
+                <button onClick={() => handleBulkUpdateAgents([...selectedAgentIds])} disabled={updatingAgents} style={{ ...styles.btn, ...styles.btnPrimary, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>{updatingAgents ? '⟳' : '⬆'}</span> {updatingAgents ? 'Updating...' : `Update Selected (${selectedAgentIds.size})`}
+                </button>
+              )}
+              {isAdmin && onlineAgents.length > 0 && (
+                <button onClick={() => {
+                  if (selectedAgentIds.size === onlineAgents.length) { setSelectedAgentIds(new Set()); }
+                  else { setSelectedAgentIds(new Set(onlineAgents.map(s => s.id))); }
+                }} style={{ ...styles.btn, ...styles.btnSecondary, display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                  {selectedAgentIds.size === onlineAgents.length ? '☐ Deselect All' : '☑ Select All'}
                 </button>
               )}
               <span style={{ fontSize: '11px', color: c.textMuted, marginLeft: 'auto' }}>Manage agent updates across your infrastructure</span>
@@ -3142,6 +3151,14 @@ const Dashboard = () => {
                   <div key={s.id} style={{ border: `1px solid ${c.border}`, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', overflow: 'hidden', background: c.card }}>
                     {/* Agent row */}
                     <div style={{ display: 'flex', alignItems: 'center', padding: '14px 18px', gap: '14px' }}>
+                      {/* Checkbox */}
+                      {isAdmin && isOnline && (
+                        <input type="checkbox" checked={selectedAgentIds.has(s.id)} onChange={() => setSelectedAgentIds(prev => {
+                          const next = new Set(prev);
+                          next.has(s.id) ? next.delete(s.id) : next.add(s.id);
+                          return next;
+                        })} style={{ width: '16px', height: '16px', cursor: 'pointer', flexShrink: 0, accentColor: '#A8987C' }} />
+                      )}
                       {/* Status dot */}
                       <div style={{ width: '10px', height: '10px', borderRadius: '50%', flexShrink: 0, background: isOnline ? '#22c55e' : '#ef4444', boxShadow: isOnline ? '0 0 6px #22c55e80' : 'none' }} />
                       {/* Name & IP */}
