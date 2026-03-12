@@ -937,8 +937,8 @@ const Dashboard = () => {
     setActionLoading(true);
     setActionOutput('');
     setActionView(null);
-    const cmdLabels = { system_info: 'System Info', disk_usage: 'Disk Usage', memory: 'Memory', cpu_info: 'CPU Info', netstat: 'Network', update_agent: 'Update Agent', uninstall_agent: 'Uninstall Agent' };
-    const taskId = addTask(selectedServer.name, command, cmdLabels[command] || command);
+    const taskCommands = { update_agent: 'Update Agent', uninstall_agent: 'Uninstall Agent' };
+    const taskId = taskCommands[command] ? addTask(selectedServer.name, command, taskCommands[command]) : null;
     try {
       const response = await fetch('/api/action', {
         method: 'POST',
@@ -957,10 +957,10 @@ const Dashboard = () => {
         output = response.ok ? text : `Error ${response.status}: ${text.substring(0, 500)}`;
       }
       setActionOutput(output);
-      updateTask(taskId, { status: 'done', output: output.substring(0, 200) });
+      if (taskId) updateTask(taskId, { status: 'done', output: output.substring(0, 200) });
     } catch (err) {
       setActionOutput('Error: ' + err.message);
-      updateTask(taskId, { status: 'error', output: err.message });
+      if (taskId) updateTask(taskId, { status: 'error', output: err.message });
     }
     setActionLoading(false);
   };
@@ -2493,7 +2493,10 @@ const Dashboard = () => {
                   </div>
                   <div style={{ marginBottom: '12px' }}>
                     <div onClick={() => handleServerClick(s)} style={{ fontSize: '16px', fontWeight: '700', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }} title="Click to manage">{String(s.name || '')}</div>
-                    <div style={{ fontSize: '12px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace' }}>{String(s.host || '')}</div>
+                    <div style={{ fontSize: '12px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace' }}>
+                      {String(s.host || '')}
+                      {s.agent_version && <span style={{ marginLeft: '8px', fontSize: '10px', color: s.agent_version === (import.meta.env.VITE_APP_VERSION || '') ? '#22c55e' : '#f59e0b', fontWeight: '600' }}>v{s.agent_version}</span>}
+                    </div>
                   </div>
                   {sm ? (
                     <div style={{ marginBottom: '12px' }}>
@@ -2533,6 +2536,7 @@ const Dashboard = () => {
                 <th style={{ ...styles.th, textAlign: 'left' }}>CPU</th>
                 <th style={{ ...styles.th, textAlign: 'left' }}>Memory</th>
                 <th style={{ ...styles.th, textAlign: 'left', cursor: 'pointer', userSelect: 'none' }} onClick={() => { if (sortBy==='ip') setSortOrder(o=>o==='asc'?'desc':'asc'); else { setSortBy('ip'); setSortOrder('asc'); } }}>IP {sortBy==='ip' ? (sortOrder==='asc' ? '▲' : '▼') : '⇅'}</th>
+                <th style={{ ...styles.th, textAlign: 'left' }}>Agent</th>
                 <th style={{ ...styles.th, textAlign: 'left' }}>Updates</th>
                 <th style={{ ...styles.th, textAlign: 'left' }}>Reboot</th>
                 <th style={{ ...styles.th, textAlign: 'left' }}>Group</th>
@@ -2619,6 +2623,12 @@ const Dashboard = () => {
                     </td>
                     {/* IP */}
                     <td style={{ ...styles.td, fontFamily: '"Hack", "Courier New", monospace', fontSize: '12px', color: c.textMuted }}>{s.host}</td>
+                    {/* Agent Version */}
+                    <td style={styles.td}>
+                      {s.agent_version ? (
+                        <span style={{ fontSize: '11px', fontFamily: '"Hack","Courier New",monospace', color: s.agent_version === (import.meta.env.VITE_APP_VERSION || '') ? '#22c55e' : '#f59e0b', fontWeight: '600' }}>v{s.agent_version}</span>
+                      ) : <span style={{ fontSize: '11px', color: c.textMuted, opacity: 0.4 }}>—</span>}
+                    </td>
                     {/* Updates */}
                     <td style={styles.td}>
                       {pu?.count > 0
@@ -3112,9 +3122,9 @@ const Dashboard = () => {
               <button onClick={fetchAgentsPageInfo} disabled={agentsPageLoading} style={{ ...styles.btn, ...styles.btnSecondary, display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span>{agentsPageLoading ? '◑' : '↺'}</span> {agentsPageLoading ? 'Syncing...' : 'Sync Status'}
               </button>
-              {outdatedAgents.length > 0 && isAdmin && (
-                <button onClick={() => handleBulkUpdateAgents(outdatedAgents.map(s => s.id))} style={{ ...styles.btn, ...styles.btnPrimary, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>⬆</span> Update All ({outdatedAgents.length})
+              {isAdmin && (
+                <button onClick={updateAllAgents} disabled={updatingAgents} style={{ ...styles.btn, ...styles.btnPrimary, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>{updatingAgents ? '⟳' : '⬆'}</span> {updatingAgents ? 'Updating...' : `Update All${outdatedAgents.length > 0 ? ` (${outdatedAgents.length} outdated)` : ''}`}
                 </button>
               )}
               <span style={{ fontSize: '11px', color: c.textMuted, marginLeft: 'auto' }}>Manage agent updates across your infrastructure</span>

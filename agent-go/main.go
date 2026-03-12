@@ -28,7 +28,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const agentVersion = "1.3.1"
+const agentVersion = "1.3.2"
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -481,7 +481,7 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 
 	case "disk_usage":
 		if runtime.GOOS == "windows" {
-			out, _ := runShell("powershell -Command \"Get-PSDrive -PSProvider FileSystem | Format-Table Name,@{N='Used(GB)';E={[math]::Round($_.Used/1GB,2)}},@{N='Free(GB)';E={[math]::Round($_.Free/1GB,2)}},@{N='Total(GB)';E={[math]::Round(($_.Used+$_.Free)/1GB,2)}},@{N='Used%';E={if(($_.Used+$_.Free) -gt 0){[math]::Round($_.Used/($_.Used+$_.Free)*100,1)}else{0}}} -AutoSize\"")
+			out, _ := runPowerShell("Get-PSDrive -PSProvider FileSystem | Format-Table Name,@{N='Used(GB)';E={[math]::Round($_.Used/1GB,2)}},@{N='Free(GB)';E={[math]::Round($_.Free/1GB,2)}},@{N='Total(GB)';E={[math]::Round(($_.Used+$_.Free)/1GB,2)}},@{N='Used%';E={if(($_.Used+$_.Free) -gt 0){[math]::Round($_.Used/($_.Used+$_.Free)*100,1)}else{0}}} -AutoSize | Out-String -Width 300")
 			return out
 		}
 		out, _ := runShell("df -h")
@@ -543,7 +543,7 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 
 	case "ip_info":
 		if runtime.GOOS == "windows" {
-			out, _ := runShell("powershell -Command \"Get-NetIPConfiguration | Format-List InterfaceAlias,IPv4Address,IPv4DefaultGateway,DNSServer\"")
+			out, _ := runPowerShell("Get-NetIPConfiguration | Format-List InterfaceAlias,IPv4Address,IPv4DefaultGateway,DNSServer")
 			return out
 		}
 		var ipSb strings.Builder
@@ -561,7 +561,7 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 
 	case "firewall_status":
 		if runtime.GOOS == "windows" {
-			out, _ := runShell("powershell -Command \"Get-NetFirewallProfile | Format-Table Name,Enabled,DefaultInboundAction,DefaultOutboundAction -AutoSize\"")
+			out, _ := runPowerShell("Get-NetFirewallProfile | Format-Table Name,Enabled,DefaultInboundAction,DefaultOutboundAction -AutoSize | Out-String -Width 300")
 			return out
 		}
 		ufwOut2, _ := runShell("ufw status verbose 2>/dev/null")
@@ -580,7 +580,7 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 
 	case "listening_ports":
 		if runtime.GOOS == "windows" {
-			out, _ := runShell("powershell -Command \"Get-NetTCPConnection -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess | Sort-Object LocalPort | Format-Table -AutoSize\"")
+			out, _ := runPowerShell("Get-NetTCPConnection -State Listen | Select-Object LocalAddress,LocalPort,OwningProcess | Sort-Object LocalPort | Format-Table -AutoSize | Out-String -Width 300")
 			return out
 		}
 		out, _ := runShell("ss -tulnp 2>/dev/null || netstat -tulnp 2>/dev/null")
@@ -588,7 +588,7 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 
 	case "cpu_info":
 		if runtime.GOOS == "windows" {
-			out, _ := runShell("powershell -Command \"Get-CimInstance Win32_Processor | Format-List Name,NumberOfCores,NumberOfLogicalProcessors,MaxClockSpeed,CurrentClockSpeed,L2CacheSize,L3CacheSize,Architecture\"")
+			out, _ := runPowerShell("Get-CimInstance Win32_Processor | Format-List Name,NumberOfCores,NumberOfLogicalProcessors,MaxClockSpeed,CurrentClockSpeed,L2CacheSize,L3CacheSize,Architecture")
 			return out
 		}
 		out, _ := runShell("lscpu 2>/dev/null || cat /proc/cpuinfo")
@@ -603,6 +603,10 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 		return out
 
 	case "list_services":
+		if runtime.GOOS == "windows" {
+			out, _ := runPowerShell("Get-Service | Sort-Object Status -Descending | Format-Table -AutoSize Name,DisplayName,Status,StartType | Out-String -Width 300")
+			return out
+		}
 		out, _ := runShell(listServicesCmd())
 		return out
 
@@ -610,6 +614,10 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 		svc := target
 		if svc == "" {
 			return "no service specified"
+		}
+		if runtime.GOOS == "windows" {
+			out, _ := runPowerShell(fmt.Sprintf("Get-Service -Name '%s' | Format-List *", svc))
+			return out
 		}
 		out, _ := runShell(serviceCmd("status", svc))
 		return out

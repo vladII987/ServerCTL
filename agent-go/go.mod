@@ -1,11 +1,11 @@
 module github.com/serverctl/agent
 
-go 1.25.0
+go 1.24.0
 
 require (
 	github.com/gorilla/websocket v1.5.1
 	github.com/shirou/gopsutil/v3 v3.23.12
-	golang.org/x/sys v0.42.0
+	golang.org/x/sys v0.28.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
