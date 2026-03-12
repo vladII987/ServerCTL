@@ -1,0 +1,31 @@
+VERSION
+  d9c50ba8813a031f 1
+agent-go/main.go
+  d9c50ba8813a031f 31,184-206,227-239,416-446,450-470,628-638,649-659,671-681,738-742,744-745,818-822,824-825,828-829,878-888,915-921,923-932,935-937,939-1033,1035-1038,1329,1450-1454
+backend/main.py
+  d9c50ba8813a031f 7,726-741,914-923,930
+frontend/src/Dashboard.jsx
+  d9c50ba8813a031f 418-425,454-456,1106-1118,1126-1127,1139,1143,1145,1164,1168,1225-1279,2265,2312,2495,2571,3084-3221,3378,3411-3412
+docker-compose.yml
+  d9c50ba8813a031f 8,40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.10",
+  "base_commit_sha": "4b54d3d19362339c8510aec8bd78a0962718f5b0",
+  "prompts": {
+    "d9c50ba8813a031f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "06ba4ab7-17d4-463c-8f68-73497db7c6ce",
+        "model": "unknown"
+      },
+      "human_author": "Vladimir Ilic <vlada87ilic@hotmail.com>",
+      "messages": [],
+      "total_additions": 859,
+      "total_deletions": 420,
+      "accepted_lines": 540,
+      "overriden_lines": 0
+    }
+  }
+}
