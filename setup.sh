@@ -12,6 +12,15 @@ warn() { echo -e "${Y}[!]${NC} $1"; }
 err()  { echo -e "${R}[✗]${NC} $1"; exit 1; }
 ask()  { echo -e "${W}[?]${NC} $1"; }
 
+wait_for_apt() {
+    local max=60 i=0
+    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
+        if [ $i -eq 0 ]; then info "Waiting for apt lock (unattended-upgrades)..."; fi
+        sleep 5; i=$((i+1))
+        if [ $i -ge $max ]; then err "apt lock held for over 5 minutes — aborting."; fi
+    done
+}
+
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV="$DIR/.env"
 
@@ -50,6 +59,7 @@ echo ""
 # ── openssl ────────────────────────────────────────────────────
 command -v openssl >/dev/null 2>&1 || {
     info "Installing openssl..."
+    wait_for_apt
     apt-get install -y openssl -qq || err "Cannot install openssl."
 }
 
@@ -142,13 +152,15 @@ if [[ "$MODE" == "docker" ]]; then
         if ! timedatectl status 2>/dev/null | grep -q "synchronized: yes"; then
             warn "NTP sync pending, trying ntpdate fallback..."
             if ! command -v ntpdate >/dev/null 2>&1; then
-                apt-get install -y ntpdate -qq 2>/dev/null
+                wait_for_apt; apt-get install -y ntpdate -qq 2>/dev/null
             fi
             ntpdate pool.ntp.org 2>/dev/null && ok "Clock synced via ntpdate." || warn "Clock sync failed — continuing anyway."
         fi
 
         if command -v apt-get >/dev/null 2>&1; then
+            wait_for_apt
             apt-get update -qq
+            wait_for_apt
             apt-get install -y ca-certificates curl gnupg lsb-release -qq || err "Failed to install prerequisites."
             install -m 0755 -d /etc/apt/keyrings
             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
@@ -156,7 +168,9 @@ if [[ "$MODE" == "docker" ]]; then
             echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
 https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
                 | tee /etc/apt/sources.list.d/docker.list > /dev/null
+            wait_for_apt
             apt-get update -qq
+            wait_for_apt
             apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin -qq \
                 || err "Docker installation failed. If you see 'not valid yet' errors, your system clock may be out of sync. Run: sudo timedatectl set-ntp true && sudo systemctl restart systemd-timesyncd"
             systemctl enable docker --now || err "Failed to start Docker service."
@@ -206,7 +220,7 @@ if [[ "$MODE" == "native" ]]; then
 
     _install_pkg() {
         if command -v apt-get >/dev/null 2>&1; then
-            apt-get update -qq && apt-get install -y "$@" -qq
+            wait_for_apt && apt-get update -qq && wait_for_apt && apt-get install -y "$@" -qq
         elif command -v dnf >/dev/null 2>&1; then
             dnf install -y "$@"
         elif command -v yum >/dev/null 2>&1; then
