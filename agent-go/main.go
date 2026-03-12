@@ -28,7 +28,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const agentVersion = "1.2.0"
+const agentVersion = "1.3.1"
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -181,6 +181,29 @@ func runShell(command string) (string, error) {
 	return strings.TrimSpace(result), err
 }
 
+// runPowerShell writes a PS1 script to a temp file and executes it,
+// avoiding escaping issues with special chars like $null, $?, $false.
+func runPowerShell(script string) (string, error) {
+	tmpScript := filepath.Join(os.TempDir(), "serverctl-ps.ps1")
+	if err := os.WriteFile(tmpScript, []byte(script), 0644); err != nil {
+		return "", fmt.Errorf("failed to write PS1 script: %v", err)
+	}
+	defer os.Remove(tmpScript)
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", tmpScript)
+	var out bytes.Buffer
+	var errOut bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &errOut
+	err := cmd.Run()
+	if ctx.Err() == context.DeadlineExceeded {
+		return strings.TrimSpace(out.String() + errOut.String()), fmt.Errorf("command timed out after 120 seconds")
+	}
+	result := out.String() + errOut.String()
+	return strings.TrimSpace(result), err
+}
+
 func localIP() string {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
@@ -201,6 +224,19 @@ func hostname() string {
 // ─── Update / reboot helpers ─────────────────────────────────────────────────
 
 func countUpgradable(pm *pkgManager) int {
+	if runtime.GOOS == "windows" {
+		out, err := runPowerShell(`try {
+  $updates = Get-WindowsUpdate -ErrorAction Stop
+  Write-Output $updates.Count
+} catch {
+  Write-Output "0"
+}`)
+		if err != nil {
+			return 0
+		}
+		n, _ := strconv.Atoi(strings.TrimSpace(out))
+		return n
+	}
 	if pm == nil {
 		return 0
 	}
@@ -377,8 +413,61 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 		return "0"
 
 	case "upgradable_packages":
+		if runtime.GOOS == "windows" {
+			out, err := runPowerShell(`try {
+  $updates = Get-WindowsUpdate -ErrorAction Stop
+  if ($updates -and $updates.Count -gt 0) {
+    $updates | ForEach-Object { Write-Output $_.Title }
+  } else {
+    Write-Output ""
+  }
+} catch {
+  Write-Output ""
+}`)
+			if err != nil || strings.TrimSpace(out) == "" {
+				return "0"
+			}
+			lines := strings.Split(strings.TrimSpace(out), "\n")
+			pkgs := []string{}
+			for _, l := range lines {
+				l = strings.TrimSpace(l)
+				if l != "" {
+					pkgs = append(pkgs, l)
+				}
+			}
+			if len(pkgs) == 0 {
+				return "0"
+			}
+			data, _ := json.Marshal(map[string]interface{}{
+				"count":    len(pkgs),
+				"packages": pkgs,
+			})
+			return string(data)
+		}
 		if pm == nil {
 			return "0"
+		}
+		if pm.name == "apt" {
+			out, _ := runShell("apt list --upgradable --quiet 2>/dev/null")
+			lines := strings.Split(out, "\n")
+			pkgs := []string{}
+			for _, l := range lines {
+				l = strings.TrimSpace(l)
+				if l == "" || strings.HasPrefix(l, "Listing") || strings.HasPrefix(l, "WARNING") {
+					continue
+				}
+				if strings.Contains(l, "/") && strings.Contains(l, "[upgradable") {
+					pkgs = append(pkgs, l)
+				}
+			}
+			if len(pkgs) == 0 {
+				return "0"
+			}
+			data, _ := json.Marshal(map[string]interface{}{
+				"count":    len(pkgs),
+				"packages": pkgs,
+			})
+			return string(data)
 		}
 		return strconv.Itoa(countUpgradable(pm))
 
@@ -536,7 +625,17 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 
 	case "update":
 		if runtime.GOOS == "windows" {
-			out, _ := runShell("powershell -Command \"Get-WindowsUpdate -AcceptAll 2>$null; if ($?) { Write-Output 'Windows Update check complete.' } else { Write-Output 'Windows Update module not installed. Run: Install-Module PSWindowsUpdate' }\"")
+			out, _ := runPowerShell(`try {
+  $updates = Get-WindowsUpdate -AcceptAll -ErrorAction Stop
+  if ($updates) {
+    Write-Output "$($updates.Count) update(s) available."
+    $updates | ForEach-Object { Write-Output "  - $($_.Title)" }
+  } else {
+    Write-Output "No updates available."
+  }
+} catch {
+  Write-Output "Windows Update module not installed. Run: Install-Module PSWindowsUpdate -Force"
+}`)
 			return out
 		}
 		if pm == nil {
@@ -547,7 +646,17 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 
 	case "upgrade":
 		if runtime.GOOS == "windows" {
-			out, _ := runShell("powershell -Command \"Get-WindowsUpdate -Install -AcceptAll -AutoReboot:$false 2>$null; if ($?) { Write-Output 'Windows Update complete.' } else { Write-Output 'Windows Update module not installed. Run: Install-Module PSWindowsUpdate' }\"")
+			out, _ := runPowerShell(`try {
+  $result = Get-WindowsUpdate -Install -AcceptAll -AutoReboot:$false -ErrorAction Stop
+  if ($result) {
+    Write-Output "$($result.Count) update(s) installed."
+    $result | ForEach-Object { Write-Output "  - $($_.Title): $($_.Result)" }
+  } else {
+    Write-Output "No updates to install."
+  }
+} catch {
+  Write-Output "Windows Update module not installed. Run: Install-Module PSWindowsUpdate -Force"
+}`)
 			return out
 		}
 		if pm == nil {
@@ -559,7 +668,17 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 
 	case "update_packages":
 		if runtime.GOOS == "windows" {
-			out, _ := runShell("powershell -Command \"Get-WindowsUpdate -Install -AcceptAll -AutoReboot:$false 2>$null; if ($?) { Write-Output 'Windows Update complete.' } else { Write-Output 'Windows Update module not installed. Run: Install-Module PSWindowsUpdate' }\"")
+			out, _ := runPowerShell(`try {
+  $result = Get-WindowsUpdate -Install -AcceptAll -AutoReboot:$false -ErrorAction Stop
+  if ($result) {
+    Write-Output "$($result.Count) update(s) installed."
+    $result | ForEach-Object { Write-Output "  - $($_.Title): $($_.Result)" }
+  } else {
+    Write-Output "No updates to install."
+  }
+} catch {
+  Write-Output "Windows Update module not installed. Run: Install-Module PSWindowsUpdate -Force"
+}`)
 			return out
 		}
 		if pm == nil {
@@ -616,8 +735,14 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 	case "update_agent":
 		// Run update in background after response is sent
 		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Printf("[update] PANIC in updateAgent: %v", r)
+				}
+			}()
 			time.Sleep(2 * time.Second) // give time for response to be sent
-			updateAgent(cfg)
+			result := updateAgent(cfg)
+			log.Printf("[update] result: %s", result)
 		}()
 		return "Agent update initiated. The agent will restart momentarily."
 
@@ -689,21 +814,19 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 func listLogFiles() string {
 	var dirs []string
 	if runtime.GOOS == "windows" {
-		// Windows Event Log — return virtual entries for event log channels
-		out, _ := runShell("powershell -Command \"Get-WinEvent -ListLog Application,System,Security -ErrorAction SilentlyContinue | ForEach-Object { $_.LogName + '|' + $_.RecordCount + '|' + $_.LastWriteTime }\"")
 		var files []map[string]interface{}
-		for _, line := range strings.Split(strings.TrimSpace(out), "\n") {
-			parts := strings.SplitN(strings.TrimSpace(line), "|", 3)
-			if len(parts) < 1 || parts[0] == "" {
-				continue
-			}
+		// Windows Event Log channels
+		channels := []string{"Application", "System", "Security", "Setup"}
+		for _, ch := range channels {
+			out, _ := runShell(fmt.Sprintf("powershell -Command \"try { $log = Get-WinEvent -ListLog '%s' -ErrorAction Stop; Write-Output ($log.RecordCount.ToString() + '|' + $log.LastWriteTime.ToString()) } catch { Write-Output '0|' }\"", ch))
+			parts := strings.SplitN(strings.TrimSpace(out), "|", 2)
 			count := int64(0)
-			if len(parts) > 1 {
-				fmt.Sscanf(parts[1], "%d", &count)
+			if len(parts) > 0 {
+				fmt.Sscanf(parts[0], "%d", &count)
 			}
 			files = append(files, map[string]interface{}{
-				"name": parts[0],
-				"path": "winlog:" + parts[0],
+				"name": ch,
+				"path": "winlog:" + ch,
 				"size": count,
 			})
 		}
@@ -752,7 +875,17 @@ func readLogFile(path string) string {
 	// Windows Event Log
 	if strings.HasPrefix(path, "winlog:") {
 		logName := strings.TrimPrefix(path, "winlog:")
-		out, _ := runShell(fmt.Sprintf("powershell -Command \"Get-WinEvent -LogName '%s' -MaxEvents 200 -ErrorAction SilentlyContinue | Format-Table -AutoSize TimeCreated,Id,LevelDisplayName,Message -Wrap\"", logName))
+		// Write PS1 script to avoid escaping issues
+		script := fmt.Sprintf("try {\n"+
+			"  Get-WinEvent -LogName '%s' -MaxEvents 100 -ErrorAction Stop | ForEach-Object {\n"+
+			"    $msg = $_.Message\n"+
+			"    if ($msg) { $msg = ($msg -split [Environment]::NewLine)[0] }\n"+
+			"    $_.TimeCreated.ToString('yyyy-MM-dd HH:mm:ss') + ' [' + $_.LevelDisplayName + '] ' + $msg\n"+
+			"  }\n"+
+			"} catch {\n"+
+			"  Write-Output ('Error reading %s: ' + $_.Exception.Message)\n"+
+			"}\n", logName, logName)
+		out, _ := runPowerShell(script)
 		if strings.TrimSpace(out) == "" {
 			return "No events found in " + logName
 		}
@@ -775,60 +908,134 @@ func readLogFile(path string) string {
 }
 
 func updateAgent(cfg *Config) string {
-	// Determine platform
-	platform := runtime.GOOS + "-" + runtime.GOARCH
-	// Build download URL from server_url
 	baseURL := strings.TrimRight(cfg.ServerURL, "/")
-	// Replace ws:// with http://
 	baseURL = strings.Replace(baseURL, "ws://", "http://", 1)
 	baseURL = strings.Replace(baseURL, "wss://", "https://", 1)
-	dlURL := baseURL + "/api/agent/download/" + platform
+
+	exePath, _ := os.Executable()
+	if exePath == "" {
+		if runtime.GOOS == "windows" {
+			exePath = `C:\serverctl-agent\serverctl-agent.exe`
+		} else {
+			exePath = "/usr/local/bin/serverctl-agent"
+		}
+	}
+	installDir := filepath.Dir(exePath)
+	logFile := filepath.Join(installDir, "update.log")
+	writeLog := func(msg string) {
+		line := fmt.Sprintf("[%s] %s\n", time.Now().Format("2006-01-02 15:04:05"), msg)
+		f, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err == nil {
+			f.WriteString(line)
+			f.Close()
+		}
+		log.Printf("[update] %s", msg)
+	}
+
+	writeLog("Starting agent update from " + baseURL)
+	writeLog("Current binary: " + exePath)
+	writeLog("Current version: " + agentVersion)
 
 	if runtime.GOOS == "windows" {
-		// Windows: write PS1 script to temp file, execute it
-		tmpScript := filepath.Join(os.TempDir(), "serverctl-update.ps1")
-		script := "$ErrorActionPreference = 'Stop'\r\n" +
-			"$dlUrl = '" + dlURL + "'\r\n" +
-			"$binPath = 'C:\\serverctl-agent\\serverctl-agent.exe'\r\n" +
-			"$tmpPath = $binPath + '.new'\r\n" +
-			"Write-Output '[*] Downloading update...'\r\n" +
-			"Invoke-WebRequest -Uri $dlUrl -OutFile $tmpPath -UseBasicParsing\r\n" +
-			"Write-Output '[*] Stopping service...'\r\n" +
-			"Get-Process -Name serverctl-agent -ErrorAction SilentlyContinue | Stop-Process -Force\r\n" +
-			"Start-Sleep -Seconds 2\r\n" +
-			"Move-Item -Force $tmpPath $binPath\r\n" +
-			"Write-Output '[*] Starting service...'\r\n" +
-			"sc.exe start serverctl-agent\r\n" +
-			"Write-Output '[OK] Agent updated successfully.'\r\n"
-		os.WriteFile(tmpScript, []byte(script), 0644)
-		out, _ := runShell("powershell -ExecutionPolicy Bypass -File \"" + tmpScript + "\"")
-		os.Remove(tmpScript)
-		return out
+		// Windows: trigger the pre-registered "ServerCtlUpdater" scheduled task
+		// The task was created during install and runs as SYSTEM with highest privileges.
+		// It calls the install-windows script which handles stop → download → start.
+		// Try to trigger existing scheduled task first
+		writeLog("Triggering ServerCtlUpdater scheduled task...")
+		triggerScript := "try {\n" +
+			"  $task = Get-ScheduledTask -TaskName 'ServerCtlUpdater' -ErrorAction Stop\n" +
+			"  Start-ScheduledTask -TaskName 'ServerCtlUpdater'\n" +
+			"  Write-Output \"OK: Task triggered\"\n" +
+			"} catch {\n" +
+			"  Write-Output \"ERROR: $_\"\n" +
+			"}\n"
+		out, err := runPowerShell(triggerScript)
+		writeLog("Task trigger result: " + out)
+		if err != nil || strings.Contains(out, "ERROR:") {
+			writeLog("Scheduled task not found, registering it now...")
+			// Fallback: register the task and trigger it
+			installURL := baseURL + "/api/agent/install-windows?token=" + cfg.Token
+			registerScript := "$ErrorActionPreference = 'Stop'\n" +
+				"try {\n" +
+				"  $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument \"-NoProfile -ExecutionPolicy Bypass -Command `\"irm '" + installURL + "' | iex`\"\"\n" +
+				"  $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest\n" +
+				"  $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable\n" +
+				"  Register-ScheduledTask -TaskName 'ServerCtlUpdater' -Action $action -Principal $principal -Settings $settings -Force | Out-Null\n" +
+				"  Start-ScheduledTask -TaskName 'ServerCtlUpdater'\n" +
+				"  Write-Output 'OK: Task registered and triggered'\n" +
+				"} catch {\n" +
+				"  Write-Output \"ERROR: $_\"\n" +
+				"}\n"
+			out2, _ := runPowerShell(registerScript)
+			writeLog("Fallback register result: " + out2)
+			if strings.Contains(out2, "ERROR:") {
+				return "Update failed: " + out2
+			}
+			return "Agent update triggered (task was re-registered). Service will restart momentarily."
+		}
+		return "Agent update triggered via ServerCtlUpdater task. Service will restart momentarily."
 	}
 
-	// Linux: download new binary, replace in-place, then use systemd-run
-	// to restart the service from outside the current cgroup
-	exePath, err := os.Executable()
-	if err != nil {
-		exePath = "/usr/local/bin/serverctl-agent"
-	}
+	// Linux: stop → download → start with rollback via systemd-run
+	dlURL := baseURL + "/api/agent/download/linux-" + runtime.GOARCH
+	scriptPath := filepath.Join(os.TempDir(), "serverctl-update.sh")
+	script := fmt.Sprintf(`#!/bin/bash
+LOG="%s"
+BIN="%s"
+DL_URL="%s"
+OLD="%s"
 
-	// Download first while agent is still running
-	tmpBin := exePath + ".new"
-	dlCmd := fmt.Sprintf(`curl -sL -o "%s" "%s" && chmod +x "%s"`, tmpBin, dlURL, tmpBin)
-	out, _ := runShell(dlCmd)
-	if _, err := os.Stat(tmpBin); err != nil {
-		return "Download failed: " + out
-	}
+log() { echo "[$(date '+%%Y-%%m-%%d %%H:%%M:%%S')] $1" >> "$LOG"; }
 
-	// Replace the binary
-	if err := os.Rename(tmpBin, exePath); err != nil {
-		return "Failed to replace binary: " + err.Error()
-	}
+log "Update script started"
+sleep 2
 
-	// Use systemd-run to restart outside our cgroup (survives service stop)
-	exec.Command("systemd-run", "--no-block", "systemctl", "restart", "serverctl-agent").Start()
-	return "Agent binary updated. Service restarting..."
+log "Stopping service..."
+systemctl stop serverctl-agent 2>/dev/null
+sleep 2
+
+# Backup
+log "Backing up old binary..."
+cp "$BIN" "$OLD"
+
+# Download
+log "Downloading from $DL_URL"
+if curl -fsSL -o "$BIN" "$DL_URL"; then
+    chmod +x "$BIN"
+    log "Download complete"
+else
+    log "Download FAILED — restoring backup"
+    cp "$OLD" "$BIN"
+    chmod +x "$BIN"
+    systemctl start serverctl-agent
+    log "Rollback complete"
+    exit 1
+fi
+
+# Start and healthcheck
+log "Starting new agent..."
+systemctl start serverctl-agent
+sleep 15
+
+if systemctl is-active --quiet serverctl-agent; then
+    log "Healthcheck PASSED — new agent is running"
+    rm -f "$OLD"
+    log "Update complete!"
+else
+    log "Healthcheck FAILED — rolling back!"
+    systemctl stop serverctl-agent 2>/dev/null
+    sleep 2
+    cp "$OLD" "$BIN"
+    chmod +x "$BIN"
+    systemctl start serverctl-agent
+    log "Rollback complete. Old agent restored."
+fi
+`, logFile, exePath, dlURL, exePath+".old")
+
+	os.WriteFile(scriptPath, []byte(script), 0755)
+	exec.Command("systemd-run", "--no-block", "bash", scriptPath).Start()
+	writeLog("Update script launched via systemd-run")
+	return "Agent update started. Service will restart in ~5 seconds."
 }
 
 func repoSpeedTest() string {
@@ -1119,7 +1326,7 @@ func startDailyChecker(pm *pkgManager, state *updateState) {
 	// initial check after 30s to not delay startup
 	time.AfterFunc(30*time.Second, func() {
 		state.refresh(pm)
-		ticker := time.NewTicker(24 * time.Hour)
+		ticker := time.NewTicker(6 * time.Hour)
 		for range ticker.C {
 			state.refresh(pm)
 		}
@@ -1240,6 +1447,11 @@ func connect(url string, cfg *Config, pm *pkgManager, state *updateState) error 
 			mu.Lock()
 			conn.WriteMessage(websocket.TextMessage, data)
 			mu.Unlock()
+			// Refresh pending updates count after package operations
+			if in.Command == "upgrade" || in.Command == "update" || in.Command == "update_packages" {
+				state.refresh(pm)
+				sendMetrics(conn, &mu, state)
+			}
 		}(incoming)
 	}
 }

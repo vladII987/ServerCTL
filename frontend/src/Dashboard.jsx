@@ -415,7 +415,14 @@ const Dashboard = () => {
   const wizardPreServersRef = useRef([]);
   const [wizardInstallCmd, setWizardInstallCmd] = useState('');
   const [wizardInstallCmdLoading, setWizardInstallCmdLoading] = useState(false);
-  const [navSection, setNavSection] = useState('servers');
+  const [navSection, setNavSectionRaw] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    return hash || 'servers';
+  });
+  const setNavSection = (section) => {
+    setNavSectionRaw(section);
+    window.location.hash = section;
+  };
   const [upgradeLoading, setUpgradeLoading] = useState(false);
   const [upgradeOutput, setUpgradeOutput] = useState('');
   // Shell section state
@@ -444,6 +451,9 @@ const Dashboard = () => {
   const [sysInfoLoading, setSysInfoLoading] = useState(false);
   const [agentInfo, setAgentInfo] = useState(null);
   const [agentInfoLoading, setAgentInfoLoading] = useState(false);
+  const [agentsPageInfo, setAgentsPageInfo] = useState({});
+  const [agentsPageLoading, setAgentsPageLoading] = useState(false);
+  const [agentsExpandedId, setAgentsExpandedId] = useState(null);
   // Branding
   const [customLogo, setCustomLogo] = useState(() => localStorage.getItem('serverctl_logo') || '');
   const [customTabTitle, setCustomTabTitle] = useState(() => localStorage.getItem('serverctl_tab_title') || 'ServerCTL');
@@ -1093,6 +1103,28 @@ const Dashboard = () => {
     setActionLoading(false);
   };
 
+  // Parse upgradable_packages response - handles both JSON and apt-style text
+  const parseUpgradablePackages = (output) => {
+    const raw = (output || '').trim();
+    if (!raw || raw === '0') return [];
+    // Try JSON first (new format from v1.2.5+)
+    if (raw.startsWith('{')) {
+      try {
+        const data = JSON.parse(raw);
+        return (data.packages || []).map(p => typeof p === 'string' ? { name: p, version: '' } : p);
+      } catch {}
+    }
+    // Fallback: apt-style text (package/repo version [upgradable from: x])
+    return raw.split('\n')
+      .filter(l => l && !l.startsWith('Listing') && l.includes('/'))
+      .map(l => {
+        const parts = l.split(' ');
+        const name = parts[0]?.split('/')[0] || '';
+        const version = parts[1] || '';
+        return { name, version };
+      });
+  };
+
   const showUpdates = async () => {
     setActionOutput('');
     setActionView(null);
@@ -1104,20 +1136,13 @@ const Dashboard = () => {
       updateTask(taskId, { output: 'Checking packages...' });
       const lines = (updateRes.output || '').split('\n').filter(Boolean);
       const fetched = lines.filter(l => l.startsWith('Get:') || l.startsWith('Hit:') || l.startsWith('Ign:'));
-      const summary = lines.find(l => l.includes('Fetched') || l.includes('up to date') || l.includes('Reading package'));
+      const summary = lines.find(l => l.includes('Fetched') || l.includes('up to date') || l.includes('Reading package') || l.includes('update(s) available') || l.includes('No updates'));
       let packages = [];
       try {
         const pkgRes = await agentAction('upgradable_packages');
-        packages = (pkgRes.output || '').split('\n')
-          .filter(l => l && !l.startsWith('Listing') && l.includes('/'))
-          .map(l => {
-            const parts = l.split(' ');
-            const name = parts[0]?.split('/')[0] || '';
-            const version = parts[1] || '';
-            return { name, version };
-          });
+        packages = parseUpgradablePackages(pkgRes.output);
       } catch {}
-      setUpdatesData({ fetched: fetched.length, summary, packages, success: updateRes.returncode === 0 });
+      setUpdatesData({ fetched: fetched.length, summary: summary || (packages.length > 0 ? `${packages.length} update(s) available` : 'No updates available'), packages, success: updateRes.returncode === 0 });
       setActionView('updates');
       updateTask(taskId, { status: 'done', output: `${packages.length} update${packages.length !== 1 ? 's' : ''} available` });
       await fetch(`/api/servers/${selectedServer.id}/pending-updates`, {
@@ -1136,13 +1161,11 @@ const Dashboard = () => {
   const refreshPendingUpdates = async () => {
     try {
       const res = await agentAction('upgradable_packages');
-      const packages = (res.output || '').split('\n')
-        .filter(l => l && !l.startsWith('Listing') && l.includes('/'))
-        .map(l => l.split('/')[0]);
+      const packages = parseUpgradablePackages(res.output);
       await fetch(`/api/servers/${selectedServer.id}/pending-updates`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeader },
-        body: JSON.stringify({ count: packages.length, packages }),
+        body: JSON.stringify({ count: packages.length, packages: packages.map(p => p.name) }),
       });
       fetchServers();
     } catch (_) {}
@@ -1197,6 +1220,61 @@ const Dashboard = () => {
       setAgentInfo({ error: e.message });
     }
     setAgentInfoLoading(false);
+  };
+
+  const fetchAgentsPageInfo = async () => {
+    setAgentsPageLoading(true);
+    const onlineServers = servers.filter(s => s.online);
+    const results = {};
+    await Promise.all(onlineServers.map(async (s) => {
+      try {
+        const res = await fetch('/api/action', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeader },
+          body: JSON.stringify({ server_id: s.id, command: 'agent_info' }),
+        });
+        const data = await res.json();
+        const raw = data.output || '';
+        if (raw.startsWith('{')) {
+          results[s.id] = JSON.parse(raw);
+        } else {
+          results[s.id] = { version: s.agent_version || 'unknown', error_detail: raw.includes('nknown') ? 'Agent needs update' : raw };
+        }
+      } catch (e) {
+        results[s.id] = { version: s.agent_version || '?', error: e.message };
+      }
+    }));
+    setAgentsPageInfo(results);
+    setAgentsPageLoading(false);
+  };
+
+  const handleUpdateAgentById = async (server) => {
+    if (!window.confirm(`Update agent on ${server.name} to the latest version?`)) return;
+    const taskId = addTask(server.name, 'update_agent', 'Update Agent');
+    try {
+      const res = await fetch('/api/action', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeader },
+        body: JSON.stringify({ server_id: server.id, command: 'update_agent' }),
+      });
+      const data = await res.json();
+      updateTask(taskId, { status: data.status === 'completed' ? 'done' : 'error', output: (data.output || '').substring(0, 200) });
+    } catch (e) {
+      updateTask(taskId, { status: 'error', output: e.message });
+    }
+  };
+
+  const handleBulkUpdateAgents = async (serverIds) => {
+    if (!window.confirm(`Update agents on ${serverIds.length} server(s)?`)) return;
+    const taskId = addTask(`${serverIds.length} servers`, 'update_agent', 'Bulk Update Agents');
+    await Promise.all(serverIds.map(async (id) => {
+      try {
+        await fetch('/api/action', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeader },
+          body: JSON.stringify({ server_id: id, command: 'update_agent' }),
+        });
+      } catch {}
+    }));
+    updateTask(taskId, { status: 'done', output: `Triggered on ${serverIds.length} servers` });
+    setTimeout(fetchAgentsPageInfo, 20000);
   };
 
   const handleUpdateAgent = async () => {
@@ -2184,6 +2262,7 @@ const Dashboard = () => {
     { key: 'networks',   icon: '⬡',   label: 'Networks' },
     { key: 'logs',       icon: '≡',   label: 'Logs' },
     { key: 'shell',      icon: '>_',  label: 'Shell' },
+    { key: 'agents',     icon: '◈',   label: 'Agents' },
     { key: 'updates',    icon: '↑',   label: 'Updates' },
     { key: 'activity',   icon: '◷',   label: 'Activity' },
     { key: 'schedules',  icon: '⏰',  label: 'Schedules' },
@@ -2230,7 +2309,7 @@ const Dashboard = () => {
             const updatesBadge = item.key === 'updates' && servers.some(s => s.pending_updates?.count > 0)
               ? servers.reduce((sum, s) => sum + (s.pending_updates?.count || 0), 0) : 0;
             return (
-              <button key={item.key} onClick={() => { setNavSection(item.key); if (item.key === 'servers') setServerQuickFilter('all'); if (item.key === 'settings' && isAdmin) fetchUsers(); }}
+              <button key={item.key} onClick={() => { setNavSection(item.key); if (item.key === 'servers') setServerQuickFilter('all'); if (item.key === 'settings' && isAdmin) fetchUsers(); if (item.key === 'agents') fetchAgentsPageInfo(); }}
                 style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 16px', border: 'none', borderLeft: `2px solid ${active ? '#A8987C' : 'transparent'}`, background: active ? (darkMode ? 'rgba(168,152,124,0.08)' : 'rgba(37,81,94,0.08)') : 'transparent', color: active ? '#A8987C' : c.textMuted, cursor: 'pointer', fontSize: '12px', fontWeight: active ? '700' : '400', width: '100%', textAlign: 'left', letterSpacing: active ? '0.04em' : '0', position: 'relative' }}>
                 <span style={{ fontSize: '13px', width: '18px', textAlign: 'center', flexShrink: 0, filter: active ? (darkMode ? 'drop-shadow(0 0 4px #A8987C)' : 'none') : 'none' }}>{item.icon}</span>
                 <span style={{ flex: 1 }}>{item.label}</span>
@@ -2413,7 +2492,7 @@ const Dashboard = () => {
                     </div>
                   </div>
                   <div style={{ marginBottom: '12px' }}>
-                    <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(s.name || '')}</div>
+                    <div onClick={() => handleServerClick(s)} style={{ fontSize: '16px', fontWeight: '700', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }} title="Click to manage">{String(s.name || '')}</div>
                     <div style={{ fontSize: '12px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace' }}>{String(s.host || '')}</div>
                   </div>
                   {sm ? (
@@ -2489,7 +2568,7 @@ const Dashboard = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0, background: s.online ? '#22c55e' : '#ef4444', boxShadow: s.online ? '0 0 5px #22c55e80' : 'none' }} />
                         <div>
-                          <div style={{ fontWeight: '600', fontSize: '13px' }}>{String(s.name || '')}</div>
+                          <div onClick={() => handleServerClick(s)} style={{ fontWeight: '600', fontSize: '13px', cursor: 'pointer' }} title="Click to manage">{String(s.name || '')}</div>
                           <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace' }}>{String(s.host || '')}</div>
                         </div>
                       </div>
@@ -3002,6 +3081,144 @@ const Dashboard = () => {
         </div>
       )}
 
+      {/* ── AGENTS section ── */}
+      {navSection === 'agents' && (() => {
+        const appVersion = import.meta.env.VITE_APP_VERSION || '1.3.0';
+        const onlineAgents = servers.filter(s => s.online);
+        const outdatedAgents = onlineAgents.filter(s => s.agent_version && s.agent_version !== appVersion);
+        const upToDateAgents = onlineAgents.filter(s => s.agent_version === appVersion);
+        return (
+          <div>
+            {/* Summary cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '24px' }}>
+              {[
+                { label: 'Total Agents', value: servers.length, color: '#A8987C', icon: '◈' },
+                { label: 'Online', value: onlineAgents.length, color: '#22c55e', icon: '◉' },
+                { label: 'Need Update', value: outdatedAgents.length, color: outdatedAgents.length > 0 ? '#f59e0b' : '#22c55e', icon: '↑' },
+                { label: 'Latest Version', value: `v${appVersion}`, color: '#4888e8', icon: '⬡' },
+              ].map(card => (
+                <div key={card.label} style={{ padding: '16px 18px', background: darkMode ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.04)', border: `1px solid ${card.color}30`, clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)' }}>
+                  <div style={{ fontSize: '9px', letterSpacing: '0.18em', color: c.textMuted, marginBottom: '6px' }}>{card.label}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '16px' }}>{card.icon}</span>
+                    <span style={{ fontSize: '22px', fontWeight: '800', color: card.color }}>{card.value}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Actions bar */}
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button onClick={fetchAgentsPageInfo} disabled={agentsPageLoading} style={{ ...styles.btn, ...styles.btnSecondary, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>{agentsPageLoading ? '◑' : '↺'}</span> {agentsPageLoading ? 'Syncing...' : 'Sync Status'}
+              </button>
+              {outdatedAgents.length > 0 && isAdmin && (
+                <button onClick={() => handleBulkUpdateAgents(outdatedAgents.map(s => s.id))} style={{ ...styles.btn, ...styles.btnPrimary, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>⬆</span> Update All ({outdatedAgents.length})
+                </button>
+              )}
+              <span style={{ fontSize: '11px', color: c.textMuted, marginLeft: 'auto' }}>Manage agent updates across your infrastructure</span>
+            </div>
+
+            {/* Agent list */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {servers.map(s => {
+                const info = agentsPageInfo[s.id];
+                const isExpanded = agentsExpandedId === s.id;
+                const version = info?.version || s.agent_version || '?';
+                const isOutdated = version && version !== appVersion && version !== '?';
+                const isOnline = s.online;
+                return (
+                  <div key={s.id} style={{ border: `1px solid ${c.border}`, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', overflow: 'hidden', background: c.card }}>
+                    {/* Agent row */}
+                    <div style={{ display: 'flex', alignItems: 'center', padding: '14px 18px', gap: '14px' }}>
+                      {/* Status dot */}
+                      <div style={{ width: '10px', height: '10px', borderRadius: '50%', flexShrink: 0, background: isOnline ? '#22c55e' : '#ef4444', boxShadow: isOnline ? '0 0 6px #22c55e80' : 'none' }} />
+                      {/* Name & IP */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div onClick={() => handleServerClick(s)} style={{ fontWeight: '700', fontSize: '14px', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(s.name || '')}</div>
+                        <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"Hack","Courier New",monospace' }}>{s.host}</div>
+                      </div>
+                      {/* Platform badge */}
+                      <span style={{ fontSize: '11px', padding: '2px 10px', background: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', color: c.textMuted, borderRadius: '20px', flexShrink: 0 }}>
+                        {String(s.platform || 'unknown').toLowerCase().includes('windows') ? '🪟' : '🐧'} {(s.platform || 'unknown').split(' ')[0]}
+                      </span>
+                      {/* Version */}
+                      <div style={{ textAlign: 'center', flexShrink: 0, minWidth: '90px' }}>
+                        <div style={{ fontSize: '9px', letterSpacing: '0.12em', color: c.textMuted, marginBottom: '2px' }}>Agent Version</div>
+                        <span style={{ fontSize: '13px', fontWeight: '700', color: isOutdated ? '#f59e0b' : isOnline ? '#22c55e' : c.textMuted }}>
+                          {version !== '?' ? `v${version}` : '—'}
+                        </span>
+                      </div>
+                      {/* Status badge */}
+                      <div style={{ flexShrink: 0, minWidth: '100px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '9px', letterSpacing: '0.12em', color: c.textMuted, marginBottom: '2px' }}>Status</div>
+                        {!isOnline ? (
+                          <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: '600' }}>Offline</span>
+                        ) : isOutdated ? (
+                          <span style={{ fontSize: '11px', color: '#f59e0b', fontWeight: '700', background: '#f59e0b18', padding: '1px 8px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', border: '1px solid #f59e0b40' }}>↑ Update available</span>
+                        ) : (
+                          <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: '600' }}>✓ Up to date</span>
+                        )}
+                      </div>
+                      {/* Actions */}
+                      <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                        {isAdmin && isOnline && (
+                          <button onClick={() => handleUpdateAgentById(s)} title="Update Agent"
+                            style={{ ...styles.iconBtn, background: isOutdated ? '#f59e0b18' : '#3b82f618', color: isOutdated ? '#f59e0b' : '#3b82f6', border: `1px solid ${isOutdated ? '#f59e0b30' : '#3b82f630'}`, fontSize: '12px', padding: '4px 10px' }}>
+                            ⬆ Update
+                          </button>
+                        )}
+                        <button onClick={() => setAgentsExpandedId(isExpanded ? null : s.id)} title="Agent Info"
+                          style={{ ...styles.iconBtn, background: '#8b5cf618', color: '#8b5cf6', border: '1px solid #8b5cf630', fontSize: '12px', padding: '4px 10px' }}>
+                          ℹ Info
+                        </button>
+                        <button onClick={() => handleServerClick(s)} title="Manage Server"
+                          style={{ ...styles.iconBtn, background: '#3b82f618', color: '#3b82f6', border: '1px solid #3b82f630' }}>
+                          ⚙
+                        </button>
+                      </div>
+                    </div>
+                    {/* Expanded info */}
+                    {isExpanded && info && (
+                      <div style={{ borderTop: `1px solid ${c.border}30`, padding: '12px 18px', background: darkMode ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.02)' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
+                          {[
+                            { label: 'Version', value: info.version },
+                            { label: 'Uptime', value: info.uptime },
+                            { label: 'OS / Arch', value: `${info.os || ''} / ${info.arch || ''}` },
+                            { label: 'Go Version', value: info.go_version },
+                            { label: 'Binary Path', value: info.binary },
+                            { label: 'Config Path', value: info.config },
+                            { label: 'Server URL', value: info.server_url },
+                            { label: 'Build Date', value: info.build_date },
+                          ].filter(r => r.value).map(row => (
+                            <div key={row.label} style={{ display: 'flex', gap: '8px', padding: '6px 10px', background: darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', borderRadius: '4px' }}>
+                              <span style={{ fontSize: '11px', color: c.textMuted, fontWeight: '600', whiteSpace: 'nowrap' }}>{row.label}:</span>
+                              <span style={{ fontSize: '11px', color: c.text, fontFamily: '"Hack","Courier New",monospace', wordBreak: 'break-all' }}>{row.value || '—'}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {info.error_detail && (
+                          <div style={{ marginTop: '8px', padding: '8px 12px', background: '#f59e0b10', border: '1px solid #f59e0b30', fontSize: '11px', color: '#f59e0b' }}>
+                            ⚠ {info.error_detail}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {isExpanded && !info && (
+                      <div style={{ borderTop: `1px solid ${c.border}30`, padding: '12px 18px', textAlign: 'center', color: c.textMuted, fontSize: '12px' }}>
+                        {isOnline ? 'Click "Sync Status" to load agent details' : 'Agent is offline'}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ── UPDATES section ── */}
       {navSection === 'updates' && (() => {
         const updServers = servers.filter(s => s.pending_updates?.count > 0);
@@ -3158,15 +3375,7 @@ const Dashboard = () => {
                 <div style={{ padding: '10px 14px', borderBottom: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '10px', background: darkMode ? 'rgba(15,23,42,0.5)' : 'rgba(248,250,252,0.7)', flexWrap: 'wrap' }}>
                   <span style={{ fontWeight: '600', fontSize: '13px', marginRight: '4px' }}>{logsServer.name}</span>
                   <span style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace' }}>{logsServer.host}</span>
-                  {/* Source type tabs */}
-                  <div style={{ marginLeft: 'auto', display: 'flex', gap: '4px', background: darkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.06)', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', padding: '3px' }}>
-                    {[['files', '📄 Log Files'], ['services', '⚙ Services']].map(([key, label]) => (
-                      <button key={key} onClick={() => { setLogsTab(key); setLogsSelectedItem(null); setLogsContent(''); }}
-                        style={{ background: logsTab === key ? c.primary : 'transparent', color: logsTab === key ? '#fff' : c.textMuted, border: 'none', borderRadius: '6px', padding: '4px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.15s' }}>
-                        {label}
-                      </button>
-                    ))}
-                  </div>
+                  <div style={{ marginLeft: 'auto', fontSize: '11px', color: c.textMuted, letterSpacing: '0.05em' }}>📄 Log Files</div>
                   {logsSelectedItem && (
                     <>
                       <button onClick={refreshLogsContent} title="Refresh" style={{ ...styles.btn, ...styles.btnSecondary, padding: '4px 10px', fontSize: '12px' }}>↺</button>
@@ -3193,24 +3402,14 @@ const Dashboard = () => {
                           </div>
                         ))
                     )}
-                    {logsTab === 'services' && (
-                      logsServices.length === 0
-                        ? <div style={{ padding: '16px', fontSize: '12px', color: c.textMuted }}>{logsListLoading ? 'Loading...' : 'No services found'}</div>
-                        : logsServices.map((svc, i) => (
-                          <div key={i} onClick={() => loadServiceStatus(logsServer, svc)}
-                            style={{ padding: '9px 12px', cursor: 'pointer', borderBottom: `1px solid ${c.border}15`, background: logsSelectedItem === 'svc:' + svc ? (darkMode ? '#1e3a5f' : '#dbeafe') : 'transparent', borderLeft: `3px solid ${logsSelectedItem === 'svc:' + svc ? c.primary : 'transparent'}`, transition: 'all 0.1s' }}>
-                            <div style={{ fontSize: '12px', fontWeight: '600', color: c.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{svc}</div>
-                          </div>
-                        ))
-                    )}
                   </div>
 
                   {/* Log content */}
                   <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: darkMode ? '#0d1117' : '#f8fafc' }}>
                     {!logsSelectedItem && (
                       <div style={styles.empty}>
-                        <div style={{ fontSize: '28px', opacity: 0.3, marginBottom: '8px' }}>{logsTab === 'files' ? '📄' : '⚙'}</div>
-                        <div style={{ fontSize: '13px', color: c.textMuted }}>Select a {logsTab === 'files' ? 'log file' : 'service'} from the list</div>
+                        <div style={{ fontSize: '28px', opacity: 0.3, marginBottom: '8px' }}>📄</div>
+                        <div style={{ fontSize: '13px', color: c.textMuted }}>Select a log file from the list</div>
                       </div>
                     )}
                     {logsSelectedItem && logsContentLoading && (

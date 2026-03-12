@@ -4,6 +4,7 @@ API Gateway: Frontend ← → Backend ← → Agents (WebSocket) / Prometheus
 Port: 9090  |  network_mode: host
 """
 import asyncio
+import hashlib
 import json
 import csv
 import io
@@ -722,6 +723,22 @@ async def agent_download(platform: str):
     return FileResponse(path, media_type=media, filename=filename)
 
 
+@app.get("/api/agent/checksum/{platform}")
+async def agent_checksum(platform: str):
+    """Return SHA256 checksum of the agent binary for a given platform."""
+    filename = PLATFORM_MAP.get(platform)
+    if not filename:
+        raise HTTPException(400, f"Unknown platform '{platform}'")
+    path = os.path.join(AGENT_BINS_DIR, filename)
+    if not os.path.exists(path):
+        raise HTTPException(404, "Binary not found")
+    sha256 = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            sha256.update(chunk)
+    return {"platform": platform, "sha256": sha256.hexdigest(), "size": os.path.getsize(path)}
+
+
 @app.get("/api/agent/install")
 async def agent_install(request: Request, token: str = Query("")):
     """Return a shell install script that downloads and installs the Go agent binary."""
@@ -894,12 +911,23 @@ sc.exe failure $svcName reset= 60 actions= restart/5000/restart/10000/restart/30
 Write-Host '[*] Starting service...' -ForegroundColor Yellow
 sc.exe start $svcName
 
+# Register scheduled task for remote updates (runs as SYSTEM with highest privileges)
+Write-Host '[*] Registering update scheduled task...' -ForegroundColor Yellow
+$updateTaskName = 'ServerCtlUpdater'
+$updateAction = New-ScheduledTaskAction -Execute 'powershell.exe' `
+    -Argument "-NoProfile -ExecutionPolicy Bypass -Command `"irm '{base_url}/api/agent/install-windows?token={token}' | iex`""
+$updatePrincipal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
+$updateSettings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+Register-ScheduledTask -TaskName $updateTaskName -Action $updateAction -Principal $updatePrincipal -Settings $updateSettings -Force | Out-Null
+Write-Host "[+] Update task '$updateTaskName' registered (trigger via dashboard)" -ForegroundColor Green
+
 Write-Host ''
 Write-Host '==========================================' -ForegroundColor Green
 Write-Host ' ServerCtl Agent installed!' -ForegroundColor Green
 Write-Host " Binary:  $exe" -ForegroundColor Green
 Write-Host " Config:  $cfgFile" -ForegroundColor Green
 Write-Host " Service: $svcName (services.msc)" -ForegroundColor Green
+Write-Host " Updater: $updateTaskName (Task Scheduler)" -ForegroundColor Green
 Write-Host '==========================================' -ForegroundColor Green
 """
     return PlainTextResponse(script, media_type="text/plain")
