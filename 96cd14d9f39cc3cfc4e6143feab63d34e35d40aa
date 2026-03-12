@@ -1,0 +1,23 @@
+frontend/src/Dashboard.jsx
+  d9c50ba8813a031f 457,3126-3136,3154-3161
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.10",
+  "base_commit_sha": "96cd14d9f39cc3cfc4e6143feab63d34e35d40aa",
+  "prompts": {
+    "d9c50ba8813a031f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "06ba4ab7-17d4-463c-8f68-73497db7c6ce",
+        "model": "unknown"
+      },
+      "human_author": "Vladimir Ilic <vlada87ilic@hotmail.com>",
+      "messages": [],
+      "total_additions": 20,
+      "total_deletions": 3,
+      "accepted_lines": 20,
+      "overriden_lines": 0
+    }
+  }
+}
