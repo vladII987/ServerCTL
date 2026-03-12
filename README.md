@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/license-CC BY-ND 4.0-blue" alt="License"/>
+  <img src="https://img.shields.io/badge/License-CC%20BY--ND%204.0-lightgrey.svg" alt="License"/>
   <img src="https://img.shields.io/badge/backend-FastAPI-009688" alt="FastAPI"/>
   <img src="https://img.shields.io/badge/frontend-React%20%2B%20Vite-61DAFB" alt="React"/>
   <img src="https://img.shields.io/badge/deploy-Docker%20Compose-2496ED" alt="Docker"/>
