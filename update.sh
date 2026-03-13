@@ -35,16 +35,40 @@ ok "Detected mode: ${MODE}"
 echo ""
 
 # ── Pull latest code ─────────────────────────────────────────
-info "Pulling latest changes from git..."
 cd "$DIR"
-# Switch SSH remote to HTTPS if needed (avoids SSH key issues)
 REMOTE_URL=$(git remote get-url origin 2>/dev/null)
-if [[ "$REMOTE_URL" == git@github.com:* ]]; then
-    HTTPS_URL=$(echo "$REMOTE_URL" | sed 's|git@github.com:|https://github.com/|')
-    git remote set-url origin "$HTTPS_URL"
-    info "Switched remote to HTTPS: $HTTPS_URL"
-fi
+REPO_PATH=$(echo "$REMOTE_URL" | sed 's|.*github.com[:/]||' | sed 's|\.git$||')
+
+echo -e "  Git pull method:"
+echo -e "  ${W}1)${NC} HTTPS (public, no auth needed)"
+echo -e "  ${W}2)${NC} HTTPS with username/token"
+echo -e "  ${W}3)${NC} SSH (requires SSH key)"
+echo ""
+read -rp "  Choice [1/2/3]: " GIT_CHOICE
+
+case "$GIT_CHOICE" in
+    1)
+        git remote set-url origin "https://github.com/${REPO_PATH}.git"
+        ;;
+    2)
+        read -rp "  GitHub username: " GIT_USER
+        read -rsp "  GitHub token/password: " GIT_PASS
+        echo ""
+        git remote set-url origin "https://${GIT_USER}:${GIT_PASS}@github.com/${REPO_PATH}.git"
+        ;;
+    3)
+        git remote set-url origin "git@github.com:${REPO_PATH}.git"
+        ;;
+    *)
+        git remote set-url origin "https://github.com/${REPO_PATH}.git"
+        ;;
+esac
+
+info "Pulling latest changes..."
 git pull || err "git pull failed. Resolve conflicts and try again."
+
+# Reset remote to plain HTTPS (don't store credentials in remote URL)
+git remote set-url origin "https://github.com/${REPO_PATH}.git"
 NEW_VERSION=$(cat "$DIR/VERSION" 2>/dev/null || echo "unknown")
 ok "Updated: ${OLD_VERSION} → ${NEW_VERSION}"
 echo ""
