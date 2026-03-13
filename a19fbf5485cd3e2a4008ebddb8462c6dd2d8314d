@@ -1,0 +1,23 @@
+setup.sh
+  d9c50ba8813a031f 4,36,62-70,168-174,268,277,279-281,288,290-292,307-309
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.10",
+  "base_commit_sha": "a19fbf5485cd3e2a4008ebddb8462c6dd2d8314d",
+  "prompts": {
+    "d9c50ba8813a031f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "06ba4ab7-17d4-463c-8f68-73497db7c6ce",
+        "model": "unknown"
+      },
+      "human_author": "Vladimir Ilic <vlada87ilic@hotmail.com>",
+      "messages": [],
+      "total_additions": 34,
+      "total_deletions": 10,
+      "accepted_lines": 30,
+      "overriden_lines": 0
+    }
+  }
+}
