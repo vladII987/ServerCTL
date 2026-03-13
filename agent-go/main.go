@@ -710,7 +710,7 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 		return out
 
 	case "docker_ps":
-		out, _ := runShell("docker ps --format 'table {{.ID}}\\t{{.Names}}\\t{{.Image}}\\t{{.Status}}\\t{{.Ports}}' 2>/dev/null || echo 'docker not available'")
+		out, _ := runShell("docker ps -a --format '{{.Names}}|{{.Image}}|{{.Status}}|{{.ID}}' 2>/dev/null || echo 'docker not available'")
 		return out
 
 	case "kill_process":
