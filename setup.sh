@@ -408,6 +408,14 @@ NGINXEOF
         ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/serverctl
     fi
 
+    # Ensure nginx can traverse to the frontend dist directory
+    PARENT="$DIR"
+    while [[ "$PARENT" != "/" ]]; do
+        chmod o+x "$PARENT" 2>/dev/null
+        PARENT="$(dirname "$PARENT")"
+    done
+    chmod -R o+r "$DIR/frontend/dist" 2>/dev/null
+
     nginx -t 2>&1 || err "nginx config is invalid."
     systemctl enable nginx 2>/dev/null
     if systemctl is-active --quiet nginx 2>/dev/null; then
