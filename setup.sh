@@ -274,22 +274,17 @@ if [[ "$MODE" == "native" ]]; then
     # Python
     if ! command -v python3 >/dev/null 2>&1; then
         info "Installing Python3..."
-        if command -v apt-get >/dev/null 2>&1; then
-            _install_pkg python3 python3-pip python3-venv
-        else
-            _install_pkg python3 python3-pip
-        fi
+        _install_pkg python3
     else
         ok "Python3 available: $(python3 --version)"
     fi
 
-    if ! python3 -m venv --help >/dev/null 2>&1; then
-        info "Installing python3-venv..."
-        if command -v apt-get >/dev/null 2>&1; then
-            _install_pkg python3-venv
-        else
-            _install_pkg python3-libs
-        fi
+    # Always ensure pip and venv packages are installed
+    info "Ensuring python3-pip and python3-venv..."
+    if command -v apt-get >/dev/null 2>&1; then
+        _install_pkg python3-pip python3-venv
+    else
+        _install_pkg python3-pip python3-libs
     fi
 
     # curl
