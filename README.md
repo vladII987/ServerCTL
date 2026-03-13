@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-1.3.3-green" alt="Version"/>
-  <img src="https://img.shields.io/badge/license-AGPL--3.0-blue" alt="License"/>
+  <img src="https://img.shields.io/badge/License-CC%20BY--ND%204.0-lightgrey.svg" alt="License"/>
   <img src="https://img.shields.io/badge/backend-FastAPI-009688" alt="FastAPI"/>
   <img src="https://img.shields.io/badge/frontend-React%20%2B%20Vite-61DAFB" alt="React"/>
   <img src="https://img.shields.io/badge/agent-Go%201.24-00ADD8" alt="Go Agent"/>
