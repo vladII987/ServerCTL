@@ -39,6 +39,10 @@ cd "$DIR"
 REMOTE_URL=$(git remote get-url origin 2>/dev/null)
 REPO_PATH=$(echo "$REMOTE_URL" | sed 's|.*github.com[:/]||' | sed 's|\.git$||')
 
+# Detect the real user (not root) for SSH key access
+REAL_USER="${SUDO_USER:-$(whoami)}"
+REAL_HOME=$(eval echo "~$REAL_USER")
+
 echo -e "  Git pull method:"
 echo -e "  ${W}1)${NC} HTTPS (public, no auth needed)"
 echo -e "  ${W}2)${NC} HTTPS with username/token"
@@ -49,26 +53,35 @@ read -rp "  Choice [1/2/3]: " GIT_CHOICE
 case "$GIT_CHOICE" in
     1)
         git remote set-url origin "https://github.com/${REPO_PATH}.git"
+        info "Pulling latest changes..."
+        git pull || err "git pull failed."
         ;;
     2)
         read -rp "  GitHub username: " GIT_USER
         read -rsp "  GitHub token/password: " GIT_PASS
         echo ""
         git remote set-url origin "https://${GIT_USER}:${GIT_PASS}@github.com/${REPO_PATH}.git"
+        info "Pulling latest changes..."
+        git pull || err "git pull failed."
+        # Clear credentials from remote URL
+        git remote set-url origin "https://github.com/${REPO_PATH}.git"
         ;;
     3)
         git remote set-url origin "git@github.com:${REPO_PATH}.git"
+        info "Pulling latest changes (as ${REAL_USER})..."
+        # Run git pull as the real user so SSH keys work under sudo
+        if [[ "$(whoami)" == "root" && "$REAL_USER" != "root" ]]; then
+            su - "$REAL_USER" -c "cd '$DIR' && git pull" || err "git pull failed."
+        else
+            git pull || err "git pull failed."
+        fi
         ;;
     *)
         git remote set-url origin "https://github.com/${REPO_PATH}.git"
+        info "Pulling latest changes..."
+        git pull || err "git pull failed."
         ;;
 esac
-
-info "Pulling latest changes..."
-git pull || err "git pull failed. Resolve conflicts and try again."
-
-# Reset remote to plain HTTPS (don't store credentials in remote URL)
-git remote set-url origin "https://github.com/${REPO_PATH}.git"
 NEW_VERSION=$(cat "$DIR/VERSION" 2>/dev/null || echo "unknown")
 ok "Updated: ${OLD_VERSION} → ${NEW_VERSION}"
 echo ""
