@@ -130,9 +130,8 @@ read -rp "  → " DEL_DIR
 if [[ "$DEL_DIR" =~ ^[Yy]$ ]]; then
     rm -rf "$DIR"
     ok "Project folder deleted."
+    echo ""
+    ok "ServerCTL has been fully removed."
 else
-    ok "Project folder kept."
+    ok "Project folder kept. Services removed but source files remain."
 fi
-
-echo ""
-ok "ServerCTL has been removed."
