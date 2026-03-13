@@ -359,4 +359,4 @@ Full documentation for all features, buttons, and controls: **[DOCS.md](DOCS.md)
 
 ## License
 
-[AGPL-3.0](LICENSE)
+[CC BY-ND 4.0](LICENSE)
