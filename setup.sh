@@ -1,7 +1,7 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────
 # ServerCTL — Setup & Launch
-# Supports: Docker mode or Native mode (Python venv + nginx)
+# Supports: Docker mode or Linux native install (Ubuntu/Debian/CentOS/Fedora)
 # Usage: bash setup.sh
 # ─────────────────────────────────────────────────────────────────
 
@@ -33,7 +33,7 @@ echo ""
 # ── Select deployment mode ─────────────────────────────────────
 echo -e "  Select deployment mode:"
 echo -e "  ${W}1)${NC} Docker"
-echo -e "  ${W}2)${NC} Native (Python venv + nginx, no Docker required)"
+echo -e "  ${W}2)${NC} Linux native install (Ubuntu/Debian/CentOS/Fedora, no Docker)"
 echo ""
 read -rp "  Choice [1/2]: " MODE_CHOICE
 case "$MODE_CHOICE" in
@@ -59,8 +59,15 @@ echo ""
 # ── openssl ────────────────────────────────────────────────────
 command -v openssl >/dev/null 2>&1 || {
     info "Installing openssl..."
-    wait_for_apt
-    apt-get install -y openssl -qq || err "Cannot install openssl."
+    if command -v apt-get >/dev/null 2>&1; then
+        wait_for_apt; apt-get install -y openssl -qq || err "Cannot install openssl."
+    elif command -v dnf >/dev/null 2>&1; then
+        dnf install -y openssl -q || err "Cannot install openssl."
+    elif command -v yum >/dev/null 2>&1; then
+        yum install -y openssl -q || err "Cannot install openssl."
+    else
+        err "Cannot install openssl — unknown package manager."
+    fi
 }
 
 # ── .env handling ──────────────────────────────────────────────
@@ -158,7 +165,13 @@ if [[ "$MODE" == "docker" ]]; then
         if ! timedatectl status 2>/dev/null | grep -q "synchronized: yes"; then
             warn "NTP sync pending, trying ntpdate fallback..."
             if ! command -v ntpdate >/dev/null 2>&1; then
-                wait_for_apt; apt-get install -y ntpdate -qq 2>/dev/null
+                if command -v apt-get >/dev/null 2>&1; then
+                    wait_for_apt; apt-get install -y ntpdate -qq 2>/dev/null
+                elif command -v dnf >/dev/null 2>&1; then
+                    dnf install -y ntpdate -q 2>/dev/null
+                elif command -v yum >/dev/null 2>&1; then
+                    yum install -y ntpdate -q 2>/dev/null
+                fi
             fi
             ntpdate pool.ntp.org 2>/dev/null && ok "Clock synced via ntpdate." || warn "Clock sync failed — continuing anyway."
         fi
@@ -252,7 +265,7 @@ if [[ "$MODE" == "native" ]]; then
     if ! timedatectl status 2>/dev/null | grep -q "synchronized: yes"; then
         warn "NTP sync pending, trying ntpdate fallback..."
         if ! command -v ntpdate >/dev/null 2>&1; then
-            wait_for_apt; apt-get install -y ntpdate -qq 2>/dev/null
+            _install_pkg ntpdate 2>/dev/null
         fi
         ntpdate pool.ntp.org 2>/dev/null && ok "Clock synced via ntpdate." || warn "Clock sync failed — continuing anyway."
     fi
@@ -261,14 +274,22 @@ if [[ "$MODE" == "native" ]]; then
     # Python
     if ! command -v python3 >/dev/null 2>&1; then
         info "Installing Python3..."
-        _install_pkg python3 python3-pip python3-venv
+        if command -v apt-get >/dev/null 2>&1; then
+            _install_pkg python3 python3-pip python3-venv
+        else
+            _install_pkg python3 python3-pip
+        fi
     else
         ok "Python3 available: $(python3 --version)"
     fi
 
     if ! python3 -m venv --help >/dev/null 2>&1; then
         info "Installing python3-venv..."
-        _install_pkg python3-venv
+        if command -v apt-get >/dev/null 2>&1; then
+            _install_pkg python3-venv
+        else
+            _install_pkg python3-libs
+        fi
     fi
 
     # curl
@@ -282,6 +303,9 @@ if [[ "$MODE" == "native" ]]; then
         info "Installing Node.js and npm..."
         if command -v apt-get >/dev/null 2>&1; then
             curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >/dev/null 2>&1
+            _install_pkg nodejs
+        elif command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1; then
+            curl -fsSL https://rpm.nodesource.com/setup_20.x | bash - >/dev/null 2>&1
             _install_pkg nodejs
         else
             _install_pkg nodejs npm
