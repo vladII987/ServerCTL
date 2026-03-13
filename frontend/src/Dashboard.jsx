@@ -4429,6 +4429,56 @@ const Dashboard = () => {
                             )}
                           </div>
 
+                          {/* Add Rule form */}
+                          {isAdmin && (
+                            <div style={{ border: `1px solid ${c.border}`, borderRadius: '12px', overflow: 'hidden' }}>
+                              <div style={{ padding: '10px 14px', borderBottom: `1px solid ${c.border}`, fontSize: '10px', letterSpacing: '0.12em', color: c.primary, fontWeight: '700', background: darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.04)' }}>ADD RULE</div>
+                              <div style={{ padding: '14px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                                <div>
+                                  <div style={{ fontSize: '10px', color: c.textMuted, marginBottom: '4px', fontWeight: '600' }}>Action</div>
+                                  <select value={fwAction} onChange={e => setFwAction(e.target.value)} style={{ ...styles.input, padding: '7px 10px', fontSize: '12px', width: '100px' }}>
+                                    <option value="allow">Allow</option>
+                                    <option value="deny">Deny</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <div style={{ fontSize: '10px', color: c.textMuted, marginBottom: '4px', fontWeight: '600' }}>Direction</div>
+                                  <select value={fwDirection} onChange={e => setFwDirection(e.target.value)} style={{ ...styles.input, padding: '7px 10px', fontSize: '12px', width: '100px' }}>
+                                    <option value="in">Inbound</option>
+                                    <option value="out">Outbound</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <div style={{ fontSize: '10px', color: c.textMuted, marginBottom: '4px', fontWeight: '600' }}>Protocol</div>
+                                  <select value={fwProto} onChange={e => setFwProto(e.target.value)} style={{ ...styles.input, padding: '7px 10px', fontSize: '12px', width: '90px' }}>
+                                    <option value="tcp">TCP</option>
+                                    <option value="udp">UDP</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <div style={{ fontSize: '10px', color: c.textMuted, marginBottom: '4px', fontWeight: '600' }}>Port</div>
+                                  <input type="text" value={fwPort} onChange={e => setFwPort(e.target.value)} placeholder="e.g. 8080"
+                                    style={{ ...styles.input, padding: '7px 10px', fontSize: '12px', width: '100px' }} />
+                                </div>
+                                <button onClick={() => {
+                                  if (!fwPort) return;
+                                  fwRunAction(`firewall:add:${fwAction},${fwDirection},${fwProto},${fwPort}`);
+                                  setFwPort('');
+                                }} disabled={fwLoading || !fwPort}
+                                  style={{ ...styles.btn, padding: '7px 18px', fontSize: '12px', fontWeight: '700', background: c.primary, color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', opacity: (fwLoading || !fwPort) ? 0.5 : 1 }}>
+                                  Add Rule
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Result output */}
+                          {fwResult && (
+                            <div style={{ padding: '12px 14px', background: darkMode ? '#111' : '#f8fafc', border: `1px solid ${c.border}`, borderRadius: '10px', fontSize: '12px', fontFamily: '"JetBrains Mono",monospace', color: c.text, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                              {fwResult}
+                            </div>
+                          )}
+
                           {/* Windows profiles */}
                           {profiles.length > 0 && (
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
@@ -4505,56 +4555,6 @@ const Dashboard = () => {
 
                           {/* Fallback raw output */}
                           {isFallback && <pre style={{ margin: 0, padding: '16px', background: darkMode ? '#111' : '#f8fafc', border: `1px solid ${c.border}`, color: c.text, fontSize: '12px', lineHeight: '1.7', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '500px', overflow: 'auto', fontFamily: '"JetBrains Mono",monospace', borderRadius: '12px' }}>{networkInfoOutput}</pre>}
-
-                          {/* Add Rule form */}
-                          {isAdmin && (
-                            <div style={{ border: `1px solid ${c.border}`, borderRadius: '12px', overflow: 'hidden' }}>
-                              <div style={{ padding: '10px 14px', borderBottom: `1px solid ${c.border}`, fontSize: '10px', letterSpacing: '0.12em', color: c.primary, fontWeight: '700', background: darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.04)' }}>ADD RULE</div>
-                              <div style={{ padding: '14px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-                                <div>
-                                  <div style={{ fontSize: '10px', color: c.textMuted, marginBottom: '4px', fontWeight: '600' }}>Action</div>
-                                  <select value={fwAction} onChange={e => setFwAction(e.target.value)} style={{ ...styles.input, padding: '7px 10px', fontSize: '12px', width: '100px' }}>
-                                    <option value="allow">Allow</option>
-                                    <option value="deny">Deny</option>
-                                  </select>
-                                </div>
-                                <div>
-                                  <div style={{ fontSize: '10px', color: c.textMuted, marginBottom: '4px', fontWeight: '600' }}>Direction</div>
-                                  <select value={fwDirection} onChange={e => setFwDirection(e.target.value)} style={{ ...styles.input, padding: '7px 10px', fontSize: '12px', width: '100px' }}>
-                                    <option value="in">Inbound</option>
-                                    <option value="out">Outbound</option>
-                                  </select>
-                                </div>
-                                <div>
-                                  <div style={{ fontSize: '10px', color: c.textMuted, marginBottom: '4px', fontWeight: '600' }}>Protocol</div>
-                                  <select value={fwProto} onChange={e => setFwProto(e.target.value)} style={{ ...styles.input, padding: '7px 10px', fontSize: '12px', width: '90px' }}>
-                                    <option value="tcp">TCP</option>
-                                    <option value="udp">UDP</option>
-                                  </select>
-                                </div>
-                                <div>
-                                  <div style={{ fontSize: '10px', color: c.textMuted, marginBottom: '4px', fontWeight: '600' }}>Port</div>
-                                  <input type="text" value={fwPort} onChange={e => setFwPort(e.target.value)} placeholder="e.g. 8080"
-                                    style={{ ...styles.input, padding: '7px 10px', fontSize: '12px', width: '100px' }} />
-                                </div>
-                                <button onClick={() => {
-                                  if (!fwPort) return;
-                                  fwRunAction(`firewall:add:${fwAction},${fwDirection},${fwProto},${fwPort}`);
-                                  setFwPort('');
-                                }} disabled={fwLoading || !fwPort}
-                                  style={{ ...styles.btn, padding: '7px 18px', fontSize: '12px', fontWeight: '700', background: c.primary, color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', opacity: (fwLoading || !fwPort) ? 0.5 : 1 }}>
-                                  Add Rule
-                                </button>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Result output */}
-                          {fwResult && (
-                            <div style={{ padding: '12px 14px', background: darkMode ? '#111' : '#f8fafc', border: `1px solid ${c.border}`, borderRadius: '10px', fontSize: '12px', fontFamily: '"JetBrains Mono",monospace', color: c.text, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-                              {fwResult}
-                            </div>
-                          )}
                         </div>
                       );
                     })()}

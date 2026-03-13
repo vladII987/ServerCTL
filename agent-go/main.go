@@ -223,6 +223,23 @@ func hostname() string {
 
 // ─── Update / reboot helpers ─────────────────────────────────────────────────
 
+func ensureUfw() {
+	if runtime.GOOS == "windows" {
+		return
+	}
+	_, err := exec.LookPath("ufw")
+	if err != nil {
+		// Try to install ufw
+		if _, e := exec.LookPath("apt-get"); e == nil {
+			runShell("apt-get update -qq && apt-get install -y ufw -qq 2>/dev/null")
+		} else if _, e := exec.LookPath("dnf"); e == nil {
+			runShell("dnf install -y ufw -q 2>/dev/null")
+		} else if _, e := exec.LookPath("yum"); e == nil {
+			runShell("yum install -y ufw -q 2>/dev/null")
+		}
+	}
+}
+
 func ensurePSWindowsUpdate() {
 	runPowerShell(`if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -574,19 +591,12 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 			out, _ := runPowerShell("Get-NetFirewallProfile | Format-Table Name,Enabled,DefaultInboundAction,DefaultOutboundAction -AutoSize | Out-String -Width 300")
 			return out
 		}
-		ufwOut2, _ := runShell("ufw status verbose 2>/dev/null")
+		ensureUfw()
+		ufwOut2, _ := runShell("ufw status verbose 2>&1")
 		if strings.Contains(ufwOut2, "Status:") {
 			return ufwOut2
 		}
-		fwdOut2, _ := runShell("firewall-cmd --state 2>/dev/null && firewall-cmd --list-all 2>/dev/null")
-		if strings.TrimSpace(fwdOut2) != "" && !strings.Contains(fwdOut2, "not running") {
-			return fwdOut2
-		}
-		iptOut2, _ := runShell("iptables -L -n --line-numbers 2>/dev/null")
-		if strings.TrimSpace(iptOut2) != "" && !strings.Contains(iptOut2, "Permission denied") && !strings.Contains(iptOut2, "not found") {
-			return iptOut2
-		}
-		return "No firewall detected (ufw/firewalld/iptables not active or not installed)"
+		return ufwOut2
 
 	case "listening_ports":
 		if runtime.GOOS == "windows" {
@@ -833,6 +843,9 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 			arg := ""
 			if len(parts) == 3 {
 				arg = parts[2]
+			}
+			if runtime.GOOS != "windows" {
+				ensureUfw()
 			}
 			switch action {
 			case "enable":
