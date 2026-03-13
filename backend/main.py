@@ -37,7 +37,12 @@ async def lifespan(app: FastAPI):
     yield
 
 
-APP_VERSION = open("/app/VERSION").read().strip() if os.path.exists("/app/VERSION") else "dev"
+def _read_version():
+    for p in [os.path.join(os.path.dirname(__file__), "VERSION"), "/app/VERSION"]:
+        if os.path.exists(p):
+            return open(p).read().strip()
+    return "dev"
+APP_VERSION = _read_version()
 app = FastAPI(title="ServerCTL Backend", version=APP_VERSION, lifespan=lifespan)
 
 app.add_middleware(

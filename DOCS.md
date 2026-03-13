@@ -1,6 +1,6 @@
 # ServerCTL — Official Documentation
 
-> **Language note:** All documentation, labels, and UI text are in English.
+> **Version:** 1.3.3 | **Agent:** Go (cross-platform)
 
 ---
 
@@ -24,12 +24,14 @@
 6. [Logs](#logs)
 7. [Shell](#shell)
 8. [Updates](#updates)
-9. [Activity](#activity)
-10. [Schedules](#schedules)
-11. [Settings](#settings)
-12. [Agent Installation](#agent-installation)
+9. [Agents](#agents)
+10. [Activity](#activity)
+11. [Schedules](#schedules)
+12. [Settings](#settings)
+13. [Agent Installation](#agent-installation)
     - [Linux](#linux-agent)
     - [Windows](#windows-agent)
+14. [Versioning](#versioning)
 
 ---
 
@@ -40,19 +42,23 @@ ServerCTL is a self-hosted infrastructure management dashboard. It lets you moni
 **Architecture:**
 ```
 Browser
-  └── Frontend (React, served by nginx)
+  └── Frontend (React + Vite, served by nginx)
         └── Backend API (FastAPI, Python)
               └── Agent WebSocket connections
-                    └── Agent (Python, runs on each managed server)
+                    └── Agent (Go binary, runs on each managed server)
 ```
 
 Agents connect **outbound** to the backend over WebSocket. The backend never initiates a connection to a managed server — this means managed servers only need outbound internet access.
+
+**Deployment modes:**
+- **Docker mode** — backend and frontend run as Docker containers (recommended)
+- **Native mode** — Python venv + nginx, no Docker required
 
 ---
 
 ## Navigation
 
-The left sidebar contains the main navigation. Each section is described below.
+The left sidebar contains the main navigation. The sidebar can be collapsed to icon-only mode using the toggle button.
 
 | Icon | Section | Purpose |
 |------|---------|---------|
@@ -61,14 +67,17 @@ The left sidebar contains the main navigation. Each section is described below.
 | ⬡ | **Networks** | Network scan, speed test, probe monitor |
 | ≡ | **Logs** | Browse and view log files on any server |
 | >_ | **Shell** | Browser-based SSH terminal (Linux servers only) |
-| ↑ | **Updates** | Servers with pending package updates — apply in bulk |
+| ↑ | **Updates** | Servers with pending OS/package updates — apply in bulk |
+| ◈ | **Agents** | Agent version tracking, selective updates, status overview |
 | ◷ | **Activity** | Log of all actions performed through the dashboard |
 | ⏰ | **Schedules** | Scheduled recurring tasks (cron-style) |
 | ⚙ | **Settings** | User management, branding, token configuration |
 
 The **Updates** icon shows a badge with the total number of pending packages across all servers.
 
-The **◑ / ◐** button in the top-right toggles between dark and light interface mode.
+The sidebar bottom contains:
+- **Dark/Light theme toggle**
+- **Sign out button**
 
 ---
 
@@ -99,7 +108,7 @@ Displays a **compliance rate** percentage (how many servers are fully up to date
 
 ### Host Status Panel
 
-A compact list of all registered servers with their online/offline status indicator, reboot warning (`⚠`), and pending package count badge.
+A compact list of all registered servers with their online/offline status indicator, reboot warning, and pending package count badge.
 
 ### Servers Needing Updates
 
@@ -125,6 +134,7 @@ The main Servers section shows all registered servers in a table.
 | **+ Add Server** | Opens the Add Server wizard to register a new server |
 | **Search** | Filter the server list by name or IP |
 | **Status filter** | Dropdown to filter by: All / Online / Offline / Needs Reboot / Needs Updates |
+| **Group filter** | Filter servers by group |
 | **Bulk Actions** | Opens the bulk action panel for selected servers |
 | **Select All / Deselect All** | Toggles selection of all visible servers |
 
@@ -136,28 +146,28 @@ The main Servers section shows all registered servers in a table.
 | **Status dot** | Green = online, Red = offline, animated glow when online |
 | **Manage** (or click row) | Opens full per-server management view |
 | **SSH** button (>_) | Jumps directly to the Shell tab with this server selected |
-| **↺ Reboot** | Appears only for servers with `reboot_required` flag — initiates a reboot with confirmation |
+| **Reboot** | Appears only for servers with `reboot_required` flag — initiates a reboot with confirmation |
 
 #### Quick filter banners
 
 When a quick filter is active (e.g. "Needs Reboot"), a banner appears at the top with:
 - Count of affected servers
-- **↺ Rebootuj sve** — reboot all filtered servers at once (admin only)
-- **✕ Resetuj filter** — clear the filter
+- **Reboot All** — reboot all filtered servers at once (admin only)
+- **Reset filter** — clear the filter
 
 ---
 
 ### Managing a Server
 
-Click any server row to open the full management view. The header shows the server name, IP, platform, and last-seen time.
+Click any server row to open the full management view. The header shows the server name, IP, platform, pending update count, and last-seen time.
 
 #### Header buttons
 
 | Button | Description |
 |--------|-------------|
-| **← Back** | Return to the server list |
-| **↺ Refresh** | Re-fetch all data for this server |
-| **✕ Delete** | Permanently remove this server from the registry (admin only) |
+| **Back** | Return to the server list |
+| **Refresh** | Re-fetch all data for this server |
+| **Delete** | Permanently remove this server from the registry (admin only) |
 
 ---
 
@@ -167,8 +177,9 @@ Shows live system data fetched from the agent:
 
 - **CPU Usage** — current load percentage with a visual bar
 - **RAM Usage** — used / total with percentage bar
-- **Disk Usage** — per-partition usage table (`df -h` output)
-- **System Info** — hostname, OS, kernel, uptime, architecture
+- **Disk Usage** — per-partition usage table
+- **System Info** — hostname, OS, kernel, uptime, architecture, CPU model, cores, RAM, swap
+- **Network Interfaces** — interface names, IPs, MAC addresses
 - **Top Processes** — list of processes sorted by CPU usage with PID, user, CPU%, MEM%, and command
 
 ---
@@ -179,9 +190,9 @@ Lists all systemd services (Linux) or Windows services on the managed server.
 
 | Button | Description |
 |--------|-------------|
-| **▶ Start** | Start the selected service |
-| **■ Stop** | Stop the selected service |
-| **↺ Restart** | Restart the selected service |
+| **Start** | Start the selected service |
+| **Stop** | Stop the selected service |
+| **Restart** | Restart the selected service |
 | **Status** | Query and display current service status and recent log lines |
 
 Services are color-coded: green = running, red = failed/stopped, grey = unknown.
@@ -213,25 +224,24 @@ Allows running individual diagnostic and maintenance commands on the selected se
 
 | Button | Description |
 |--------|-------------|
-| **System Info** | Returns `uname -a` and basic system details |
-| **Disk Usage** | Returns `df -h` — disk space per partition |
-| **Memory** | Returns `free -h` — RAM and swap usage |
-| **CPU Info** | Returns `lscpu` output |
-| **Top Processes** | Returns `ps aux` sorted by CPU usage |
-| **Netstat** | Returns active network connections (`ss -tulnp`) |
-| **Docker PS** | Lists running Docker containers (`docker ps -a`) |
-| **Docker Images** | Lists Docker images on the server |
-| **Running Services** | Lists all currently running systemd services |
-| **Failed Services** | Lists services in a failed state |
-| **Check Updates** | Runs `apt-get update` (or equivalent) and reports available packages |
-| **Upgrade** | Runs full package upgrade (`apt-get upgrade -y` or equivalent). Requires confirmation. Admin only. |
-| **Check Reboot** | Checks whether the server requires a reboot |
-| **Reboot** | Reboots the server. Requires confirmation. Admin only. |
-| **Update Agent** | Downloads the latest agent script from the backend and restarts the agent service |
+| **System Info** | Returns basic system details |
+| **Disk Usage** | Disk space per partition |
+| **Memory** | RAM and swap usage |
+| **CPU Info** | CPU model and core details |
+| **Top Processes** | Processes sorted by CPU usage |
+| **Netstat** | Active network connections |
+| **Docker PS** | Running Docker containers |
+| **Running Services** | All currently running services |
+| **Failed Services** | Services in a failed state |
+| **Check Updates** | Refresh package index and report available packages |
+| **Upgrade** | Full package upgrade. Requires confirmation. Admin only. |
+| **Check Reboot** | Check if server requires a reboot |
+| **Reboot** | Reboot the server. Requires confirmation. Admin only. |
+| **Update Agent** | Download latest agent binary and restart agent service |
 | **Ping** | Pings a target host from this server (ICMP) |
 | **Traceroute** | Runs traceroute from this server to a target |
 | **NSLookup** | Runs DNS lookup from this server |
-| **Kill Process** | Sends SIGTERM to a process by PID |
+| **Kill Process** | Terminate a process by PID |
 
 All action output is displayed in a formatted terminal-style output box below the buttons.
 
@@ -243,11 +253,11 @@ Select multiple servers using checkboxes, then click **Bulk Actions** to perform
 
 | Button | Description |
 |--------|-------------|
-| **Check Updates** | Runs `apt-get update` on all selected servers in parallel and reports available packages |
-| **Upgrade All** | Runs full package upgrade on all selected servers. Requires confirmation. Admin only. |
-| **Check Reboot** | Checks reboot status on all selected servers |
-| **Reboot All** | Reboots all selected servers. Requires confirmation. Admin only. |
-| **Update Agent** | Updates the agent on all selected servers |
+| **Check Updates** | Refresh package index on all selected servers |
+| **Upgrade All** | Full package upgrade on all selected servers. Requires confirmation. Admin only. |
+| **Check Reboot** | Check reboot status on all selected servers |
+| **Reboot All** | Reboot all selected servers. Requires confirmation. Admin only. |
+| **Update Agent** | Update the agent binary on all selected servers |
 
 A progress modal appears during bulk operations showing per-server status in real time.
 
@@ -275,7 +285,7 @@ Tests download speed from package repositories or CDN endpoints.
 | Control | Description |
 |---------|-------------|
 | **Server selector** | Choose which server runs the test, or leave blank to run from the backend |
-| **▶ Run Test** | Starts the speed test |
+| **Run Test** | Starts the speed test |
 
 - On **Linux servers**: tests Ubuntu Archive, Ubuntu Security, and Ubuntu Updates repositories
 - On **Windows servers**: tests Microsoft Update CDN, Winget CDN, and Cloudflare
@@ -287,7 +297,7 @@ Results show download speed in Mbps per endpoint.
 
 ### Probe Monitor
 
-Tests network connectivity to all registered servers using various protocols. Select servers using checkboxes, choose a probe type, configure options, and click **▶ Run** to test all selected servers at once.
+Tests network connectivity to all registered servers using various protocols. Select servers using checkboxes, choose a probe type, configure options, and click **Run** to test all selected servers at once.
 
 #### Probe types
 
@@ -308,7 +318,7 @@ Tests network connectivity to all registered servers using various protocols. Se
 | **URL field** | Appears for HTTP — enter full URL or leave blank for root |
 | **DB preset dropdown** | Appears for DB — select the database engine |
 | **Select All / Deselect All** | Toggle selection of all servers |
-| **▶ Run** | Run the probe against all selected servers. Button shows `⟳ Probing...` while in progress and re-enables when complete. |
+| **Run** | Run the probe against all selected servers |
 
 #### Result display
 
@@ -316,18 +326,7 @@ Each server row shows:
 - **Status dot** — green = up/open, amber = filtered/redirect, red = down/timeout/refused
 - **Result label** — latency in ms, HTTP status code, or status string
 - **Timestamp** — time of the last probe
-- **ⓘ icon** — hover to see a human-readable explanation of the result
-
-#### Info tooltip examples
-
-| Result | Tooltip |
-|--------|---------|
-| `timeout` | Host did not respond within the time limit. Firewall may be blocking ICMP/TCP/UDP. |
-| `refused` | Port is closed or the service is not running. Firewall may be sending TCP RST. |
-| `open\|filtered` | UDP port returned no ICMP unreachable. Port is likely open but not responding, or filtered. |
-| HTTP `200` | OK — Request successful. |
-| HTTP `502` | Bad Gateway — Server received an invalid response from an upstream server (reverse proxy problem). |
-| HTTP `503` | Service Unavailable — Server temporarily unavailable (overloaded or in maintenance). |
+- **Info icon** — hover to see a human-readable explanation of the result
 
 ---
 
@@ -364,23 +363,55 @@ The terminal emulator supports full color output, resize, scrollback, and copy/p
 
 ## Updates
 
-The Updates section shows all servers that have pending package updates.
+The Updates section shows all servers that have pending **OS/package updates**. This is for operating system updates only — agent updates are managed in the [Agents](#agents) tab.
+
+#### How it works
+
+- **Linux**: The agent detects pending updates using the system package manager (apt, dnf, yum, zypper)
+- **Windows**: The agent uses the `PSWindowsUpdate` PowerShell module to detect Windows Updates. The module is **auto-installed** by the agent if not present — no manual setup required.
 
 #### Toolbar
 
 | Button | Description |
 |--------|-------------|
 | **Select All / Deselect All** | Toggle selection of all servers with pending updates |
-| **↑ Upgrade Selected** | Runs `apt-get upgrade -y` (or equivalent) on all selected servers. Requires confirmation. Admin only. |
+| **Sync Updates** | Refresh update counts from all agents |
+| **Upgrade Selected** | Install updates on all selected servers. Admin only. |
 
 #### Per-server row
 
 | Element | Description |
 |---------|-------------|
+| **Checkbox** | Select this server for bulk upgrade |
 | **Package count badge** | Number of packages with available updates (e.g. `↑ 14 pkg`) |
-| **⚠ Reboot badge** | Indicates the server requires a reboot after previous upgrades |
-| **Upgrade** button | Run upgrade on this single server only |
-| **Manage** button | Jump to the full server management view |
+| **Reboot badge** | Indicates the server requires a reboot after previous upgrades |
+| **Upgrade** button | Install updates on this single server only |
+| **Package list** | Expandable list showing individual package names |
+
+---
+
+## Agents
+
+The Agents tab provides a centralized view of all agent installations across your servers.
+
+#### Features
+
+- **Version tracking** — see which version each agent is running
+- **Platform display** — Linux or Windows indicator per agent
+- **Online/offline status** — real-time connection status
+- **Selective updates** — checkboxes to select which agents to update
+- **Select All / Deselect All** — toggle all agent selections
+- **Update Selected (N)** — push the latest agent binary to selected servers
+- **Sync Status** — refresh agent information from all connected servers
+
+#### Update flow
+
+1. Select agents using checkboxes (or Select All)
+2. Click **Update Selected**
+3. The backend sends the latest pre-compiled binary to each selected agent
+4. Each agent downloads the new binary, replaces itself, and restarts
+5. On **Linux**: the systemd service restarts automatically
+6. On **Windows**: a scheduled task (`ServerCtlUpdater`) handles the update process
 
 ---
 
@@ -430,11 +461,11 @@ Roles:
 
 | Control | Description |
 |---------|-------------|
-| **Upload Logo** | Upload a custom logo image shown in the top-left of the sidebar |
+| **Upload Logo** | Upload a custom logo image shown in the sidebar |
 | **Change Logo** | Replace the current custom logo |
-| **Dashboard Title** | Set a custom title shown in the browser tab and sidebar |
+| **App Name** | Set a custom title shown in the browser tab and sidebar |
 
-If no custom logo is uploaded, the default ServerCTL logo is displayed.
+If no custom logo is uploaded, a default emerald icon is displayed.
 
 ### Tokens
 
@@ -449,24 +480,24 @@ Displays the current `AGENT_TOKEN` and `DASHBOARD_TOKEN` values. These are read 
 **Triggered from:** Servers → Add Server wizard → Step 3
 
 The wizard generates a one-line install command that:
-1. Downloads the agent script from the backend (`/api/agent/install`)
-2. Creates `/opt/serverctl-agent/agent.py`
+1. Detects system architecture (amd64 / arm64)
+2. Downloads the pre-compiled Go agent binary from the backend
 3. Writes config to `/etc/serverctl/config.yml`
 4. Creates and enables a `serverctl-agent` **systemd service** (auto-starts on boot, restarts on failure)
 
-**Requirement:** Python 3.8+ and `python3-pip` must be installed on the managed server.
+**No dependencies required** — the agent is a single static binary.
 
 **Run on the target server as root:**
 ```bash
-curl -fsSL "http://<serverctl-host>/api/agent/install?token=<TOKEN>&server_id=<ID>" | sudo sh
+curl -fsSL "http://<serverctl-host>:<BACKEND_PORT>/api/agent/install?token=<TOKEN>&server_id=<ID>" | sudo sh
 ```
 
 After installation, the agent appears online in the dashboard within seconds.
 
 **Update agent:**
+- **Agents tab** → select agent → **Update Selected** (recommended)
 - Per-server: **Manage → Actions → Update Agent**
-- Bulk: **Bulk Actions → Update Agent**
-- Manual: re-run the install command (it overwrites the existing agent)
+- Manual: re-run the install command
 
 ---
 
@@ -475,30 +506,49 @@ After installation, the agent appears online in the dashboard within seconds.
 **Triggered from:** Servers → Add Server wizard → Step 3 (select Windows)
 
 The wizard generates a PowerShell command that:
-1. Downloads embedded Python 3.11 (portable, no system install required) to `C:\ServerCTL\python\`
-2. Installs required Python packages (`websockets`, `pyyaml`, `psutil`)
-3. Downloads the Windows agent script to `C:\ServerCTL\agent.py`
-4. Writes config to `C:\ServerCTL\config.yml`
-5. Downloads **WinSW** (Windows Service Wrapper) from GitHub releases
-6. Installs the agent as a **Windows Service** (`ServerCTL-Agent`) visible in `services.msc`
-7. Configures the service to auto-start and auto-restart on failure
+1. Downloads the pre-compiled Go agent binary (`serverctl-agent.exe`) to `C:\ServerCTL\`
+2. Writes config to `C:\ServerCTL\config.yml`
+3. Installs the agent as a **Windows Service** (`ServerCtl Agent`) via `sc.exe`
+4. Creates a scheduled task (`ServerCtlUpdater`) for remote agent updates
+5. Configures the service to auto-start and auto-restart on failure
 
 **Run in PowerShell as Administrator:**
 ```powershell
-iex (iwr -UseBasicParsing "http://<serverctl-host>/api/agent/install-windows?token=<TOKEN>&server_id=<ID>").Content
+iex (iwr -UseBasicParsing "http://<serverctl-host>:<BACKEND_PORT>/api/agent/install-windows?token=<TOKEN>&server_id=<ID>").Content
 ```
 
 The agent will appear online in the dashboard within seconds.
 
+**Windows Update detection:**
+- The agent automatically installs the `PSWindowsUpdate` PowerShell module if not present
+- Once installed, Windows Updates are detected and reported to the dashboard
+- Install updates from the **Updates** tab just like Linux servers
+
 **Notes:**
-- No existing Python installation required on the Windows server
+- No dependencies required on the Windows server — single binary
 - The service survives logoff and Windows Update reboots
-- Service is visible in `services.msc` as `ServerCTL Agent`
+- Service is visible in `services.msc` as `ServerCtl Agent`
 - Logs are written to `C:\ServerCTL\logs\agent.log`
 
 **Update agent:**
+- **Agents tab** → select agent → **Update Selected** (recommended)
 - Per-server: **Manage → Actions → Update Agent**
-- This downloads the latest `agent_windows.py` from the backend and restarts the `ServerCTL-Agent` Windows service
+
+---
+
+## Versioning
+
+The app version is managed from a single file: **`VERSION`** in the project root.
+
+All components read from this file:
+- **docker-compose.yml** — `${APP_VERSION}` build arg (set via `export APP_VERSION=$(cat VERSION)`)
+- **backend/main.py** — reads `VERSION` file at runtime
+- **agent-go/Makefile** — reads `../VERSION` and injects into the binary via Go ldflags
+
+To bump the version:
+1. Edit the `VERSION` file
+2. Rebuild agent binaries: `cd agent-go && make all`
+3. Rebuild and deploy: `export APP_VERSION=$(cat VERSION) && docker compose up --build -d`
 
 ---
 
@@ -515,10 +565,11 @@ The agent will appear online in the dashboard within seconds.
 
 - Agent tokens are per-server and stored only in the backend registry
 - All agent commands go through an explicit allowlist — no arbitrary shell execution is possible
+- The Go agent is a compiled binary — no script injection possible
 - HTTPS is not handled by ServerCTL — put it behind a reverse proxy (nginx, Caddy, Traefik) for production use
 - The backend port should not be directly exposed to the internet — only the frontend port needs to be reachable
 - Change the default `admin` / `admin` credentials immediately after first login
 
 ---
 
-*ServerCTL — Infrastructure Control Interface*
+*ServerCTL v1.3.3 — Infrastructure Control Interface*

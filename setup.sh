@@ -376,9 +376,13 @@ NGINXEOF
         ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/serverctl
     fi
 
-    nginx -t || err "nginx config is invalid."
-    systemctl enable nginx --now 2>/dev/null
-    systemctl reload nginx 2>/dev/null || systemctl restart nginx || err "Failed to start nginx."
+    nginx -t 2>&1 || err "nginx config is invalid."
+    systemctl enable nginx 2>/dev/null
+    if systemctl is-active --quiet nginx 2>/dev/null; then
+        systemctl reload nginx 2>/dev/null || systemctl restart nginx || err "Failed to reload nginx."
+    else
+        systemctl start nginx || err "Failed to start nginx."
+    fi
     ok "nginx configured and running."
 
     # ── systemd service for backend ───────────────────────────

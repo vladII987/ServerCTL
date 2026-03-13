@@ -5,68 +5,68 @@ const WS_HOST = `${WS_PROTOCOL}//${window.location.host}`;
 
 const colors = {
   dark: {
-    bg: '#16232E',
-    card: '#1a2d3a',
-    cardHover: '#1f3748',
-    text: '#c8d8de',
-    textMuted: '#5d8a9a',
-    border: '#2a5063',
-    input: '#0f1e28',
-    inputBorder: '#467885',
-    primary: '#A8987C',
-    primaryHover: '#bfaa8c',
-    success: '#3dd68c',
-    danger: '#f06060',
-    warning: '#e8a838',
-    purple: '#8b7cf6',
-    green: '#3dd68c',
-    red: '#f06060',
-    orange: '#e8773a',
-    amber: '#e8a838',
-    yellow: '#d4b840',
-    lime: '#7ac840',
-    emerald: '#2ec880',
-    teal: '#2ab8a8',
-    cyan: '#20b0cc',
-    sky: '#30a8e0',
-    blue: '#4888e8',
-    indigo: '#6068e8',
-    violet: '#8b7cf6',
-    fuchsia: '#c040d8',
-    pink: '#d840a0',
-    rose: '#e84068',
+    bg: '#0F0F0F',
+    card: '#111111',
+    cardHover: '#1A1A1A',
+    text: '#E4E3E0',
+    textMuted: '#71717A',
+    border: 'rgba(255,255,255,0.08)',
+    input: '#111111',
+    inputBorder: 'rgba(255,255,255,0.1)',
+    primary: '#10b981',
+    primaryHover: '#34d399',
+    success: '#22c55e',
+    danger: '#ef4444',
+    warning: '#f59e0b',
+    purple: '#8b5cf6',
+    green: '#22c55e',
+    red: '#ef4444',
+    orange: '#f97316',
+    amber: '#f59e0b',
+    yellow: '#eab308',
+    lime: '#84cc16',
+    emerald: '#10b981',
+    teal: '#14b8a6',
+    cyan: '#06b6d4',
+    sky: '#0ea5e9',
+    blue: '#3b82f6',
+    indigo: '#6366f1',
+    violet: '#8b5cf6',
+    fuchsia: '#d946ef',
+    pink: '#ec4899',
+    rose: '#f43f5e',
   },
   light: {
-    bg: '#eef2f4',
-    card: '#ffffff',
-    cardHover: '#e8eef2',
-    text: '#16232E',
-    textMuted: '#467885',
-    border: '#c0d4da',
-    input: '#ffffff',
-    inputBorder: '#A8987C',
-    primary: '#25515E',
-    primaryHover: '#16232E',
-    success: '#22a86a',
-    danger: '#d04040',
-    warning: '#c08020',
-    purple: '#7060d8',
-    green: '#22a86a',
-    red: '#d04040',
-    orange: '#c06030',
-    amber: '#c08020',
-    yellow: '#b09000',
-    lime: '#608020',
-    emerald: '#18a060',
-    teal: '#18908a',
-    cyan: '#1888a8',
-    sky: '#2080c0',
-    blue: '#2868c8',
-    indigo: '#4050b8',
-    violet: '#7060d8',
-    fuchsia: '#a030b0',
-    pink: '#b02888',
-    rose: '#c03058',
+    bg: '#F4F4F5',
+    card: '#FFFFFF',
+    cardHover: '#F9FAFB',
+    text: '#18181B',
+    textMuted: '#71717A',
+    border: 'rgba(0,0,0,0.08)',
+    input: '#FFFFFF',
+    inputBorder: 'rgba(0,0,0,0.15)',
+    primary: '#10b981',
+    primaryHover: '#059669',
+    success: '#22c55e',
+    danger: '#ef4444',
+    warning: '#f59e0b',
+    purple: '#8b5cf6',
+    green: '#22c55e',
+    red: '#ef4444',
+    orange: '#f97316',
+    amber: '#f59e0b',
+    yellow: '#eab308',
+    lime: '#84cc16',
+    emerald: '#10b981',
+    teal: '#14b8a6',
+    cyan: '#06b6d4',
+    sky: '#0ea5e9',
+    blue: '#3b82f6',
+    indigo: '#6366f1',
+    violet: '#8b5cf6',
+    fuchsia: '#d946ef',
+    pink: '#ec4899',
+    rose: '#f43f5e',
   }
 };
 
@@ -95,57 +95,52 @@ const LoginPage = ({ onLogin, darkMode, toggleDark }) => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: darkMode ? '#16232E' : '#eef2f4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Hack", "Courier New", monospace', color: c.text, position: 'relative', overflow: 'hidden' }}>
+    <div style={{ minHeight: '100vh', background: darkMode ? '#0F0F0F' : '#F4F4F5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', color: c.text, position: 'relative', overflow: 'hidden' }}>
       <style>{`
-        * { font-family: 'Hack', 'Courier New', monospace !important; }
-        @keyframes loginGrid { 0%,100% { opacity: 0.04; } 50% { opacity: 0.08; } }
-        @keyframes loginScan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100vh); } }
-        @keyframes loginGlow { 0%,100% { box-shadow: 0 0 20px rgba(168,152,124,0.15), 0 0 60px rgba(70,120,133,0.1); } 50% { box-shadow: 0 0 30px rgba(168,152,124,0.25), 0 0 80px rgba(70,120,133,0.15); } }
-        .login-input:focus { border-color: #A8987C !important; box-shadow: 0 0 0 1px #A8987C40, 0 0 12px #A8987C20 !important; outline: none; }
-        .login-btn:hover:not(:disabled) { background: #bfaa8c !important; box-shadow: 0 0 20px #A8987C40 !important; }
+        .login-input:focus { border-color: #10b981 !important; box-shadow: 0 0 0 1px #10b98140, 0 0 12px #10b98120 !important; outline: none; }
+        .login-btn:hover:not(:disabled) { background: #34d399 !important; box-shadow: 0 0 20px #10b98140 !important; }
       `}</style>
       {/* Grid background */}
-      <div style={{ position: 'absolute', inset: 0, backgroundImage: `linear-gradient(${darkMode ? 'rgba(70,120,133,0.07)' : 'rgba(37,81,94,0.06)'} 1px, transparent 1px), linear-gradient(90deg, ${darkMode ? 'rgba(70,120,133,0.07)' : 'rgba(37,81,94,0.06)'} 1px, transparent 1px)`, backgroundSize: '40px 40px', animation: 'loginGrid 4s ease-in-out infinite' }} />
-      {/* Scan line */}
-      {darkMode && <div style={{ position: 'absolute', left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, transparent, rgba(168,152,124,0.15), transparent)', animation: 'loginScan 8s linear infinite', pointerEvents: 'none' }} />}
+      <div className={darkMode ? 'grid-bg-dark' : 'grid-bg-light'} style={{ position: 'absolute', inset: 0 }} />
+      {/* Glow */}
+      {darkMode && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '400px', height: '400px', background: 'rgba(16,185,129,0.08)', borderRadius: '50%', filter: 'blur(120px)', pointerEvents: 'none' }} />}
 
       <div style={{ width: '100%', maxWidth: '400px', padding: '0 24px', position: 'relative', zIndex: 1 }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-          <div style={{ fontSize: '11px', letterSpacing: '0.4em', color: '#467885', marginBottom: '8px', textTransform: 'uppercase' }}>◈ SYSTEM ONLINE ◈</div>
-          <div style={{ fontSize: '38px', fontWeight: '900', letterSpacing: '0.12em', color: '#A8987C', textShadow: darkMode ? '0 0 30px rgba(168,152,124,0.4)' : 'none', fontFamily: '"Hack", "Courier New", monospace' }}>SERVERCTL</div>
-          <div style={{ fontSize: '11px', letterSpacing: '0.25em', color: '#467885', marginTop: '6px', textTransform: 'uppercase' }}>Infrastructure Control Interface</div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', background: '#10b981', borderRadius: '12px', marginBottom: '16px' }}>
+            <span style={{ fontSize: '24px', color: '#000' }}>◈</span>
+          </div>
+          <div style={{ fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em', color: c.text }}>ServerCTL</div>
+          <div style={{ fontSize: '14px', color: c.textMuted, marginTop: '6px' }}>Own your infrastructure</div>
         </div>
 
         {/* Card */}
-        <div style={{ background: darkMode ? 'rgba(26,45,58,0.92)' : 'rgba(255,255,255,0.92)', backdropFilter: 'blur(16px)', border: `1px solid ${darkMode ? '#2a5063' : '#c0d4da'}`, padding: '32px', clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))', animation: darkMode ? 'loginGlow 3s ease-in-out infinite' : 'none' }}>
-          {/* Corner accents */}
-          <div style={{ position: 'absolute', top: 0, right: 0, width: '16px', height: '16px', borderTop: `2px solid #A8987C`, borderRight: `2px solid #A8987C` }} />
-          <div style={{ position: 'absolute', bottom: 0, left: 0, width: '16px', height: '16px', borderBottom: `2px solid #A8987C`, borderLeft: `2px solid #A8987C` }} />
+        <div style={{ background: darkMode ? '#111111' : '#FFFFFF', border: `1px solid ${c.border}`, padding: '32px', borderRadius: '16px', boxShadow: darkMode ? '0 25px 50px rgba(0,0,0,0.5)' : '0 25px 50px rgba(0,0,0,0.1)' }}>
 
-          <div style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#467885', textTransform: 'uppercase', marginBottom: '24px' }}>// Authentication Required</div>
+          <div style={{ fontSize: '10px', letterSpacing: '0.15em', color: c.textMuted, textTransform: 'uppercase', marginBottom: '24px' }}>Authentication Required</div>
 
           <form onSubmit={submit}>
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '6px', color: '#467885', letterSpacing: '0.15em', textTransform: 'uppercase' }}>User ID</label>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '6px', color: c.textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Username</label>
               <input value={username} onChange={e => setUsername(e.target.value)} autoFocus required className="login-input"
-                style={{ width: '100%', padding: '10px 14px', border: `1px solid ${darkMode ? '#2a5063' : '#c0d4da'}`, background: darkMode ? '#0f1e28' : '#f5f8fa', color: c.text, fontSize: '14px', boxSizing: 'border-box', fontFamily: '"Hack", "Courier New", monospace', transition: 'all 0.2s', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))' }} />
+                style={{ width: '100%', padding: '10px 14px', border: `1px solid ${c.border}`, background: darkMode ? '#0F0F0F' : '#F4F4F5', color: c.text, fontSize: '14px', boxSizing: 'border-box', transition: 'all 0.2s', borderRadius: '8px' }} />
             </div>
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '6px', color: '#467885', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Access Key</label>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '6px', color: c.textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Password</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} required className="login-input"
-                style={{ width: '100%', padding: '10px 14px', border: `1px solid ${darkMode ? '#2a5063' : '#c0d4da'}`, background: darkMode ? '#0f1e28' : '#f5f8fa', color: c.text, fontSize: '14px', boxSizing: 'border-box', fontFamily: '"Hack", "Courier New", monospace', transition: 'all 0.2s', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))' }} />
+                style={{ width: '100%', padding: '10px 14px', border: `1px solid ${c.border}`, background: darkMode ? '#0F0F0F' : '#F4F4F5', color: c.text, fontSize: '14px', boxSizing: 'border-box', transition: 'all 0.2s', borderRadius: '8px' }} />
             </div>
-            {error && <div style={{ border: '1px solid #f0606040', background: '#f0606012', color: '#f06060', padding: '10px 14px', marginBottom: '16px', fontSize: '12px', fontFamily: '"Hack", "Courier New", monospace', letterSpacing: '0.05em' }}>⚠ {error}</div>}
+            {error && <div style={{ border: '1px solid #ef444440', background: '#ef444412', color: '#ef4444', padding: '10px 14px', marginBottom: '16px', fontSize: '12px', borderRadius: '8px' }}>⚠ {error}</div>}
             <button type="submit" disabled={loading} className="login-btn"
-              style={{ width: '100%', padding: '12px', border: `1px solid #A8987C`, background: '#A8987C', color: '#16232E', fontSize: '13px', fontWeight: '800', cursor: 'pointer', letterSpacing: '0.25em', textTransform: 'uppercase', fontFamily: '"Hack", "Courier New", monospace', clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))', transition: 'all 0.2s' }}>
-              {loading ? '[ AUTHENTICATING... ]' : '[ INITIALIZE ACCESS ]'}
+              style={{ width: '100%', padding: '12px', border: 'none', background: '#10b981', color: '#000', fontSize: '14px', fontWeight: '700', cursor: 'pointer', borderRadius: '8px', transition: 'all 0.2s' }}>
+              {loading ? 'Authenticating...' : 'Sign In'}
             </button>
           </form>
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '16px' }}>
-          <button onClick={toggleDark} style={{ background: 'none', border: 'none', color: '#467885', cursor: 'pointer', fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', fontFamily: '"Hack", "Courier New", monospace' }}>{darkMode ? '◑ Light Interface' : '◐ Dark Interface'}</button>
+          <button onClick={toggleDark} style={{ background: 'none', border: 'none', color: c.textMuted, cursor: 'pointer', fontSize: '11px', letterSpacing: '0.1em' }}>{darkMode ? '◑ Light Mode' : '◐ Dark Mode'}</button>
         </div>
       </div>
     </div>
@@ -212,8 +207,8 @@ const XTerminal = ({ server, username, authMethod, password, keyContent, token, 
         scrollback: 5000,
         convertEol: false,
         theme: {
-          background: '#0d1117',
-          foreground: '#c9d1d9',
+          background: '#0F0F0F',
+          foreground: '#E4E3E0',
           black: '#484f58',    red: '#ff7b72',    green: '#3fb950',   yellow: '#d29922',
           blue: '#58a6ff',     magenta: '#bc8cff', cyan: '#39c5cf',   white: '#b1bac4',
           brightBlack: '#6e7681', brightRed: '#ffa198', brightGreen: '#56d364',
@@ -277,7 +272,7 @@ const XTerminal = ({ server, username, authMethod, password, keyContent, token, 
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return <div ref={containerRef} style={{ width: '100%', height: '100%', background: '#0d1117' }} />;
+  return <div ref={containerRef} style={{ width: '100%', height: '100%', background: '#0F0F0F' }} />;
 };
 
 
@@ -290,13 +285,16 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [manualHost, setManualHost] = useState("");
   const [manualName, setManualName] = useState("");
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') !== 'false');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('sidebarCollapsed') === 'true');
+  const toggleSidebar = () => setSidebarCollapsed(v => { localStorage.setItem('sidebarCollapsed', !v); return !v; });
   React.useEffect(() => {
-    const bg = darkMode ? '#16232E' : '#eef2f4';
+    localStorage.setItem('darkMode', darkMode);
+    const bg = darkMode ? '#0F0F0F' : '#F4F4F5';
     document.documentElement.style.background = bg;
     document.body.style.background = bg;
     document.body.style.margin = '0';
-    document.documentElement.style.setProperty('--scrollbar-track', darkMode ? '#0f1e28' : '#e0e8ec');
+    document.documentElement.style.setProperty('--scrollbar-track', darkMode ? '#0F0F0F' : '#e0e8ec');
     document.documentElement.style.setProperty('--color-scheme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
   const [hoveredRow, setHoveredRow] = useState(null);
@@ -335,6 +333,8 @@ const Dashboard = () => {
   const [servicesLoading, setServicesLoading] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [serviceDetail, setServiceDetail] = useState('');
+  const [serviceFilter, setServiceFilter] = useState('');
+  const [serviceFloatingOpen, setServiceFloatingOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [groupFilter, setGroupFilter] = useState('all');
   const [serverQuickFilter, setServerQuickFilter] = useState('all');
@@ -342,6 +342,7 @@ const Dashboard = () => {
   const [bulkActionOutput, setBulkActionOutput] = useState('');
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [bulkProgress, setBulkProgress] = useState([]); // [{id, name, host, status, output}]
+  const [upgradedServerIds, setUpgradedServerIds] = useState(new Set()); // servers that were just upgraded (show reboot btn)
   const [toasts, setToasts] = useState([]); // [{id, type, title, message}]
   const [globalTasks, setGlobalTasks] = useState([]); // [{id, server, command, status, output, startTime}]
   const [showTaskPanel, setShowTaskPanel] = useState(true);
@@ -364,6 +365,12 @@ const Dashboard = () => {
   const [networkSubTab, setNetworkSubTab] = useState('ip');
   const [networkInfoOutput, setNetworkInfoOutput] = useState('');
   const [networkInfoLoading, setNetworkInfoLoading] = useState(false);
+  const [fwAction, setFwAction] = useState('allow');
+  const [fwDirection, setFwDirection] = useState('in');
+  const [fwProto, setFwProto] = useState('tcp');
+  const [fwPort, setFwPort] = useState('');
+  const [fwLoading, setFwLoading] = useState(false);
+  const [fwResult, setFwResult] = useState('');
   const [networkTool, setNetworkTool] = useState('ping');
   const [networkTarget, setNetworkTarget] = useState('');
   const [networkOutput, setNetworkOutput] = useState('');
@@ -417,7 +424,7 @@ const Dashboard = () => {
   const [wizardInstallCmdLoading, setWizardInstallCmdLoading] = useState(false);
   const [navSection, setNavSectionRaw] = useState(() => {
     const hash = window.location.hash.replace('#', '');
-    return hash || 'servers';
+    return hash || 'dashboard';
   });
   const setNavSection = (section) => {
     setNavSectionRaw(section);
@@ -1225,7 +1232,17 @@ const Dashboard = () => {
 
   const fetchAgentsPageInfo = async () => {
     setAgentsPageLoading(true);
-    const onlineServers = servers.filter(s => s.online);
+    // Refresh server list first to get latest agent_version from backend
+    let freshServers = servers;
+    try {
+      const srvRes = await fetch('/api/servers', { headers: authHeader });
+      const srvData = await srvRes.json();
+      if (srvData.servers) {
+        setServers(srvData.servers);
+        freshServers = srvData.servers;
+      }
+    } catch {}
+    const onlineServers = freshServers.filter(s => s.online);
     const results = {};
     await Promise.all(onlineServers.map(async (s) => {
       try {
@@ -1431,20 +1448,21 @@ const Dashboard = () => {
     await Promise.all(initial.map(async (item) => {
       try {
         const res = await fetch('/api/action', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeader }, body: JSON.stringify({ server_id: item.id, command: 'upgrade' }) });
-        const data = await res.json();
-        setBulkProgress(prev => prev.map(p => p.id === item.id ? { ...p, status: data.status === 'completed' ? 'done' : 'error', output: data.output || '' } : p));
+        let data;
+        try { data = await res.json(); } catch { data = { status: 'error', detail: `Server returned HTTP ${res.status}` }; }
+        setBulkProgress(prev => prev.map(p => p.id === item.id ? { ...p, status: data.status === 'completed' ? 'done' : 'error', output: data.output || data.detail || '' } : p));
         if (data.status === 'completed') {
+          setUpgradedServerIds(prev => new Set([...prev, item.id]));
           const remaining = await refreshServerUpdates(item.id);
           if (remaining === 0) {
             addToast('success', `${item.name} updated`, 'No more pending updates');
           }
         } else {
-          const isSSH = !res.ok && String(data.detail || '').toLowerCase().match(/unreachable|connection|timeout|ssh/);
-          if (isSSH) addToast('error', `SSH failed: ${item.name}`, `${item.host} — update must be done manually`);
+          addToast('error', `Update failed: ${item.name}`, data.detail || data.output || `${item.host} — agent unreachable`);
         }
       } catch (err) {
         setBulkProgress(prev => prev.map(p => p.id === item.id ? { ...p, status: 'error', output: err.message } : p));
-        addToast('error', `SSH failed: ${item.name}`, `${item.host} — update must be done manually`);
+        addToast('error', `Update failed: ${item.name}`, `${item.host} — agent unreachable`);
       }
     }));
     setBulkActionLoading(false);
@@ -1737,9 +1755,9 @@ const Dashboard = () => {
       minHeight: '100vh',
       background: c.bg,
       padding: '24px',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       color: c.text,
-      transition: 'all 0.3s',
+      transition: 'background 0.3s, color 0.3s',
     },
     header: {
       display: 'flex',
@@ -1759,7 +1777,7 @@ const Dashboard = () => {
     },
     searchInput: {
       padding: '10px 16px',
-      clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
+      borderRadius: '8px',
       border: `1px solid ${c.border}`,
       fontSize: '14px',
       background: c.card,
@@ -1777,28 +1795,28 @@ const Dashboard = () => {
       display: 'inline-flex',
       alignItems: 'center',
       gap: '6px',
-      letterSpacing: '0.04em',
-      clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))',
+      letterSpacing: '0.02em',
+      borderRadius: '8px',
     },
     btnPrimary: {
-      background: '#A8987C',
-      color: '#16232E',
-      border: '1px solid #A8987C',
+      background: '#10b981',
+      color: '#000',
+      border: 'none',
     },
     btnSecondary: {
-      background: 'transparent',
+      background: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
       color: c.text,
       border: `1px solid ${c.border}`,
     },
     btnSuccess: {
-      background: 'transparent',
-      color: '#3dd68c',
-      border: '1px solid #3dd68c60',
+      background: 'rgba(34,197,94,0.1)',
+      color: '#22c55e',
+      border: '1px solid rgba(34,197,94,0.2)',
     },
     btnDanger: {
-      background: 'transparent',
-      color: '#f06060',
-      border: '1px solid #f0606050',
+      background: 'rgba(239,68,68,0.1)',
+      color: '#ef4444',
+      border: '1px solid rgba(239,68,68,0.2)',
     },
     statsGrid: {
       display: 'grid',
@@ -1807,12 +1825,10 @@ const Dashboard = () => {
       marginBottom: '24px',
     },
     statCard: (color) => ({
-      background: darkMode ? 'rgba(26,45,58,0.88)' : 'rgba(255,255,255,0.88)',
+      background: c.card,
       padding: '20px',
-      border: `1px solid ${darkMode ? '#2a5063' : '#c0d4da'}`,
-      borderLeft: `3px solid ${color}`,
-      clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)',
-      boxShadow: darkMode ? `0 0 12px ${color}18` : 'none',
+      border: `1px solid ${c.border}`,
+      borderRadius: '12px',
     }),
     statLabel: {
       fontSize: '13px',
@@ -1830,12 +1846,11 @@ const Dashboard = () => {
       marginTop: '4px',
     },
     card: {
-      background: darkMode ? 'rgba(26,45,58,0.88)' : 'rgba(255,255,255,0.88)',
-      backdropFilter: 'blur(10px)',
-      clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))',
-      boxShadow: darkMode ? '0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(70,120,133,0.1)' : '0 4px 16px rgba(0,0,0,0.08)',
+      background: c.card,
+      borderRadius: '12px',
+      boxShadow: darkMode ? 'none' : '0 1px 3px rgba(0,0,0,0.05)',
       marginBottom: '24px',
-      border: `1px solid ${darkMode ? '#2a5063' : '#c0d4da'}`,
+      border: `1px solid ${c.border}`,
       overflow: 'hidden',
     },
     cardHeader: {
@@ -1846,12 +1861,12 @@ const Dashboard = () => {
       alignItems: 'center',
     },
     cardTitle: {
-      fontSize: '13px',
+      fontSize: '12px',
       fontWeight: '700',
       margin: 0,
-      letterSpacing: '0.1em',
+      letterSpacing: '0.12em',
       textTransform: 'uppercase',
-      color: '#A8987C',
+      color: c.textMuted,
     },
     cardBody: {
       padding: '0',
@@ -1888,11 +1903,11 @@ const Dashboard = () => {
       alignItems: 'center',
       gap: '6px',
       padding: '4px 10px',
-      borderRadius: '20px',
-      fontSize: '12px',
-      fontWeight: '500',
-      background: online ? '#dcfce7' : '#fee2e2',
-      color: online ? '#166534' : '#991b1b',
+      borderRadius: '9999px',
+      fontSize: '11px',
+      fontWeight: '600',
+      background: online ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+      color: online ? '#22c55e' : '#ef4444',
     }),
     statusDot: (online) => ({
       width: '6px',
@@ -1935,7 +1950,7 @@ const Dashboard = () => {
     },
     modalContent: {
       background: c.card,
-      borderRadius: '4px',
+      borderRadius: '16px',
       width: '90%',
       maxWidth: '960px',
       minWidth: '480px',
@@ -1946,6 +1961,7 @@ const Dashboard = () => {
       resize: 'both',
       display: 'flex',
       flexDirection: 'column',
+      boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
     },
     modalHeader: {
       display: 'flex',
@@ -1979,11 +1995,11 @@ const Dashboard = () => {
       borderRadius: '6px 6px 0 0',
     }),
     sshTerminal: {
-      background: '#0d1117',
-      color: '#c9d1d9',
+      background: '#0F0F0F',
+      color: '#E4E3E0',
       padding: '16px',
-      clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
-      fontFamily: '"Hack", "Courier New", monospace',
+      borderRadius: '8px',
+      fontFamily: '"JetBrains Mono", monospace',
       fontSize: '13px',
       minHeight: '300px',
       maxHeight: '400px',
@@ -1994,11 +2010,11 @@ const Dashboard = () => {
     sshInput: {
       width: '100%',
       padding: '10px 14px',
-      clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
+      borderRadius: '8px',
       border: '1px solid #30363d',
-      background: '#0d1117',
-      color: '#c9d1d9',
-      fontFamily: '"Hack", "Courier New", monospace',
+      background: '#0F0F0F',
+      color: '#E4E3E0',
+      fontFamily: '"JetBrains Mono", monospace',
       fontSize: '13px',
       marginTop: '12px',
     },
@@ -2013,13 +2029,13 @@ const Dashboard = () => {
     },
     input: {
       padding: '8px 12px',
-      border: `1px solid ${darkMode ? '#2a5063' : '#b8cdd6'}`,
+      border: `1px solid ${darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
       fontSize: '13px',
       outline: 'none',
-      background: darkMode ? '#0f1e28' : '#f0f5f8',
+      background: darkMode ? '#0F0F0F' : '#f0f5f8',
       color: c.text,
       minWidth: '180px',
-      clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
+      borderRadius: '8px',
       transition: 'border-color 0.15s, box-shadow 0.15s',
     },
     label: {
@@ -2042,8 +2058,8 @@ const Dashboard = () => {
     actionOutput: {
       background: c.bg,
       padding: '16px',
-      clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
-      fontFamily: '"Hack", "Courier New", monospace',
+      borderRadius: '8px',
+      fontFamily: '"JetBrains Mono", monospace',
       fontSize: '12px',
       whiteSpace: 'pre-wrap',
       maxHeight: '200px',
@@ -2071,14 +2087,27 @@ const Dashboard = () => {
   // ── Parsers ──────────────────────────────────────────────────
   const parseDf = (text) => {
     const lines = text.trim().split('\n').filter(Boolean);
-    if (!lines[0]?.includes('Filesystem')) return null;
-    return lines.slice(1).map(line => {
-      const parts = line.trim().split(/\s+/);
-      if (parts.length < 6) return null;
-      const [fs, size, used, avail, usePct, ...mountParts] = parts;
-      const pct = parseInt(usePct) || 0;
-      return { fs, size, used, avail, pct, mount: mountParts.join(' ') };
-    }).filter(Boolean);
+    // Linux: Filesystem Size Used Avail Use% Mounted on
+    if (lines[0]?.includes('Filesystem')) {
+      return lines.slice(1).map(line => {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length < 6) return null;
+        const [fs, size, used, avail, usePct, ...mountParts] = parts;
+        const pct = parseInt(usePct) || 0;
+        return { fs, size, used, avail, pct, mount: mountParts.join(' ') };
+      }).filter(Boolean);
+    }
+    // Windows: Name Used(GB) Free(GB) Total(GB) Used%
+    if (lines[0]?.includes('Used(GB)') || lines[0]?.includes('Used%')) {
+      return lines.filter(l => !l.startsWith('Name') && !l.startsWith('----')).map(line => {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length < 5) return null;
+        const [name, usedGb, freeGb, totalGb, usedPct] = parts;
+        const pct = parseFloat(usedPct) || 0;
+        return { fs: name + ':', size: totalGb + 'GB', used: usedGb + 'GB', avail: freeGb + 'GB', pct: Math.round(pct), mount: name + ':\\' };
+      }).filter(Boolean);
+    }
+    return null;
   };
 
   const parseFree = (text) => {
@@ -2128,7 +2157,7 @@ const Dashboard = () => {
   const barTrack = { height: '6px', borderRadius: '3px', background: darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)', overflow: 'hidden' };
   const barFill = (pct, color) => ({ height: '100%', width: `${pct}%`, background: color, borderRadius: '3px', transition: 'width 0.4s ease' });
   const pctColor = (pct) => pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#3b82f6';
-  const badge = (text, color) => ({ display: 'inline-block', background: color + '20', color, padding: '1px 8px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '700', fontSize: '11px' });
+  const badge = (text, color) => ({ display: 'inline-block', background: color + '20', color, padding: '1px 8px', borderRadius: '8px', fontWeight: '700', fontSize: '11px' });
 
   const parseMemVal = (str = '') => {
     if (!str || str === '0B') return 0;
@@ -2150,7 +2179,7 @@ const Dashboard = () => {
         {rows.map((r, i) => {
           const color = pctColor(r.pct);
           return (
-            <div key={i} style={{ background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', padding: '12px 16px', border: `1px solid ${c.border}` }}>
+            <div key={i} style={{ background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', borderRadius: '8px', padding: '12px 16px', border: `1px solid ${c.border}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <div>
                   <span style={{ fontSize: '13px', fontWeight: '600', color: c.text }}>{r.mount}</span>
@@ -2182,13 +2211,13 @@ const Dashboard = () => {
           const color = pctColor(pct);
           const isSwap = r.label === 'Swap';
           if (isSwap && totalGb === 0) return (
-            <div key={i} style={{ background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', padding: '12px 16px', border: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div key={i} style={{ background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', borderRadius: '8px', padding: '12px 16px', border: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '13px', fontWeight: '600' }}>Swap</span>
               <span style={{ fontSize: '12px', color: c.textMuted }}>Not configured</span>
             </div>
           );
           return (
-            <div key={i} style={{ background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', padding: '14px 16px', border: `1px solid ${c.border}` }}>
+            <div key={i} style={{ background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', borderRadius: '8px', padding: '14px 16px', border: `1px solid ${c.border}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <span style={{ fontSize: '14px', fontWeight: '700' }}>{r.label === 'Mem' ? 'Memory (RAM)' : 'Swap'}</span>
                 <span style={badge(pct + '%', color)}>{pct}%</span>
@@ -2223,7 +2252,7 @@ const Dashboard = () => {
         {title && <div style={{ fontSize: '12px', fontWeight: '600', color: c.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px' }}>{title}</div>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {sortedEntries.map(([k, v], i) => (
-            <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '8px 12px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', background: i % 2 === 0 ? (darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)') : 'transparent' }}>
+            <div key={k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '8px 12px', borderRadius: '8px', background: i % 2 === 0 ? (darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)') : 'transparent' }}>
               <span style={{ fontSize: '13px', color: c.textMuted, flexShrink: 0, marginRight: '16px' }}>{k}</span>
               <span style={{ fontSize: '13px', fontWeight: '600', color: c.text, textAlign: 'right', wordBreak: 'break-word' }}>{v}</span>
             </div>
@@ -2243,14 +2272,14 @@ const Dashboard = () => {
     const kv = parseKeyVal(text);
     if (kv) return <KVGrid data={kv} />;
     return (
-      <div style={{ clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', border: `1px solid ${c.border}`, overflow: 'hidden' }}>
-        <div style={{ background: darkMode ? '#0d1820' : '#f0f5f8', padding: '8px 14px', borderBottom: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div style={{ borderRadius: '8px', border: `1px solid ${c.border}`, overflow: 'hidden' }}>
+        <div style={{ background: darkMode ? '#0F0F0F' : '#f0f5f8', padding: '8px 14px', borderBottom: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '6px' }}>
           <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#ef4444' }} />
           <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#f59e0b' }} />
           <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#22c55e' }} />
-          <span style={{ fontSize: '11px', color: c.textMuted, marginLeft: '6px', fontFamily: '"Hack", "Courier New", monospace' }}>output</span>
+          <span style={{ fontSize: '11px', color: c.textMuted, marginLeft: '6px', fontFamily: '"JetBrains Mono", monospace' }}>output</span>
         </div>
-        <pre style={{ margin: 0, padding: '14px 16px', background: darkMode ? '#0d1117' : '#f8fafc', color: darkMode ? '#c9d1d9' : '#1e293b', fontFamily: '"Hack", "Courier New", monospace', fontSize: '12px', lineHeight: '1.7', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '320px', overflow: 'auto' }}>{text}</pre>
+        <pre style={{ margin: 0, padding: '14px 16px', background: darkMode ? '#0F0F0F' : '#f8fafc', color: darkMode ? '#E4E3E0' : '#1e293b', fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', lineHeight: '1.7', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '320px', overflow: 'auto' }}>{text}</pre>
       </div>
     );
   };
@@ -2271,83 +2300,124 @@ const Dashboard = () => {
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', color: c.text, fontFamily: '"Hack", "Courier New", monospace', background: darkMode ? '#16232E' : '#eef2f4', position: 'relative' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', color: c.text, fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', background: c.bg, position: 'relative' }}>
       <style dangerouslySetInnerHTML={{ __html: `
-        * { font-family: 'Hack', 'Courier New', monospace !important; }
+        * { font-family: 'JetBrains Mono', monospace !important; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         @keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes progressIndeterminate { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
-        .probe-info-wrap:hover .probe-info-icon { background: #A8987C !important; color: #16232E !important; }
+        .probe-info-wrap:hover .probe-info-icon { background: #10b981 !important; color: #000 !important; }
         .probe-info-wrap:hover .probe-tooltip { display: block !important; }
-        button:not(:disabled):active { transform: scale(0.96) !important; }
+        button:not(:disabled):active { transform: scale(0.97) !important; }
         button:disabled { opacity: 0.35 !important; cursor: not-allowed !important; pointer-events: auto !important; }
         button:not(:disabled) { transition: filter 0.12s, transform 0.1s, box-shadow 0.15s; }
-        button:not(:disabled):hover { filter: brightness(1.12); }
+        button:not(:disabled):hover { filter: brightness(1.1); }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
-        ::-webkit-scrollbar-thumb { background: #467885; border-radius: 2px; }
-        ::-webkit-scrollbar-thumb:hover { background: #A8987C; }
-        input, select, textarea { color-scheme: var(--color-scheme); }
-        .fut-card { clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)); }
-        .fut-btn { clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px)); }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: ${darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.15)'}; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+        input, select, textarea { color-scheme: ${darkMode ? 'dark' : 'light'}; }
       `}} />
-      {/* Background grid (static, no animation) */}
-      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, backgroundImage: `linear-gradient(${darkMode ? 'rgba(70,120,133,0.06)' : 'rgba(37,81,94,0.05)'} 1px, transparent 1px), linear-gradient(90deg, ${darkMode ? 'rgba(70,120,133,0.06)' : 'rgba(37,81,94,0.05)'} 1px, transparent 1px)`, backgroundSize: '48px 48px' }} />
+      {/* Background grid */}
+      <div className={darkMode ? 'grid-bg-dark' : 'grid-bg-light'} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} />
       {/* ── Left Nav Sidebar ── */}
-      <nav style={{ width: '210px', position: 'fixed', top: 0, bottom: 0, left: 0, background: darkMode ? '#0d1820' : '#e6eef2', borderRight: `1px solid ${darkMode ? '#1e3d4f' : '#b8cdd6'}`, display: 'flex', flexDirection: 'column', zIndex: 200, overflowY: 'auto' }}>
+      <nav className="sidebar-nav" style={{ width: sidebarCollapsed ? '64px' : '220px', position: 'fixed', top: 0, bottom: 0, left: 0, background: darkMode ? '#0F0F0F' : '#FFFFFF', borderRight: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', zIndex: 200, overflowY: 'auto', transition: 'width 0.2s ease' }}>
         {/* Logo */}
-        <div style={{ padding: '14px 16px 12px', borderBottom: `1px solid ${darkMode ? '#1e3d4f' : '#b8cdd6'}`, textAlign: 'center' }}>
-          <img src={customLogo || '/logo.png'} alt="logo" style={{ maxWidth: '160px', maxHeight: '80px', objectFit: 'contain', marginBottom: '8px', filter: darkMode ? 'drop-shadow(0 0 10px rgba(168,152,124,0.35))' : 'none' }} />
-          <div style={{ fontSize: '13px', fontWeight: '800', letterSpacing: '0.12em', color: '#A8987C', textShadow: darkMode ? '0 0 16px rgba(168,152,124,0.3)' : 'none' }}>ServerCTL</div>
-          <div style={{ fontSize: '9px', color: '#467885', marginTop: '3px', letterSpacing: '0.18em', textTransform: 'uppercase' }}>Intelligence Control</div>
+        <div style={{ padding: sidebarCollapsed ? '12px 0' : '16px', borderBottom: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: sidebarCollapsed ? '64px' : '100px', boxSizing: 'border-box', position: 'relative' }}>
+          <button onClick={toggleSidebar} style={{ background: 'none', border: 'none', color: c.textMuted, cursor: 'pointer', padding: '4px', fontSize: '12px', position: 'absolute', top: '8px', right: '8px' }}>
+            {sidebarCollapsed ? '▸' : '◂'}
+          </button>
+          {sidebarCollapsed ? (
+            customLogo ? <img src={customLogo} alt="logo" style={{ maxHeight: '32px', maxWidth: '32px', objectFit: 'contain', borderRadius: '6px' }} />
+            : <div style={{ background: '#10b981', padding: '6px', borderRadius: '8px' }}><span style={{ fontSize: '16px', color: '#000', fontWeight: '800' }}>◈</span></div>
+          ) : (
+            <>
+              {customLogo ? (
+                <img src={customLogo} alt="logo" style={{ maxHeight: '105px', maxWidth: '205px', objectFit: 'contain', borderRadius: '8px', marginBottom: '8px' }} />
+              ) : (
+                <div style={{ background: '#10b981', padding: '14px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '36px', color: '#000', fontWeight: '800' }}>◈</span>
+                </div>
+              )}
+              <span style={{ fontWeight: '700', fontSize: '18px', letterSpacing: '-0.01em' }}>{customTabTitle || 'ServerCTL'}</span>
+            </>
+          )}
         </div>
         {/* Nav items */}
-        <div style={{ flex: 1, padding: '6px 0' }}>
+        <div style={{ flex: 1, padding: '8px 6px' }}>
           {navItems.map(item => {
             const active = navSection === item.key || (navSection === 'manage' && item.key === 'servers');
             const updatesBadge = item.key === 'updates' && servers.some(s => s.pending_updates?.count > 0)
               ? servers.reduce((sum, s) => sum + (s.pending_updates?.count || 0), 0) : 0;
             return (
               <button key={item.key} onClick={() => { setNavSection(item.key); if (item.key === 'servers') setServerQuickFilter('all'); if (item.key === 'settings' && isAdmin) fetchUsers(); if (item.key === 'agents') fetchAgentsPageInfo(); }}
-                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 16px', border: 'none', borderLeft: `2px solid ${active ? '#A8987C' : 'transparent'}`, background: active ? (darkMode ? 'rgba(168,152,124,0.08)' : 'rgba(37,81,94,0.08)') : 'transparent', color: active ? '#A8987C' : c.textMuted, cursor: 'pointer', fontSize: '12px', fontWeight: active ? '700' : '400', width: '100%', textAlign: 'left', letterSpacing: active ? '0.04em' : '0', position: 'relative' }}>
-                <span style={{ fontSize: '13px', width: '18px', textAlign: 'center', flexShrink: 0, filter: active ? (darkMode ? 'drop-shadow(0 0 4px #A8987C)' : 'none') : 'none' }}>{item.icon}</span>
-                <span style={{ flex: 1 }}>{item.label}</span>
-                {updatesBadge > 0 && <span style={{ background: '#e8a838', color: '#16232E', fontSize: '9px', fontWeight: '800', padding: '1px 5px', letterSpacing: '0.05em' }}>{updatesBadge}</span>}
+                title={sidebarCollapsed ? item.label : undefined}
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: sidebarCollapsed ? '10px 0' : '8px 12px', border: 'none', borderRadius: '8px', background: active ? (darkMode ? 'rgba(16,185,129,0.1)' : 'rgba(16,185,129,0.08)') : 'transparent', color: active ? '#10b981' : c.textMuted, cursor: 'pointer', fontSize: '13px', fontWeight: active ? '600' : '400', width: '100%', textAlign: 'left', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', marginBottom: '2px', transition: 'background 0.15s, color 0.15s' }}>
+                <span style={{ fontSize: '14px', width: '20px', textAlign: 'center', flexShrink: 0 }}>{item.icon}</span>
+                {!sidebarCollapsed && <span style={{ flex: 1 }}>{item.label}</span>}
+                {!sidebarCollapsed && updatesBadge > 0 && <span style={{ background: '#f59e0b', color: '#000', fontSize: '9px', fontWeight: '700', padding: '1px 6px', borderRadius: '9999px' }}>{updatesBadge}</span>}
               </button>
             );
           })}
         </div>
-        {/* User info at bottom */}
-        <div style={{ padding: '12px 16px', borderTop: `1px solid ${darkMode ? '#1e3d4f' : '#b8cdd6'}`, fontSize: '11px' }}>
-          <div style={{ fontWeight: '700', color: '#A8987C', marginBottom: '1px', letterSpacing: '0.06em', fontFamily: '"Hack", "Courier New", monospace' }}>{user?.username}</div>
-          <div style={{ color: '#467885', marginBottom: '10px', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{isAdmin ? '// Administrator' : '// User'}</div>
-          <button onClick={handleLogout} style={{ ...styles.btn, background: 'transparent', color: '#f06060', border: '1px solid #f0606040', fontSize: '11px', padding: '5px 10px', width: '100%', justifyContent: 'center', letterSpacing: '0.08em', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))' }}>Sign Out</button>
-          <div style={{ textAlign: 'center', marginTop: '8px', fontSize: '9px', color: '#467885', letterSpacing: '0.1em' }}>v{import.meta.env.VITE_APP_VERSION || '1.1.0'}</div>
+        {/* Bottom section */}
+        <div style={{ padding: sidebarCollapsed ? '12px 6px' : '12px 14px', borderTop: `1px solid ${c.border}` }}>
+          {!sidebarCollapsed && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontWeight: '700', fontSize: '11px' }}>
+                  {(user?.username || 'A').slice(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: '600' }}>{user?.username}</div>
+                  <div style={{ fontSize: '10px', color: c.textMuted }}>{isAdmin ? 'Admin' : 'User'}</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button onClick={() => setDarkMode(!darkMode)} style={{ ...styles.btn, background: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', border: `1px solid ${c.border}`, color: c.textMuted, padding: '5px 10px', fontSize: '12px', flex: 1, justifyContent: 'center' }}>{darkMode ? '◑' : '◐'}</button>
+                <button onClick={handleLogout} style={{ ...styles.btn, background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.15)', fontSize: '12px', padding: '5px 10px', flex: 1, justifyContent: 'center' }}>Sign Out</button>
+              </div>
+              <div style={{ textAlign: 'center', marginTop: '8px', fontSize: '10px', color: c.textMuted }}>v{import.meta.env.VITE_APP_VERSION || '1.3.2'}</div>
+            </>
+          )}
+          {sidebarCollapsed && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
+              <button onClick={() => setDarkMode(!darkMode)} style={{ background: 'none', border: 'none', color: c.textMuted, cursor: 'pointer', fontSize: '14px', padding: '4px' }}>{darkMode ? '◑' : '◐'}</button>
+              <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '12px', padding: '4px' }}>⏻</button>
+            </div>
+          )}
         </div>
       </nav>
 
       {/* ── Main content area ── */}
-      <div style={{ marginLeft: '210px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'relative', zIndex: 1 }}>
+      <div className="main-content" style={{ marginLeft: sidebarCollapsed ? '64px' : '220px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'relative', zIndex: 1, transition: 'margin-left 0.2s ease' }}>
         {/* Top Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px', borderBottom: `1px solid ${darkMode ? '#1e3d4f' : '#b8cdd6'}`, background: darkMode ? '#0d1820' : '#e6eef2', position: 'sticky', top: 0, zIndex: 100 }}>
-          <div>
-            <div style={{ fontSize: '16px', fontWeight: '800', letterSpacing: '0.08em', color: '#A8987C', textTransform: 'uppercase', fontFamily: '"Hack", "Courier New", monospace', textShadow: darkMode ? '0 0 16px rgba(168,152,124,0.25)' : 'none' }}>
+        <div className="top-header-pad" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 32px', height: '64px', borderBottom: `1px solid ${c.border}`, background: darkMode ? 'rgba(10,10,10,0.8)' : 'rgba(244,244,245,0.8)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 100 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <h1 style={{ fontSize: '16px', fontWeight: '700', margin: 0, textTransform: 'capitalize' }}>
               {navSection === 'manage' && selectedServer ? selectedServer.name : (navItems.find(n => n.key === navSection)?.label || customTabTitle)}
-            </div>
-            <div style={{ fontSize: '11px', color: '#467885', marginTop: '2px', letterSpacing: '0.12em' }}>
-              ◈ {user?.username}
-              <span style={{ marginLeft: '10px', background: isAdmin ? 'rgba(168,152,124,0.12)' : 'rgba(61,214,140,0.12)', color: isAdmin ? '#A8987C' : '#3dd68c', padding: '1px 7px', fontSize: '10px', fontWeight: '700', letterSpacing: '0.1em' }}>{isAdmin ? 'ADMIN' : 'USER'}</span>
+            </h1>
+            <div style={{ width: '1px', height: '16px', background: c.border }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', color: c.textMuted, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', animation: 'pulse 2s ease-in-out infinite' }} />
+              System Live
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <button onClick={() => setDarkMode(!darkMode)} style={{ ...styles.btn, background: 'transparent', border: `1px solid ${darkMode ? '#2a5063' : '#b8cdd6'}`, color: c.textMuted, padding: '6px 12px', fontSize: '13px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))' }}>{darkMode ? '◑' : '◐'}</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '12px', fontWeight: '600' }}>{user?.username}</div>
+              <div style={{ fontSize: '10px', color: c.textMuted }}>{isAdmin ? 'Admin' : 'User'}</div>
+            </div>
+            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontWeight: '700', fontSize: '12px' }}>
+              {(user?.username || 'A').slice(0, 2).toUpperCase()}
+            </div>
           </div>
         </div>
 
         {/* Page content */}
-        <div style={{ padding: '24px', flex: 1 }}>
+        <div className="main-content-pad" style={{ padding: '24px 32px', flex: 1, width: '100%', overflow: 'hidden' }}>
 
 
       {/* ── SERVERS section ── */}
@@ -2355,7 +2425,7 @@ const Dashboard = () => {
 
       {/* Quick filter banner */}
       {serverQuickFilter !== 'all' && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', padding: '10px 16px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', background: serverQuickFilter === 'needs_reboot' ? '#ef444415' : '#f59e0b15', border: `1px solid ${serverQuickFilter === 'needs_reboot' ? '#ef444440' : '#f59e0b40'}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', padding: '10px 16px', borderRadius: '8px', background: serverQuickFilter === 'needs_reboot' ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)', border: `1px solid ${serverQuickFilter === 'needs_reboot' ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)'}` }}>
           <span style={{ fontSize: '13px', fontWeight: '600', color: serverQuickFilter === 'needs_reboot' ? '#ef4444' : '#f59e0b' }}>
             {serverQuickFilter === 'needs_reboot' ? `⚠ ${filteredServers.length} server(a) zahtijeva reboot` : `↑ ${filteredServers.length} server(a) ima dostupne update-e`}
           </span>
@@ -2370,14 +2440,14 @@ const Dashboard = () => {
       )}
 
       {/* Stats bar */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '28px' }}>
+      <div className="stats-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '28px' }}>
         {[
           { label: 'Total Servers', value: servers.length, color: '#3b82f6', icon: '▦', sub: 'registered' },
           { label: 'Online', value: onlineCount, color: '#22c55e', icon: '●', sub: 'reachable' },
           { label: 'Offline', value: offlineCount, color: '#ef4444', icon: '○', sub: 'unreachable' },
           { label: 'Backend', value: hostStatus === null ? '…' : hostStatus.online ? 'OK' : 'DOWN', color: hostStatus?.online !== false ? '#22c55e' : '#ef4444', icon: '⬡', sub: 'host status' },
         ].map(stat => (
-          <div key={stat.label} style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', padding: '18px 20px', border: `1px solid ${c.border}`, borderTop: `3px solid ${stat.color}`, position: 'relative', overflow: 'hidden' }}>
+          <div key={stat.label} style={{ background: c.card, borderRadius: '12px', padding: '18px 20px', border: `1px solid ${c.border}`, borderTop: `3px solid ${stat.color}`, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: '14px', right: '16px', fontSize: '22px', opacity: 0.15, color: stat.color }}>{stat.icon}</div>
             <div style={{ fontSize: '12px', fontWeight: '600', color: c.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{stat.label}</div>
             <div style={{ fontSize: '34px', fontWeight: '800', color: stat.color, lineHeight: 1.1, marginTop: '6px' }}>{stat.value}</div>
@@ -2426,7 +2496,7 @@ const Dashboard = () => {
             <span style={{ display: 'inline-block', animation: syncingStatus ? 'spin 0.8s linear infinite' : 'none' }}>↺</span>
             {syncingStatus && <span style={{ marginLeft: '5px', fontSize: '11px' }}>Syncing...</span>}
           </button>
-          <div style={{ display: 'flex', border: `1px solid ${c.border}`, clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', border: `1px solid ${c.border}`, borderRadius: '8px', overflow: 'hidden' }}>
             <button onClick={() => setViewMode('grid')} title="Grid view" style={{ ...styles.btn, padding: '8px 12px', borderRadius: 0, background: viewMode === 'grid' ? c.primary : c.card, color: viewMode === 'grid' ? '#fff' : c.textMuted, border: 'none', fontSize: '15px' }}>⊞</button>
             <button onClick={() => setViewMode('list')} title="List view" style={{ ...styles.btn, padding: '8px 12px', borderRadius: 0, background: viewMode === 'list' ? c.primary : c.card, color: viewMode === 'list' ? '#fff' : c.textMuted, border: 'none', fontSize: '15px' }}>≡</button>
           </div>
@@ -2434,7 +2504,7 @@ const Dashboard = () => {
       </div>
 
       {showBulkPanel && (
-        <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, padding: '16px', marginBottom: '16px' }}>
+        <div style={{ background: c.card, borderRadius: '12px', border: `1px solid ${c.border}`, padding: '16px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <div style={{ fontSize: '12px', color: c.textMuted, fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Bulk Actions — <span style={{ color: c.primary }}>{selectedServers.length} selected</span>
@@ -2474,7 +2544,7 @@ const Dashboard = () => {
             const pu = s.pending_updates;
             return (
               <div key={String(s.id || '')}
-                style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${isSelected ? c.primary : c.border}`, overflow: 'hidden', transition: 'transform 0.15s, box-shadow 0.15s', boxShadow: hoveredRow === s.id ? '0 8px 24px rgba(0,0,0,0.15)' : '0 1px 4px rgba(0,0,0,0.06)', transform: hoveredRow === s.id ? 'translateY(-2px)' : 'none', position: 'relative' }}
+                style={{ background: c.card, borderRadius: '12px', border: `1px solid ${isSelected ? c.primary : c.border}`, overflow: 'hidden', transition: 'transform 0.15s, box-shadow 0.15s', boxShadow: hoveredRow === s.id ? '0 8px 24px rgba(0,0,0,0.15)' : '0 1px 4px rgba(0,0,0,0.06)', transform: hoveredRow === s.id ? 'translateY(-2px)' : 'none', position: 'relative' }}
                 onMouseEnter={() => setHoveredRow(s.id)} onMouseLeave={() => setHoveredRow(null)}
               >
                 <div style={{ height: '3px', background: s.online ? 'linear-gradient(90deg,#22c55e,#10b981)' : '#334155' }} />
@@ -2488,13 +2558,13 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                      {pu?.count > 0 && <span title={`${pu.count} updates available`} style={{ background: '#f59e0b20', color: '#f59e0b', fontSize: '11px', padding: '1px 6px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '700' }}>↑{pu.count}</span>}
+                      {pu?.count > 0 && <span title={`${pu.count} updates available`} style={{ background: '#f59e0b20', color: '#f59e0b', fontSize: '11px', padding: '1px 6px', borderRadius: '8px', fontWeight: '700' }}>↑{pu.count}</span>}
                       <span style={{ fontSize: '11px', background: c.cardHover, color: c.textMuted, padding: '2px 8px', borderRadius: '20px', fontWeight: '500' }}>{s.group || 'default'}</span>
                     </div>
                   </div>
                   <div style={{ marginBottom: '12px' }}>
                     <div onClick={() => handleServerClick(s)} style={{ fontSize: '16px', fontWeight: '700', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }} title="Click to manage">{String(s.name || '')}</div>
-                    <div style={{ fontSize: '12px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace' }}>
+                    <div style={{ fontSize: '12px', color: c.textMuted, fontFamily: '"JetBrains Mono", monospace' }}>
                       {String(s.host || '')}
                       {s.agent_version && <span style={{ marginLeft: '8px', fontSize: '10px', color: s.agent_version === (import.meta.env.VITE_APP_VERSION || '') ? '#22c55e' : '#f59e0b', fontWeight: '600' }}>v{s.agent_version}</span>}
                     </div>
@@ -2523,7 +2593,7 @@ const Dashboard = () => {
         </div>
       ) : (
         /* List / Table view — Docker-style */
-        <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, overflow: 'auto' }}>
+        <div style={{ background: c.card, borderRadius: '12px', border: `1px solid ${c.border}`, overflow: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', minWidth: '900px' }}>
             <thead>
               <tr style={{ background: darkMode ? '#0f172a' : '#f1f5f9', borderBottom: `2px solid ${c.border}` }}>
@@ -2574,7 +2644,7 @@ const Dashboard = () => {
                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0, background: s.online ? '#22c55e' : '#ef4444', boxShadow: s.online ? '0 0 5px #22c55e80' : 'none' }} />
                         <div>
                           <div onClick={() => handleServerClick(s)} style={{ fontWeight: '600', fontSize: '13px', cursor: 'pointer' }} title="Click to manage">{String(s.name || '')}</div>
-                          <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace' }}>{String(s.host || '')}</div>
+                          <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"JetBrains Mono", monospace' }}>{String(s.host || '')}</div>
                         </div>
                       </div>
                     </td>
@@ -2588,7 +2658,7 @@ const Dashboard = () => {
                     {/* State */}
                     <td style={styles.td}>
                       <span style={{
-                        display: 'inline-block', padding: '2px 10px', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', fontSize: '11px', fontWeight: '700',
+                        display: 'inline-block', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '700',
                         background: s.online ? '#22c55e18' : '#ef444418',
                         color: s.online ? '#22c55e' : '#ef4444',
                         border: `1px solid ${s.online ? '#22c55e40' : '#ef444440'}`
@@ -2623,24 +2693,24 @@ const Dashboard = () => {
                       ) : <span style={{ fontSize: '11px', color: c.textMuted }}>—</span>}
                     </td>
                     {/* IP */}
-                    <td style={{ ...styles.td, fontFamily: '"Hack", "Courier New", monospace', fontSize: '12px', color: c.textMuted }}>{s.host}</td>
+                    <td style={{ ...styles.td, fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', color: c.textMuted }}>{s.host}</td>
                     {/* Agent Version */}
                     <td style={styles.td}>
                       {s.agent_version ? (
-                        <span style={{ fontSize: '11px', fontFamily: '"Hack","Courier New",monospace', color: s.agent_version === (import.meta.env.VITE_APP_VERSION || '') ? '#22c55e' : '#f59e0b', fontWeight: '600' }}>v{s.agent_version}</span>
+                        <span style={{ fontSize: '11px', fontFamily: '"JetBrains Mono",monospace', color: s.agent_version === (import.meta.env.VITE_APP_VERSION || '') ? '#22c55e' : '#f59e0b', fontWeight: '600' }}>v{s.agent_version}</span>
                       ) : <span style={{ fontSize: '11px', color: c.textMuted, opacity: 0.4 }}>—</span>}
                     </td>
                     {/* Updates */}
                     <td style={styles.td}>
                       {pu?.count > 0
-                        ? <span style={{ background: '#f59e0b18', color: '#f59e0b', fontSize: '11px', padding: '2px 8px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '700', border: '1px solid #f59e0b40', whiteSpace: 'nowrap' }}>↑ {pu.count} pkg</span>
+                        ? <span style={{ background: '#f59e0b18', color: '#f59e0b', fontSize: '11px', padding: '2px 8px', borderRadius: '8px', fontWeight: '700', border: '1px solid #f59e0b40', whiteSpace: 'nowrap' }}>↑ {pu.count} pkg</span>
                         : <span style={{ fontSize: '11px', color: '#22c55e', opacity: 0.7 }}>✓ up to date</span>}
                     </td>
                     {/* Reboot required */}
                     <td style={styles.td}>
                       {pu?.reboot_required ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ background: '#ef444418', color: '#ef4444', fontSize: '11px', padding: '2px 8px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '700', border: '1px solid #ef444440', whiteSpace: 'nowrap' }}>⚠ Required</span>
+                          <span style={{ background: '#ef444418', color: '#ef4444', fontSize: '11px', padding: '2px 8px', borderRadius: '8px', fontWeight: '700', border: '1px solid #ef444440', whiteSpace: 'nowrap' }}>⚠ Required</span>
                           <button onClick={() => promptReboot([{ id: s.id, name: s.name, host: s.host, pending_updates: s.pending_updates }])}
                             style={{ background: '#ef444420', color: '#ef4444', border: '1px solid #ef444440', borderRadius: '6px', padding: '2px 8px', fontSize: '11px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                             ↺ Reboot
@@ -2737,7 +2807,7 @@ const Dashboard = () => {
             </div>
 
             {/* Top stat strip */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '12px' }}>
+            <div className="stats-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '12px' }}>
               {[
                 { label: 'Total Hosts',    value: totalHosts,    color: '#3b82f6', sub: 'registered', icon: '⬡' },
                 { label: 'Online',         value: `${onlineHosts}/${totalHosts}`, color: '#22c55e', sub: `${onlinePct}% reachable`, icon: '◉' },
@@ -2747,7 +2817,7 @@ const Dashboard = () => {
               ].map(s => (
                 <div key={s.label}
                   onClick={() => { if (s.filter) { setServerQuickFilter(s.filter); setStatusFilter('all'); setGroupFilter('all'); setSearchQuery(''); setNavSection('servers'); } }}
-                  style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', padding: '16px 18px', border: `1px solid ${c.border}`, borderTop: `3px solid ${s.color}`, position: 'relative', overflow: 'hidden', cursor: s.filter ? 'pointer' : 'default', transition: 'transform 0.15s, box-shadow 0.15s' }}
+                  style={{ background: c.card, borderRadius: '12px', padding: '16px 18px', border: `1px solid ${c.border}`, borderTop: `3px solid ${s.color}`, position: 'relative', overflow: 'hidden', cursor: s.filter ? 'pointer' : 'default', transition: 'transform 0.15s, box-shadow 0.15s' }}
                   onMouseEnter={e => { if (s.filter) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 8px 24px ${s.color}30`; } }}
                   onMouseLeave={e => { if (s.filter) { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; } }}
                 >
@@ -2761,14 +2831,14 @@ const Dashboard = () => {
             </div>
 
             {/* Second row */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px' }}>
+            <div className="stats-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px' }}>
               {[
                 { label: 'Outdated Packages', value: totalPkgs,  color: '#f97316', icon: '📦' },
                 { label: 'Security Updates',  value: 0,          color: '#ef4444', icon: '🔒' },
                 { label: 'Compliance',        value: `${compliance}/${totalHosts}`, color: compliance === totalHosts ? '#22c55e' : '#f59e0b', icon: '✅' },
                 { label: 'Avg Pkgs / Host',   value: totalHosts > 0 ? Math.round(totalPkgs / totalHosts) : 0, color: '#8b5cf6', icon: '∅' },
               ].map(s => (
-                <div key={s.label} style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', padding: '14px 16px', border: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div key={s.label} style={{ background: c.card, borderRadius: '12px', padding: '14px 16px', border: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '14px' }}>
                   <div style={{ fontSize: '24px', opacity: 0.7, flexShrink: 0 }}>{s.icon}</div>
                   <div>
                     <div style={{ fontSize: '11px', fontWeight: '700', color: c.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</div>
@@ -2779,9 +2849,9 @@ const Dashboard = () => {
             </div>
 
             {/* Charts row */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+            <div className="grid-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
               {/* OS Distribution */}
-              <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', padding: '20px', border: `1px solid ${c.border}` }}>
+              <div style={{ background: c.card, borderRadius: '12px', padding: '20px', border: `1px solid ${c.border}` }}>
                 <div style={{ fontWeight: '700', fontSize: '13px', marginBottom: '14px', color: c.text }}>OS Distribution</div>
                 {totalHosts === 0 ? <div style={{ fontSize: '12px', color: c.textMuted }}>No hosts registered</div> : (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -2809,7 +2879,7 @@ const Dashboard = () => {
               </div>
 
               {/* Update Status */}
-              <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', padding: '20px', border: `1px solid ${c.border}` }}>
+              <div style={{ background: c.card, borderRadius: '12px', padding: '20px', border: `1px solid ${c.border}` }}>
                 <div style={{ fontWeight: '700', fontSize: '13px', marginBottom: '14px', color: c.text }}>Update Status</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {[
@@ -2823,7 +2893,7 @@ const Dashboard = () => {
                         <span style={{ fontSize: '12px', color: c.textMuted }}>{row.label}</span>
                         <span style={{ fontSize: '12px', fontWeight: '700', color: row.color }}>{row.count}</span>
                       </div>
-                      <div style={{ height: '6px', borderRadius: '3px', background: darkMode ? '#1a2d3a' : '#f0f5f8', overflow: 'hidden' }}>
+                      <div style={{ height: '6px', borderRadius: '3px', background: darkMode ? 'rgba(255,255,255,0.05)' : '#f0f5f8', overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${totalHosts > 0 ? (row.count / totalHosts * 100) : 0}%`, background: row.color, borderRadius: '3px', transition: 'width 0.6s ease' }} />
                       </div>
                     </div>
@@ -2836,7 +2906,7 @@ const Dashboard = () => {
               </div>
 
               {/* Online Servers list */}
-              <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', padding: '20px', border: `1px solid ${c.border}`, overflow: 'hidden' }}>
+              <div style={{ background: c.card, borderRadius: '12px', padding: '20px', border: `1px solid ${c.border}`, overflow: 'hidden' }}>
                 <div style={{ fontWeight: '700', fontSize: '13px', marginBottom: '14px', color: c.text }}>Host Status</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto', maxHeight: '200px' }}>
                   {servers.length === 0 && <div style={{ fontSize: '12px', color: c.textMuted }}>No hosts registered</div>}
@@ -2845,7 +2915,7 @@ const Dashboard = () => {
                       <div style={{ width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0, background: s.online ? '#22c55e' : '#ef4444', boxShadow: s.online ? '0 0 4px #22c55e80' : 'none' }} />
                       <span style={{ fontSize: '12px', fontWeight: '600', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(s.name||'')}</span>
                       {s.pending_updates?.reboot_required && <span title="Reboot required" style={{ fontSize: '10px', color: '#ef4444' }}>⚠</span>}
-                      {s.pending_updates?.count > 0 && <span style={{ fontSize: '10px', background: '#f59e0b20', color: '#f59e0b', padding: '1px 5px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', fontWeight: '700' }}>↑{s.pending_updates.count}</span>}
+                      {s.pending_updates?.count > 0 && <span style={{ fontSize: '10px', background: '#f59e0b20', color: '#f59e0b', padding: '1px 5px', borderRadius: '8px', fontWeight: '700' }}>↑{s.pending_updates.count}</span>}
                     </div>
                   ))}
                 </div>
@@ -2854,21 +2924,21 @@ const Dashboard = () => {
 
             {/* Servers needing updates */}
             {needsUpdate > 0 && (
-              <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', padding: '20px', border: `1px solid ${c.border}` }}>
+              <div style={{ background: c.card, borderRadius: '12px', padding: '20px', border: `1px solid ${c.border}` }}>
                 <div style={{ fontWeight: '700', fontSize: '13px', marginBottom: '12px', color: c.text }}>Servers Needing Updates</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {servers.filter(s => s.pending_updates?.count > 0).map(s => (
-                    <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', background: darkMode ? '#0d1820' : '#f0f5f8', border: `1px solid ${c.border}` }}>
+                    <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderRadius: '8px', background: darkMode ? '#0F0F0F' : '#f0f5f8', border: `1px solid ${c.border}` }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: s.online ? '#22c55e' : '#ef4444', boxShadow: s.online ? '0 0 4px #22c55e80' : 'none' }} />
                         <div>
                           <div style={{ fontWeight: '600', fontSize: '13px' }}>{String(s.name||'')}</div>
-                          <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace' }}>{s.host}</div>
+                          <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"JetBrains Mono", monospace' }}>{s.host}</div>
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        {s.pending_updates.reboot_required && <span style={{ background: '#ef444418', color: '#ef4444', fontSize: '10px', padding: '1px 7px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', fontWeight: '700', border: '1px solid #ef444440' }}>⚠ Reboot</span>}
-                        <span style={{ background: '#f59e0b18', color: '#f59e0b', fontSize: '11px', padding: '2px 8px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '700', border: '1px solid #f59e0b40' }}>↑ {s.pending_updates.count} pkg</span>
+                        {s.pending_updates.reboot_required && <span style={{ background: '#ef444418', color: '#ef4444', fontSize: '10px', padding: '1px 7px', borderRadius: '8px', fontWeight: '700', border: '1px solid #ef444440' }}>⚠ Reboot</span>}
+                        <span style={{ background: '#f59e0b18', color: '#f59e0b', fontSize: '11px', padding: '2px 8px', borderRadius: '8px', fontWeight: '700', border: '1px solid #f59e0b40' }}>↑ {s.pending_updates.count} pkg</span>
                         <button onClick={() => { handleServerClick(s); }} style={{ ...styles.iconBtn, background: '#3b82f618', color: '#3b82f6', border: '1px solid #3b82f630', fontSize: '11px' }}>Manage</button>
                       </div>
                     </div>
@@ -2886,7 +2956,7 @@ const Dashboard = () => {
         <div style={{ width: '100%' }}>
           {/* Top row: Network Scan + Speed Test side by side */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '16px' }}>
-          <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, padding: '20px' }}>
+          <div style={{ background: c.card, borderRadius: '12px', border: `1px solid ${c.border}`, padding: '20px' }}>
             <h3 style={{ ...styles.cardTitle, marginBottom: '16px' }}>Network Scan</h3>
             <div style={styles.formRow}>
               <div style={styles.inputGroup}>
@@ -2898,7 +2968,7 @@ const Dashboard = () => {
           </div>
 
           {/* Speed Test */}
-          <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, padding: '20px' }}>
+          <div style={{ background: c.card, borderRadius: '12px', border: `1px solid ${c.border}`, padding: '20px' }}>
             {(() => {
               const selSrv = servers.find(s => s.id === repoTestServer);
               const isWin = selSrv ? String(selSrv.platform || '').toLowerCase().includes('windows') : false;
@@ -2922,7 +2992,7 @@ const Dashboard = () => {
               {repoTestLoading && <div style={{ width: '14px', height: '14px', border: `2px solid ${c.primary}40`, borderTopColor: c.primary, borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />}
             </div>
             {repoTestResult && (
-              <div style={{ marginTop: '12px', background: darkMode ? '#0d1820' : '#f0f5f8', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', padding: '10px 14px', fontFamily: '"Hack", "Courier New", monospace', fontSize: '12px', color: c.text, whiteSpace: 'pre-wrap', border: `1px solid ${c.border}` }}>
+              <div style={{ marginTop: '12px', background: darkMode ? '#0F0F0F' : '#f0f5f8', borderRadius: '8px', padding: '10px 14px', fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', color: c.text, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflow: 'auto', border: `1px solid ${c.border}` }}>
                 {repoTestResult}
               </div>
             )}
@@ -2930,7 +3000,7 @@ const Dashboard = () => {
           </div>{/* end top grid */}
 
           {/* Ping Monitor — full width */}
-          <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, padding: '20px' }}>
+          <div style={{ background: c.card, borderRadius: '12px', border: `1px solid ${c.border}`, padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
               <h3 style={{ ...styles.cardTitle, margin: 0 }}>Probe Monitor</h3>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -3053,7 +3123,7 @@ const Dashboard = () => {
                     const tip = probeTooltip(r);
                     return (
                       <div key={srv.id} onClick={() => setPingSelected(prev => prev.includes(srv.id) ? prev.filter(x => x !== srv.id) : [...prev, srv.id])}
-                        style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', cursor: 'pointer',
+                        style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', borderRadius: '8px', cursor: 'pointer',
                           background: selected ? (darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.05)') : (darkMode ? '#0f172a' : '#f8fafc'),
                           border: `1px solid ${selected ? c.primary + '60' : c.border}`, transition: 'all 0.15s' }}>
                         {/* Checkbox */}
@@ -3065,18 +3135,18 @@ const Dashboard = () => {
                         {/* Server info */}
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: '13px', fontWeight: '600', color: c.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(srv.name || srv.host)}</div>
-                          <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace' }}>{srv.host}{probeType === 'db' ? ` · ${probeDb}` : probeType === 'tcp' || probeType === 'udp' ? ` · ${probeType.toUpperCase()}:${probePort || '?'}` : ''}</div>
+                          <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"JetBrains Mono", monospace' }}>{srv.host}{probeType === 'db' ? ` · ${probeDb}` : probeType === 'tcp' || probeType === 'udp' ? ` · ${probeType.toUpperCase()}:${probePort || '?'}` : ''}</div>
                         </div>
                         {/* Result + tooltip */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                           <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '13px', fontWeight: '700', fontFamily: '"Hack", "Courier New", monospace', color }}>{resultLabel(r)}</div>
+                            <div style={{ fontSize: '13px', fontWeight: '700', fontFamily: '"JetBrains Mono", monospace', color }}>{resultLabel(r)}</div>
                             {r?.ts && <div style={{ fontSize: '10px', color: c.textMuted }}>{r.ts}</div>}
                           </div>
                           {tip && (
                             <div className="probe-info-wrap" style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
                               <div className="probe-info-icon" style={{ width: '16px', height: '16px', borderRadius: '50%', background: darkMode ? '#334155' : '#e2e8f0', color: c.textMuted, fontSize: '10px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'help', userSelect: 'none' }}>ⓘ</div>
-                              <div className="probe-tooltip" style={{ display: 'none', position: 'absolute', right: 0, bottom: '22px', width: '260px', background: darkMode ? '#1e293b' : '#fff', border: `1px solid ${c.border}`, clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', padding: '10px 12px', fontSize: '12px', color: c.text, lineHeight: '1.5', boxShadow: '0 8px 24px rgba(0,0,0,0.2)', zIndex: 100 }}>
+                              <div className="probe-tooltip" style={{ display: 'none', position: 'absolute', right: 0, bottom: '22px', width: '260px', background: darkMode ? '#1e293b' : '#fff', border: `1px solid ${c.border}`, borderRadius: '8px', padding: '10px 12px', fontSize: '12px', color: c.text, lineHeight: '1.5', boxShadow: '0 8px 24px rgba(0,0,0,0.2)', zIndex: 100 }}>
                                 {tip}
                               </div>
                             </div>
@@ -3103,12 +3173,12 @@ const Dashboard = () => {
             {/* Summary cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '24px' }}>
               {[
-                { label: 'Total Agents', value: servers.length, color: '#A8987C', icon: '◈' },
+                { label: 'Total Agents', value: servers.length, color: '#10b981', icon: '◈' },
                 { label: 'Online', value: onlineAgents.length, color: '#22c55e', icon: '◉' },
                 { label: 'Need Update', value: outdatedAgents.length, color: outdatedAgents.length > 0 ? '#f59e0b' : '#22c55e', icon: '↑' },
                 { label: 'Latest Version', value: `v${appVersion}`, color: '#4888e8', icon: '⬡' },
               ].map(card => (
-                <div key={card.label} style={{ padding: '16px 18px', background: darkMode ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.04)', border: `1px solid ${card.color}30`, clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)' }}>
+                <div key={card.label} style={{ padding: '16px 18px', background: darkMode ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.04)', border: `1px solid ${card.color}30`, borderRadius: '12px' }}>
                   <div style={{ fontSize: '9px', letterSpacing: '0.18em', color: c.textMuted, marginBottom: '6px' }}>{card.label}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '16px' }}>{card.icon}</span>
@@ -3148,7 +3218,7 @@ const Dashboard = () => {
                 const isOutdated = version && version !== appVersion && version !== '?';
                 const isOnline = s.online;
                 return (
-                  <div key={s.id} style={{ border: `1px solid ${c.border}`, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', overflow: 'hidden', background: c.card }}>
+                  <div key={s.id} style={{ border: `1px solid ${c.border}`, borderRadius: '12px', overflow: 'hidden', background: c.card }}>
                     {/* Agent row */}
                     <div style={{ display: 'flex', alignItems: 'center', padding: '14px 18px', gap: '14px' }}>
                       {/* Checkbox */}
@@ -3157,14 +3227,14 @@ const Dashboard = () => {
                           const next = new Set(prev);
                           next.has(s.id) ? next.delete(s.id) : next.add(s.id);
                           return next;
-                        })} style={{ width: '16px', height: '16px', cursor: 'pointer', flexShrink: 0, accentColor: '#A8987C' }} />
+                        })} style={{ width: '16px', height: '16px', cursor: 'pointer', flexShrink: 0, accentColor: '#10b981' }} />
                       )}
                       {/* Status dot */}
                       <div style={{ width: '10px', height: '10px', borderRadius: '50%', flexShrink: 0, background: isOnline ? '#22c55e' : '#ef4444', boxShadow: isOnline ? '0 0 6px #22c55e80' : 'none' }} />
                       {/* Name & IP */}
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div onClick={() => handleServerClick(s)} style={{ fontWeight: '700', fontSize: '14px', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(s.name || '')}</div>
-                        <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"Hack","Courier New",monospace' }}>{s.host}</div>
+                        <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"JetBrains Mono",monospace' }}>{s.host}</div>
                       </div>
                       {/* Platform badge */}
                       <span style={{ fontSize: '11px', padding: '2px 10px', background: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', color: c.textMuted, borderRadius: '20px', flexShrink: 0 }}>
@@ -3183,7 +3253,7 @@ const Dashboard = () => {
                         {!isOnline ? (
                           <span style={{ fontSize: '11px', color: '#ef4444', fontWeight: '600' }}>Offline</span>
                         ) : isOutdated ? (
-                          <span style={{ fontSize: '11px', color: '#f59e0b', fontWeight: '700', background: '#f59e0b18', padding: '1px 8px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', border: '1px solid #f59e0b40' }}>↑ Update available</span>
+                          <span style={{ fontSize: '11px', color: '#f59e0b', fontWeight: '700', background: '#f59e0b18', padding: '1px 8px', borderRadius: '8px', border: '1px solid #f59e0b40' }}>↑ Update available</span>
                         ) : (
                           <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: '600' }}>✓ Up to date</span>
                         )}
@@ -3222,7 +3292,7 @@ const Dashboard = () => {
                           ].filter(r => r.value).map(row => (
                             <div key={row.label} style={{ display: 'flex', gap: '8px', padding: '6px 10px', background: darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', borderRadius: '4px' }}>
                               <span style={{ fontSize: '11px', color: c.textMuted, fontWeight: '600', whiteSpace: 'nowrap' }}>{row.label}:</span>
-                              <span style={{ fontSize: '11px', color: c.text, fontFamily: '"Hack","Courier New",monospace', wordBreak: 'break-all' }}>{row.value || '—'}</span>
+                              <span style={{ fontSize: '11px', color: c.text, fontFamily: '"JetBrains Mono",monospace', wordBreak: 'break-all' }}>{row.value || '—'}</span>
                             </div>
                           ))}
                         </div>
@@ -3248,7 +3318,7 @@ const Dashboard = () => {
 
       {/* ── UPDATES section ── */}
       {navSection === 'updates' && (() => {
-        const updServers = servers.filter(s => s.pending_updates?.count > 0);
+        const updServers = servers.filter(s => s.pending_updates?.count > 0 || upgradedServerIds.has(s.id));
         const selUpdates = selectedServers.filter(id => updServers.some(s => s.id === id));
         const allUpdSelected = updServers.length > 0 && updServers.every(s => selectedServers.includes(s.id));
         return (
@@ -3285,19 +3355,21 @@ const Dashboard = () => {
                 }} disabled={bulkActionLoading} style={{ ...styles.btn, ...styles.btnSecondary, fontSize: '12px' }}>
                   ↺ Sync Updates
                 </button>
-                {isAdmin && (
-                  <button onClick={updateAllAgents} disabled={updatingAgents}
-                    title="Push latest agent to all online servers"
-                    style={{ ...styles.btn, ...styles.btnSecondary, fontSize: '12px' }}>
-                    {updatingAgents ? '⟳ Updating...' : '⬆ Update All Agents'}
-                  </button>
-                )}
                 {selUpdates.length > 0 && (
                   <button onClick={() => upgradeServers(selUpdates)} disabled={bulkActionLoading}
                     style={{ ...styles.btn, background: '#22c55e', color: '#fff', border: 'none', fontSize: '12px' }}>
                     {bulkActionLoading ? 'Upgrading...' : `↑ Upgrade ${selUpdates.length} Server${selUpdates.length > 1 ? 's' : ''}`}
                   </button>
                 )}
+                {(() => {
+                  const rebootable = selUpdates.filter(id => upgradedServerIds.has(id) || servers.find(s => s.id === id)?.pending_updates?.reboot_required);
+                  return rebootable.length > 0 && (
+                    <button onClick={() => promptReboot(rebootable.map(id => { const s = servers.find(x => x.id === id); return { id, name: s?.name, host: s?.host, pending_updates: s?.pending_updates }; }))}
+                      style={{ ...styles.btn, background: '#ef444420', color: '#ef4444', border: '1px solid #ef444440', fontSize: '12px' }}>
+                      ↺ Reboot {rebootable.length} Server{rebootable.length > 1 ? 's' : ''}
+                    </button>
+                  );
+                })()}
               </div>
             </div>
 
@@ -3305,12 +3377,12 @@ const Dashboard = () => {
             {bulkProgress.length > 0 && (
               <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {bulkProgress.map(p => (
-                  <div key={p.id} style={{ background: darkMode ? '#0d1820' : '#f0f5f8', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', padding: '10px 14px', border: `1px solid ${c.border}` }}>
+                  <div key={p.id} style={{ background: darkMode ? '#0F0F0F' : '#f0f5f8', borderRadius: '8px', padding: '10px 14px', border: `1px solid ${c.border}` }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.status === 'done' ? '#22c55e' : p.status === 'error' ? '#ef4444' : p.status === 'running' ? '#f59e0b' : c.border, animation: p.status === 'running' ? 'pulse 1s infinite' : 'none' }} />
                         <span style={{ fontWeight: '600', fontSize: '13px' }}>{p.name}</span>
-                        <span style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace' }}>{p.host}</span>
+                        <span style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"JetBrains Mono", monospace' }}>{p.host}</span>
                       </div>
                       <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: p.status === 'done' ? '#22c55e' : p.status === 'error' ? '#ef4444' : p.status === 'running' ? '#f59e0b' : c.textMuted }}>{p.status}</span>
                     </div>
@@ -3318,7 +3390,7 @@ const Dashboard = () => {
                       <div style={{ height: '100%', width: p.status === 'pending' ? '0%' : p.status === 'running' ? '60%' : '100%', borderRadius: '3px', background: p.status === 'done' ? 'linear-gradient(90deg,#22c55e,#10b981)' : p.status === 'error' ? '#ef4444' : 'linear-gradient(90deg,#f59e0b,#fbbf24)', transition: p.status !== 'running' ? 'width 0.5s' : 'none', animation: p.status === 'running' ? 'shimmer 1.5s linear infinite' : 'none', backgroundSize: '200% 100%' }} />
                     </div>
                     {p.output && p.status !== 'pending' && (
-                      <div style={{ marginTop: '6px', fontSize: '11px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace', whiteSpace: 'pre-wrap', maxHeight: '60px', overflowY: 'auto', background: darkMode ? '#020617' : '#f1f5f9', borderRadius: '4px', padding: '4px 8px' }}>
+                      <div style={{ marginTop: '6px', fontSize: '11px', color: c.textMuted, fontFamily: '"JetBrains Mono", monospace', whiteSpace: 'pre-wrap', maxHeight: '60px', overflowY: 'auto', background: darkMode ? '#020617' : '#f1f5f9', borderRadius: '4px', padding: '4px 8px' }}>
                         {p.output.length > 400 ? p.output.slice(0, 400) + '\n…' : p.output}
                       </div>
                     )}
@@ -3332,31 +3404,48 @@ const Dashboard = () => {
               : updServers.map(s => {
                 const isSelected = selectedServers.includes(s.id);
                 return (
-                  <div key={s.id} style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${isSelected ? c.primary : c.border}`, marginBottom: '12px', overflow: 'hidden', transition: 'border-color 0.15s' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 18px', borderBottom: `1px solid ${c.border}`, background: darkMode ? '#0d1820' : '#f0f5f8' }}>
+                  <div key={s.id} style={{ background: c.card, borderRadius: '12px', border: `1px solid ${isSelected ? c.primary : c.border}`, marginBottom: '12px', overflow: 'hidden', transition: 'border-color 0.15s' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 18px', borderBottom: `1px solid ${c.border}`, background: darkMode ? '#0F0F0F' : '#f0f5f8' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <input type="checkbox" checked={isSelected} onChange={() => toggleServerSelection(s.id)} style={{ width: '14px', height: '14px', cursor: 'pointer', accentColor: c.primary }} />
                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: s.online ? '#22c55e' : '#ef4444', boxShadow: s.online ? '0 0 5px #22c55e80' : 'none' }} />
                         <div>
                           <span style={{ fontWeight: '700', fontSize: '14px' }}>{String(s.name||'')}</span>
-                          <span style={{ fontSize: '12px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace', marginLeft: '8px' }}>{s.host}</span>
+                          <span style={{ fontSize: '12px', color: c.textMuted, fontFamily: '"JetBrains Mono", monospace', marginLeft: '8px' }}>{s.host}</span>
                         </div>
-                        {s.pending_updates?.reboot_required && <span style={{ background: '#ef444418', color: '#ef4444', fontSize: '10px', padding: '1px 7px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', fontWeight: '700', border: '1px solid #ef444440' }}>⚠ Reboot after</span>}
+                        {!s.online && <span style={{ background: '#ef444418', color: '#ef4444', fontSize: '10px', padding: '1px 7px', borderRadius: '8px', fontWeight: '700', border: '1px solid #ef444440' }}>Offline</span>}
+                        {s.pending_updates?.reboot_required && <span style={{ background: '#ef444418', color: '#ef4444', fontSize: '10px', padding: '1px 7px', borderRadius: '8px', fontWeight: '700', border: '1px solid #ef444440' }}>⚠ Reboot required</span>}
+                        {upgradedServerIds.has(s.id) && !s.pending_updates?.reboot_required && (s.pending_updates?.count || 0) === 0 && <span style={{ background: '#22c55e18', color: '#22c55e', fontSize: '10px', padding: '1px 7px', borderRadius: '8px', fontWeight: '700', border: '1px solid #22c55e40' }}>✓ Updated</span>}
                       </div>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <span style={{ background: '#f59e0b18', color: '#f59e0b', fontSize: '12px', padding: '3px 10px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '700', border: '1px solid #f59e0b40' }}>↑ {s.pending_updates.count} pkg</span>
-                        {s.online && (
+                        {(s.pending_updates?.count || 0) > 0 && (
+                          <span style={{ background: '#f59e0b18', color: '#f59e0b', fontSize: '12px', padding: '3px 10px', borderRadius: '8px', fontWeight: '700', border: '1px solid #f59e0b40' }}>↑ {s.pending_updates.count} pkg</span>
+                        )}
+                        {s.online && (s.pending_updates?.count || 0) > 0 && (
                           <button onClick={() => upgradeServers([s.id])} disabled={bulkActionLoading}
                             style={{ ...styles.btn, background: '#22c55e', color: '#fff', border: 'none', padding: '5px 14px', fontSize: '12px' }}>
                             Upgrade
+                          </button>
+                        )}
+                        {(upgradedServerIds.has(s.id) || s.pending_updates?.reboot_required) && (
+                          <button onClick={() => promptReboot([{ id: s.id, name: s.name, host: s.host, pending_updates: s.pending_updates }])}
+                            disabled={!s.online}
+                            style={{ ...styles.btn, background: '#ef444420', color: '#ef4444', border: '1px solid #ef444440', padding: '5px 14px', fontSize: '12px', opacity: s.online ? 1 : 0.5, cursor: s.online ? 'pointer' : 'not-allowed' }}>
+                            ↺ Reboot
+                          </button>
+                        )}
+                        {upgradedServerIds.has(s.id) && (s.pending_updates?.count || 0) === 0 && (
+                          <button onClick={() => { setUpgradedServerIds(prev => { const n = new Set(prev); n.delete(s.id); return n; }); }}
+                            style={{ ...styles.btn, ...styles.btnSecondary, padding: '5px 12px', fontSize: '12px' }}>
+                            ✕ Dismiss
                           </button>
                         )}
                         <button onClick={() => handleServerClick(s)} style={{ ...styles.btn, ...styles.btnSecondary, padding: '5px 12px', fontSize: '12px' }}>Manage</button>
                       </div>
                     </div>
                     <div style={{ padding: '10px 18px', display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                      {s.pending_updates.packages?.map((pkg, i) => (
-                        <span key={i} style={{ background: c.cardHover, fontSize: '11px', fontFamily: '"Hack", "Courier New", monospace', padding: '2px 8px', borderRadius: '4px', color: c.textMuted }}>{pkg}</span>
+                      {(s.pending_updates?.packages || []).map((pkg, i) => (
+                        <span key={i} style={{ background: c.cardHover, fontSize: '11px', fontFamily: '"JetBrains Mono", monospace', padding: '2px 8px', borderRadius: '4px', color: c.textMuted }}>{pkg}</span>
                       ))}
                     </div>
                   </div>
@@ -3370,7 +3459,7 @@ const Dashboard = () => {
       {navSection === 'logs' && (
         <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '16px', height: 'calc(100vh - 120px)' }}>
           {/* Server list */}
-          <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid ${c.border}`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <div style={{ padding: '12px 14px', borderBottom: `1px solid ${c.border}`, fontSize: '12px', fontWeight: '700', color: c.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Online Servers</div>
             <div style={{ overflowY: 'auto', flex: 1 }}>
               {servers.filter(s => s.online).length === 0 && <div style={{ padding: '20px', fontSize: '13px', color: c.textMuted }}>No servers online</div>}
@@ -3381,7 +3470,7 @@ const Dashboard = () => {
                     <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 5px #22c55e80', flexShrink: 0 }} />
                     <div>
                       <div style={{ fontSize: '13px', fontWeight: '600' }}>{String(s.name || '')}</div>
-                      <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace' }}>{s.host}</div>
+                      <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"JetBrains Mono", monospace' }}>{s.host}</div>
                     </div>
                   </div>
                 </div>
@@ -3390,7 +3479,7 @@ const Dashboard = () => {
           </div>
 
           {/* Log viewer panel */}
-          <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {!logsServer ? (
               <div style={styles.empty}>
                 <div style={{ fontSize: '36px', opacity: 0.3, marginBottom: '12px' }}>📋</div>
@@ -3401,7 +3490,7 @@ const Dashboard = () => {
                 {/* Top bar */}
                 <div style={{ padding: '10px 14px', borderBottom: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '10px', background: darkMode ? 'rgba(15,23,42,0.5)' : 'rgba(248,250,252,0.7)', flexWrap: 'wrap' }}>
                   <span style={{ fontWeight: '600', fontSize: '13px', marginRight: '4px' }}>{logsServer.name}</span>
-                  <span style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace' }}>{logsServer.host}</span>
+                  <span style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"JetBrains Mono", monospace' }}>{logsServer.host}</span>
                   <div style={{ marginLeft: 'auto', fontSize: '11px', color: c.textMuted, letterSpacing: '0.05em' }}>📄 Log Files</div>
                   {logsSelectedItem && (
                     <>
@@ -3432,7 +3521,7 @@ const Dashboard = () => {
                   </div>
 
                   {/* Log content */}
-                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: darkMode ? '#0d1117' : '#f8fafc' }}>
+                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: darkMode ? '#0F0F0F' : '#f8fafc' }}>
                     {!logsSelectedItem && (
                       <div style={styles.empty}>
                         <div style={{ fontSize: '28px', opacity: 0.3, marginBottom: '8px' }}>📄</div>
@@ -3444,7 +3533,7 @@ const Dashboard = () => {
                     )}
                     {logsSelectedItem && !logsContentLoading && (
                       <pre ref={logsOutputRef}
-                        style={{ flex: 1, margin: 0, padding: '14px 16px', fontFamily: '"Cascadia Code", "Source Code Pro", Menlo, monospace', fontSize: '12px', color: darkMode ? '#c9d1d9' : '#1e293b', overflowY: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: 1.5 }}>
+                        style={{ flex: 1, margin: 0, padding: '14px 16px', fontFamily: '"Cascadia Code", "Source Code Pro", Menlo, monospace', fontSize: '12px', color: darkMode ? '#E4E3E0' : '#1e293b', overflowY: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: 1.5 }}>
                         {logsContent}
                       </pre>
                     )}
@@ -3460,7 +3549,7 @@ const Dashboard = () => {
       {navSection === 'shell' && (
         <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '16px', margin: '-24px', height: 'calc(100vh - 68px)' }}>
           {/* Server list */}
-          <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid ${c.border}`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <div style={{ padding: '12px 14px', borderBottom: `1px solid ${c.border}`, fontSize: '12px', fontWeight: '700', color: c.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Servers</div>
             <div style={{ overflowY: 'auto', flex: 1 }}>
               {servers.filter(s => !String(s.platform || '').toLowerCase().includes('windows')).length === 0 && <div style={{ padding: '20px', fontSize: '13px', color: c.textMuted }}>No Linux servers</div>}
@@ -3471,7 +3560,7 @@ const Dashboard = () => {
                     <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: s.online ? '#22c55e' : '#ef4444', boxShadow: s.online ? '0 0 5px #22c55e80' : 'none', flexShrink: 0 }} />
                     <div>
                       <div style={{ fontSize: '13px', fontWeight: '600' }}>{String(s.name || '')}</div>
-                      <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace' }}>{s.host}</div>
+                      <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"JetBrains Mono", monospace' }}>{s.host}</div>
                     </div>
                   </div>
                 </div>
@@ -3480,7 +3569,7 @@ const Dashboard = () => {
           </div>
 
           {/* Terminal panel */}
-          <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ background: darkMode ? 'rgba(30,41,59,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {!shellServer ? (
               <div style={styles.empty}>
                 <div style={{ fontSize: '36px', opacity: 0.3, marginBottom: '12px' }}>⌨</div>
@@ -3531,14 +3620,14 @@ const Dashboard = () => {
                   {shellAuthMethod === 'key_upload' && (
                     <textarea value={shellKeyContent} onChange={e => setShellKeyContent(e.target.value)}
                       placeholder="-----BEGIN OPENSSH PRIVATE KEY-----..."
-                      style={{ ...styles.input, width: '100%', boxSizing: 'border-box', minHeight: '60px', fontFamily: '"Hack", "Courier New", monospace', fontSize: '11px', marginTop: '8px' }} />
+                      style={{ ...styles.input, width: '100%', boxSizing: 'border-box', minHeight: '60px', fontFamily: '"JetBrains Mono", monospace', fontSize: '11px', marginTop: '8px' }} />
                   )}
                 </div>
 
                 {/* Terminal — always rendered, shows placeholder when not connected */}
                 <div style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex', flexDirection: 'column' }}>
                   {shellSessionKey === 0 && (
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0d1117', color: '#475569', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0F0F0F', color: '#475569', flexDirection: 'column', gap: '8px' }}>
                       <div style={{ fontSize: '28px', opacity: 0.3 }}>⌨</div>
                       <div style={{ fontSize: '13px' }}>Press Connect to start session</div>
                     </div>
@@ -3564,7 +3653,7 @@ const Dashboard = () => {
         </div>
       )}
       {navSection === 'activity' && (
-        <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, padding: '20px' }}>
+        <div style={{ background: c.card, borderRadius: '12px', border: `1px solid ${c.border}`, padding: '20px' }}>
           <h3 style={{ ...styles.cardTitle, marginBottom: '16px' }}>Connected Agents</h3>
           {servers.filter(s=>s.online).map(s => (
             <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: `1px solid ${c.border}20` }}>
@@ -3572,7 +3661,7 @@ const Dashboard = () => {
                 <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 5px #22c55e80' }} />
                 <span style={{ fontWeight: '600' }}>{String(s.name||'')}</span>
               </div>
-              <span style={{ fontFamily: '"Hack", "Courier New", monospace', fontSize: '12px', color: c.textMuted }}>{s.host}</span>
+              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', color: c.textMuted }}>{s.host}</span>
             </div>
           ))}
           {servers.filter(s=>s.online).length === 0 && <div style={{ fontSize: '13px', color: c.textMuted }}>No agents currently connected.</div>}
@@ -3583,7 +3672,7 @@ const Dashboard = () => {
       {/* ── SETTINGS section ── */}
       {navSection === 'settings' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, padding: '20px' }}>
+          <div style={{ background: c.card, borderRadius: '12px', border: `1px solid ${c.border}`, padding: '20px' }}>
             <h3 style={{ ...styles.cardTitle, marginBottom: '18px' }}>Branding</h3>
 
             {/* Logo upload */}
@@ -3628,7 +3717,7 @@ const Dashboard = () => {
             </div>
           </div>
           {isAdmin && (
-            <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, padding: '20px' }}>
+            <div style={{ background: c.card, borderRadius: '12px', border: `1px solid ${c.border}`, padding: '20px' }}>
               <h3 style={{ ...styles.cardTitle, marginBottom: '4px' }}>User Management</h3>
               <div style={{ fontSize: '12px', color: c.textMuted, marginBottom: '16px' }}>Manage who can access ServerCTL</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 140px auto', gap: '10px', marginBottom: '16px', alignItems: 'end' }}>
@@ -3660,7 +3749,7 @@ const Dashboard = () => {
                     <tr key={u.username} style={{ borderBottom: `1px solid ${c.border}20` }}>
                       <td style={styles.td}><strong>{u.username}</strong> {u.username === user?.username && <span style={{ fontSize: '11px', color: '#3b82f6' }}>(you)</span>}</td>
                       <td style={styles.td}>
-                        <span style={{ background: u.role === 'admin' ? '#3b82f620' : '#22c55e20', color: u.role === 'admin' ? '#3b82f6' : '#22c55e', padding: '2px 8px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontSize: '12px', fontWeight: '600' }}>{u.role}</span>
+                        <span style={{ background: u.role === 'admin' ? '#3b82f620' : '#22c55e20', color: u.role === 'admin' ? '#3b82f6' : '#22c55e', padding: '2px 8px', borderRadius: '8px', fontSize: '12px', fontWeight: '600' }}>{u.role}</span>
                       </td>
                       <td style={styles.td}>
                         {u.username !== user?.username && (
@@ -3673,10 +3762,10 @@ const Dashboard = () => {
               </table>
             </div>
           )}
-          <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, padding: '20px' }}>
+          <div style={{ background: c.card, borderRadius: '12px', border: `1px solid ${c.border}`, padding: '20px' }}>
             <h3 style={{ ...styles.cardTitle, marginBottom: '12px' }}>Account</h3>
             <div style={{ fontSize: '13px', marginBottom: '8px' }}><span style={{ color: c.textMuted }}>Logged in as:</span> <strong>{user?.username}</strong></div>
-            <div style={{ fontSize: '13px', marginBottom: '16px' }}><span style={{ color: c.textMuted }}>Role:</span> <span style={{ background: isAdmin ? '#3b82f620' : '#22c55e20', color: isAdmin ? '#3b82f6' : '#22c55e', padding: '1px 8px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '600' }}>{user?.role}</span></div>
+            <div style={{ fontSize: '13px', marginBottom: '16px' }}><span style={{ color: c.textMuted }}>Role:</span> <span style={{ background: isAdmin ? '#3b82f620' : '#22c55e20', color: isAdmin ? '#3b82f6' : '#22c55e', padding: '1px 8px', borderRadius: '8px', fontWeight: '600' }}>{user?.role}</span></div>
             <button onClick={handleLogout} style={{ ...styles.btn, background: '#fee2e2', color: '#dc2626', border: 'none' }}>Sign Out</button>
           </div>
         </div>
@@ -3693,21 +3782,21 @@ const Dashboard = () => {
         const Row = ({ label, value }) => (
           <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: '8px', padding: '6px 0', borderBottom: `1px solid ${c.border}15` }}>
             <div style={{ fontSize: '12px', color: c.textMuted, fontWeight: '500' }}>{label}</div>
-            <div style={{ fontSize: '13px', color: c.text, fontFamily: '"Hack", "Courier New", monospace', wordBreak: 'break-all' }}>{value || '—'}</div>
+            <div style={{ fontSize: '13px', color: c.text, fontFamily: '"JetBrains Mono", monospace', wordBreak: 'break-all' }}>{value || '—'}</div>
           </div>
         );
         return (
           <div>
             {/* Server header bar */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', padding: '12px 16px', background: darkMode ? 'rgba(30,41,59,0.7)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', padding: '12px 16px', background: darkMode ? 'rgba(30,41,59,0.7)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', borderRadius: '12px', border: `1px solid ${c.border}` }}>
               <button onClick={() => { setSelectedServer(null); setNavSection('servers'); }} style={{ ...styles.btn, ...styles.btnSecondary, padding: '5px 12px', fontSize: '12px', flexShrink: 0 }}>← Back</button>
               <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: selectedServer.online ? '#22c55e' : '#ef4444', boxShadow: selectedServer.online ? '0 0 8px #22c55e80' : 'none', flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: '700', fontSize: '15px' }}>{String(selectedServer.name || '')}</div>
-                <div style={{ color: c.textMuted, fontSize: '12px', fontFamily: '"Hack", "Courier New", monospace' }}>{String(selectedServer.host || '')} · {String(selectedServer.platform || 'Linux')}</div>
+                <div style={{ color: c.textMuted, fontSize: '12px', fontFamily: '"JetBrains Mono", monospace' }}>{String(selectedServer.host || '')} · {String(selectedServer.platform || 'Linux')}</div>
               </div>
               {selectedServer.pending_updates?.count > 0 && (
-                <span style={{ background: '#f59e0b20', color: '#f59e0b', fontSize: '11px', padding: '2px 8px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '700', border: '1px solid #f59e0b40', flexShrink: 0 }}>↑ {selectedServer.pending_updates.count} updates</span>
+                <span style={{ background: '#f59e0b20', color: '#f59e0b', fontSize: '11px', padding: '2px 8px', borderRadius: '8px', fontWeight: '700', border: '1px solid #f59e0b40', flexShrink: 0 }}>↑ {selectedServer.pending_updates.count} updates</span>
               )}
               {isAdmin && <button onClick={() => handleDelete(selectedServer.id)} style={{ ...styles.btn, background: '#fee2e220', color: '#ef4444', border: '1px solid #ef444430', padding: '5px 12px', fontSize: '12px', flexShrink: 0 }}>Delete</button>}
             </div>
@@ -3717,13 +3806,13 @@ const Dashboard = () => {
               const sm = serverMetricsMap[selectedServer.id];
               if (!sm) return null;
               return (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '16px' }}>
+                <div className="grid-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '16px' }}>
                   {[
                     { label: 'CPU', val: sm.cpu_percent, unit: '%', color: '#3b82f6' },
                     { label: 'RAM', val: sm.ram_percent, unit: '%', sub: `${sm.ram_used_gb}/${sm.ram_total_gb} GB`, color: '#8b5cf6' },
                     { label: 'Disk', val: sm.disk_percent, unit: '%', sub: `${sm.disk_used_gb}/${sm.disk_total_gb} GB`, color: '#f59e0b' },
                   ].map(m => (
-                    <div key={m.label} style={{ background: darkMode ? 'rgba(30,41,59,0.7)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', padding: '10px 14px', border: `1px solid ${c.border}` }}>
+                    <div key={m.label} style={{ background: darkMode ? 'rgba(30,41,59,0.7)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', borderRadius: '8px', padding: '10px 14px', border: `1px solid ${c.border}` }}>
                       <div style={{ fontSize: '11px', color: c.textMuted, fontWeight: '600', marginBottom: '6px' }}>{m.label}</div>
                       <div style={{ height: '4px', borderRadius: '2px', background: c.border, marginBottom: '6px', overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${m.val || 0}%`, background: m.color, transition: 'width 0.4s' }} />
@@ -3793,9 +3882,9 @@ const Dashboard = () => {
                       <Section title="Disk Usage">
                         {(sysInfo.disks || []).length === 0 && <div style={{ fontSize: '12px', color: c.textMuted }}>No disk data</div>}
                         {(sysInfo.disks || []).map((d, i) => (
-                          <div key={i} style={{ marginBottom: '10px', padding: '10px 12px', background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.04)', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', border: `1px solid ${c.border}` }}>
+                          <div key={i} style={{ marginBottom: '10px', padding: '10px 12px', background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.04)', borderRadius: '8px', border: `1px solid ${c.border}` }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                              <span style={{ fontFamily: '"Hack", "Courier New", monospace', fontSize: '13px', fontWeight: '600', color: c.text }}>{d.device}</span>
+                              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '13px', fontWeight: '600', color: c.text }}>{d.device}</span>
                               <span style={{ fontSize: '12px', color: parseInt(d.pct) >= 90 ? '#ef4444' : parseInt(d.pct) >= 75 ? '#f59e0b' : c.success }}>{d.pct} used</span>
                             </div>
                             <div style={{ height: '4px', background: c.border, borderRadius: '2px', marginBottom: '6px', overflow: 'hidden' }}>
@@ -3812,16 +3901,16 @@ const Dashboard = () => {
                         {(sysInfo.dns_servers || []).length === 0
                           ? <div style={{ fontSize: '12px', color: c.textMuted }}>None found</div>
                           : (sysInfo.dns_servers || []).map((dns, i) => (
-                            <div key={i} style={{ fontFamily: '"Hack", "Courier New", monospace', fontSize: '13px', padding: '4px 0', color: c.text }}>{dns}</div>
+                            <div key={i} style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '13px', padding: '4px 0', color: c.text }}>{dns}</div>
                           ))}
                       </Section>
                       <Section title="Network Interfaces">
                         {(sysInfo.interfaces || []).filter(iface => iface.type !== 'loopback').map((iface, i) => (
-                          <div key={i} style={{ marginBottom: '12px', padding: '10px 12px', background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.04)', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', border: `1px solid ${c.border}` }}>
+                          <div key={i} style={{ marginBottom: '12px', padding: '10px 12px', background: darkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.04)', borderRadius: '8px', border: `1px solid ${c.border}` }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                               <span style={{ fontWeight: '700', fontSize: '14px', color: c.text }}>{iface.name}</span>
                               <span style={{ fontSize: '11px', color: c.textMuted }}>{iface.type}</span>
-                              <span style={{ fontSize: '11px', fontWeight: '700', padding: '1px 7px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', background: iface.up ? '#16a34a20' : '#dc262620', color: iface.up ? '#16a34a' : '#dc2626' }}>{iface.up ? 'UP' : 'DOWN'}</span>
+                              <span style={{ fontSize: '11px', fontWeight: '700', padding: '1px 7px', borderRadius: '8px', background: iface.up ? '#16a34a20' : '#dc262620', color: iface.up ? '#16a34a' : '#dc2626' }}>{iface.up ? 'UP' : 'DOWN'}</span>
                             </div>
                             {iface.mac && <Row label="MAC Address" value={iface.mac} />}
                             <Row label="MTU" value={String(iface.mtu)} />
@@ -3830,8 +3919,8 @@ const Dashboard = () => {
                                 <div style={{ fontSize: '11px', color: c.textMuted, fontWeight: '500', marginBottom: '4px' }}>IP Addresses</div>
                                 {iface.addresses.map((addr, j) => (
                                   <div key={j} style={{ display: 'grid', gridTemplateColumns: '40px 1fr', gap: '6px', padding: '3px 0', fontSize: '12px' }}>
-                                    <span style={{ color: addr.family === 'inet' ? '#60a5fa' : '#a78bfa', fontFamily: '"Hack", "Courier New", monospace', fontWeight: '600' }}>{addr.family}</span>
-                                    <span style={{ fontFamily: '"Hack", "Courier New", monospace', color: c.text }}>{addr.address}{iface.gateway && addr.family === 'inet' ? ` — Gateway: ${iface.gateway}` : ''}</span>
+                                    <span style={{ color: addr.family === 'inet' ? '#60a5fa' : '#a78bfa', fontFamily: '"JetBrains Mono", monospace', fontWeight: '600' }}>{addr.family}</span>
+                                    <span style={{ fontFamily: '"JetBrains Mono", monospace', color: c.text }}>{addr.address}{iface.gateway && addr.family === 'inet' ? ` — Gateway: ${iface.gateway}` : ''}</span>
                                   </div>
                                 ))}
                               </div>
@@ -3869,23 +3958,50 @@ const Dashboard = () => {
             )}
 
             {activeTab === 'services' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '16px' }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: '600', color: c.textMuted }}>Services</span>
+              <div style={{ position: 'relative' }}>
+                {/* Service list */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: '600', color: c.textMuted }}>{servicesList.length} Services</span>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <input
+                      type="text"
+                      placeholder="Filter services..."
+                      value={serviceFilter || ''}
+                      onChange={e => setServiceFilter(e.target.value)}
+                      style={{ ...styles.input, padding: '4px 8px', fontSize: '11px', width: '160px' }}
+                    />
                     <button onClick={fetchServices} style={{ ...styles.btn, padding: '4px 8px', fontSize: '11px', ...styles.btnSecondary }}>↺</button>
                   </div>
-                  {servicesLoading && <div style={{ fontSize: '13px', color: c.textMuted }}>Loading...</div>}
-                  {servicesList.map((svc, i) => (
-                    <div key={i} onClick={() => fetchServiceDetail(svc)}
-                      style={{ padding: '8px 10px', borderRadius: '6px', marginBottom: '4px', cursor: 'pointer', background: selectedService === svc ? c.primary : c.cardHover, color: selectedService === svc ? '#fff' : c.text, fontSize: '13px', fontFamily: '"Hack", "Courier New", monospace' }}>
+                </div>
+                {servicesLoading && <div style={{ fontSize: '13px', color: c.textMuted }}>Loading...</div>}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '4px', maxHeight: '60vh', overflowY: 'auto', padding: '4px 0' }}>
+                  {servicesList.filter(svc => !serviceFilter || svc.toLowerCase().includes(serviceFilter.toLowerCase())).map((svc, i) => (
+                    <div key={i} onClick={() => { fetchServiceDetail(svc); setServiceFloatingOpen(true); }}
+                      style={{ padding: '7px 10px', borderRadius: '6px', cursor: 'pointer', background: selectedService === svc ? c.primary : c.cardHover, color: selectedService === svc ? '#fff' : c.text, fontSize: '12px', fontFamily: '"JetBrains Mono", monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'background 0.1s' }}>
                       {svc}
                     </div>
                   ))}
                 </div>
-                <div>
-                  {serviceDetail && <div style={{ ...styles.sshTerminal, minHeight: '300px' }}>{serviceDetail}</div>}
-                </div>
+
+                {/* Floating service detail panel */}
+                {serviceFloatingOpen && selectedService && (
+                  <div style={{ position: 'fixed', bottom: '20px', right: '20px', width: '624px', maxWidth: 'calc(100vw - 40px)', maxHeight: '72vh', background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', boxShadow: '0 16px 48px rgba(0,0,0,0.4)', zIndex: 500, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    {/* Header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: `1px solid ${c.border}`, background: darkMode ? '#1A1A1A' : '#f0f5f8', flexShrink: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                        <span style={{ fontSize: '13px', fontWeight: '700', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedService}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                        <button onClick={() => fetchServiceDetail(selectedService)} style={{ ...styles.btn, padding: '3px 8px', fontSize: '10px', ...styles.btnSecondary }}>↺</button>
+                        <button onClick={() => setServiceFloatingOpen(false)} style={{ ...styles.btn, padding: '3px 8px', fontSize: '10px', ...styles.btnSecondary }}>✕</button>
+                      </div>
+                    </div>
+                    {/* Content */}
+                    <pre style={{ margin: 0, padding: '12px 14px', flex: 1, overflowY: 'auto', fontSize: '11px', lineHeight: '1.6', fontFamily: '"JetBrains Mono", monospace', color: c.text, whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: darkMode ? '#0F0F0F' : '#f8fafc' }}>
+                      {serviceDetail || 'Click a service to view details...'}
+                    </pre>
+                  </div>
+                )}
               </div>
             )}
 
@@ -3902,10 +4018,10 @@ const Dashboard = () => {
                       <tbody>
                         {dockerContainers.map((ct, i) => (
                           <tr key={i} style={{ borderBottom: `1px solid ${c.border}20` }}>
-                            <td style={{ ...styles.td, fontFamily: '"Hack", "Courier New", monospace', fontWeight: '600' }}>{ct.name}</td>
-                            <td style={{ ...styles.td, fontFamily: '"Hack", "Courier New", monospace', fontSize: '12px', color: c.textMuted }}>{ct.image}</td>
+                            <td style={{ ...styles.td, fontFamily: '"JetBrains Mono", monospace', fontWeight: '600' }}>{ct.name}</td>
+                            <td style={{ ...styles.td, fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', color: c.textMuted }}>{ct.image}</td>
                             <td style={{ ...styles.td }}>
-                              <span style={{ fontSize: '11px', padding: '2px 8px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', fontWeight: '700', background: ct.status?.startsWith('Up') ? '#16a34a20' : '#dc262620', color: ct.status?.startsWith('Up') ? '#16a34a' : '#dc2626' }}>{ct.status}</span>
+                              <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '8px', fontWeight: '700', background: ct.status?.startsWith('Up') ? '#16a34a20' : '#dc262620', color: ct.status?.startsWith('Up') ? '#16a34a' : '#dc2626' }}>{ct.status}</span>
                             </td>
                           </tr>
                         ))}
@@ -3919,7 +4035,7 @@ const Dashboard = () => {
 
             {activeTab === 'actions' && (
               <div>
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '20px', padding: '4px', background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }}>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '20px', padding: '4px', background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', borderRadius: '12px' }}>
                   {(() => {
                     const isWindows = String(selectedServer?.platform || '').toLowerCase().includes('windows');
                     const commonActions = [
@@ -3958,7 +4074,7 @@ const Dashboard = () => {
                         onMouseLeave={() => setActionBtnHover(null)}
                         style={{
                           display: 'flex', alignItems: 'center', gap: '6px',
-                          padding: '7px 14px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', border: 'none', cursor: 'pointer',
+                          padding: '7px 14px', borderRadius: '8px', border: 'none', cursor: 'pointer',
                           fontSize: '13px', fontWeight: isActive ? '600' : '500',
                           background: danger
                             ? (isActive ? '#991b1b' : isHover ? '#b91c1c' : '#ef444420')
@@ -3981,10 +4097,10 @@ const Dashboard = () => {
                 </div>
                 {/* Running upgrade indicator */}
                 {upgradeLoading && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 20px', background: darkMode ? 'rgba(61,214,140,0.06)' : 'rgba(34,168,106,0.06)', border: '1px solid #3dd68c40', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', marginBottom: '16px' }}>
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#3dd68c', animation: 'pulse 1s infinite', flexShrink: 0 }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 20px', background: darkMode ? 'rgba(61,214,140,0.06)' : 'rgba(34,168,106,0.06)', border: '1px solid #22c55e40', borderRadius: '12px', marginBottom: '16px' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 1s infinite', flexShrink: 0 }} />
                     <div>
-                      <div style={{ fontSize: '13px', fontWeight: '700', color: '#3dd68c', letterSpacing: '0.06em' }}>UPGRADE IN PROGRESS</div>
+                      <div style={{ fontSize: '13px', fontWeight: '700', color: '#22c55e', letterSpacing: '0.06em' }}>UPGRADE IN PROGRESS</div>
                       <div style={{ fontSize: '11px', color: c.textMuted, marginTop: '2px' }}>Installing packages — do not close this window</div>
                     </div>
                   </div>
@@ -3992,10 +4108,10 @@ const Dashboard = () => {
 
                 {/* Upgrade result */}
                 {upgradeOutput && !upgradeLoading && (
-                  <div style={{ background: darkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.04)', border: `1px solid ${c.border}`, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', overflow: 'hidden' }}>
+                  <div style={{ background: darkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.04)', border: `1px solid ${c.border}`, borderRadius: '12px', overflow: 'hidden' }}>
                     <div style={{ padding: '10px 16px', borderBottom: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '8px', background: darkMode ? 'rgba(61,214,140,0.06)' : 'rgba(34,168,106,0.06)' }}>
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3dd68c' }} />
-                      <span style={{ fontSize: '11px', fontWeight: '700', color: '#3dd68c', letterSpacing: '0.1em' }}>UPGRADE COMPLETE</span>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
+                      <span style={{ fontSize: '11px', fontWeight: '700', color: '#22c55e', letterSpacing: '0.1em' }}>UPGRADE COMPLETE</span>
                     </div>
                     <pre style={{ margin: 0, padding: '14px 16px', background: 'transparent', color: c.text, fontSize: '12px', lineHeight: '1.7', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '360px', overflow: 'auto' }}>{upgradeOutput}</pre>
                   </div>
@@ -4007,11 +4123,11 @@ const Dashboard = () => {
                     {/* Summary card */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
                       {[
-                        { label: 'PACKAGES AVAILABLE', value: updatesData.packages.length, color: updatesData.packages.length > 0 ? '#e8a838' : '#3dd68c' },
-                        { label: 'REPOS FETCHED', value: updatesData.fetched, color: '#467885' },
-                        { label: 'STATUS', value: updatesData.success ? 'OK' : 'ERROR', color: updatesData.success ? '#3dd68c' : '#f06060' },
+                        { label: 'PACKAGES AVAILABLE', value: updatesData.packages.length, color: updatesData.packages.length > 0 ? '#f59e0b' : '#22c55e' },
+                        { label: 'REPOS FETCHED', value: updatesData.fetched, color: '#71717A' },
+                        { label: 'STATUS', value: updatesData.success ? 'OK' : 'ERROR', color: updatesData.success ? '#22c55e' : '#ef4444' },
                       ].map(s => (
-                        <div key={s.label} style={{ padding: '14px 16px', background: darkMode ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.04)', border: `1px solid ${s.color}30`, clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)' }}>
+                        <div key={s.label} style={{ padding: '14px 16px', background: darkMode ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.04)', border: `1px solid ${s.color}30`, borderRadius: '12px' }}>
                           <div style={{ fontSize: '9px', letterSpacing: '0.18em', color: c.textMuted, marginBottom: '6px' }}>{s.label}</div>
                           <div style={{ fontSize: '22px', fontWeight: '800', color: s.color }}>{s.value}</div>
                         </div>
@@ -4019,22 +4135,22 @@ const Dashboard = () => {
                     </div>
                     {/* Package list */}
                     {updatesData.packages.length > 0 && (
-                      <div style={{ border: `1px solid ${c.border}`, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', overflow: 'hidden' }}>
-                        <div style={{ padding: '8px 16px', borderBottom: `1px solid ${c.border}`, fontSize: '10px', letterSpacing: '0.15em', color: '#e8a838', background: darkMode ? 'rgba(232,168,56,0.06)' : 'rgba(232,168,56,0.04)' }}>
+                      <div style={{ border: `1px solid ${c.border}`, borderRadius: '12px', overflow: 'hidden' }}>
+                        <div style={{ padding: '8px 16px', borderBottom: `1px solid ${c.border}`, fontSize: '10px', letterSpacing: '0.15em', color: '#f59e0b', background: darkMode ? 'rgba(232,168,56,0.06)' : 'rgba(232,168,56,0.04)' }}>
                           AVAILABLE UPDATES — {updatesData.packages.length} package{updatesData.packages.length !== 1 ? 's' : ''}
                         </div>
                         <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
                           {updatesData.packages.map((p, i) => (
                             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 16px', borderBottom: `1px solid ${c.border}20`, background: i % 2 === 0 ? 'transparent' : (darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)') }}>
                               <span style={{ fontSize: '12px', color: c.text, fontWeight: '600' }}>{p.name}</span>
-                              <span style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"Hack","Courier New",monospace' }}>{p.version}</span>
+                              <span style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"JetBrains Mono",monospace' }}>{p.version}</span>
                             </div>
                           ))}
                         </div>
                       </div>
                     )}
                     {updatesData.packages.length === 0 && (
-                      <div style={{ padding: '20px', textAlign: 'center', color: '#3dd68c', fontSize: '13px', border: '1px solid #3dd68c30', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }}>
+                      <div style={{ padding: '20px', textAlign: 'center', color: '#22c55e', fontSize: '13px', border: '1px solid #22c55e30', borderRadius: '12px' }}>
                         ✓ System is up to date
                       </div>
                     )}
@@ -4049,7 +4165,7 @@ const Dashboard = () => {
             {activeTab === 'network' && (
               <div>
                 {/* Sub-tabs */}
-                <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', padding: '4px', background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }}>
+                <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', padding: '4px', background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', borderRadius: '12px' }}>
                   {[
                     { key: 'ip', label: 'IP Information', icon: '⬡' },
                     { key: 'ports', label: 'Listening Ports', icon: '▦' },
@@ -4069,7 +4185,7 @@ const Dashboard = () => {
                         style={{
                           padding: '8px 16px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: active ? '700' : '500',
                           background: active ? c.primary : 'transparent', color: active ? '#fff' : c.textMuted,
-                          clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))',
+                          borderRadius: '8px',
                           display: 'flex', alignItems: 'center', gap: '6px',
                         }}>
                         <span style={{ fontSize: '13px' }}>{sub.icon}</span> {sub.label}
@@ -4078,13 +4194,372 @@ const Dashboard = () => {
                   })}
                 </div>
 
-                {/* IP Info / Ports / Firewall */}
+                {/* IP Info / Ports / Firewall — Modern Design */}
                 {networkSubTab !== 'tools' && (
                   <div>
-                    {networkInfoLoading && <div style={{ padding: '20px', textAlign: 'center', color: c.textMuted, fontSize: '13px' }}>Loading...</div>}
-                    {!networkInfoLoading && networkInfoOutput && <pre style={{ margin: 0, padding: '16px', background: darkMode ? '#0a1218' : '#f0f5f8', border: `1px solid ${c.border}`, color: c.text, fontSize: '12px', lineHeight: '1.7', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '500px', overflow: 'auto', fontFamily: '"Hack","Courier New",monospace', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }}>{networkInfoOutput}</pre>}
+                    {networkInfoLoading && (
+                      <div style={{ padding: '40px', textAlign: 'center' }}>
+                        <div style={{ width: '32px', height: '32px', border: `3px solid ${c.border}`, borderTopColor: c.primary, borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
+                        <div style={{ fontSize: '13px', color: c.textMuted }}>Loading...</div>
+                      </div>
+                    )}
+                    {!networkInfoLoading && networkInfoOutput && networkSubTab === 'ip' && (() => {
+                      const lines = networkInfoOutput.split('\n').filter(l => l.trim());
+                      const interfaces = [];
+                      let gateway = '';
+                      let dnsServers = [];
+                      // Parse Linux ip -br addr format: "eth0  UP  192.168.1.x/24"
+                      // Parse key:value lines, gateway, dns
+                      lines.forEach(line => {
+                        const l = line.trim();
+                        if (l.startsWith('Default Gateway:') || l.match(/^default via/)) {
+                          gateway = l.replace('Default Gateway:', '').replace(/^default via\s+/, '').replace(/\s+dev.*/, '').trim();
+                        } else if (l.startsWith('nameserver')) {
+                          dnsServers.push(l.replace('nameserver', '').trim());
+                        } else if (l.match(/^\d+:\s/) || l.match(/^[a-zA-Z]/) && (l.includes('UP') || l.includes('DOWN') || l.includes('/') || l.includes('inet') || l.includes('InterfaceAlias'))) {
+                          // ip -br addr line: "eth0  UP  10.0.0.1/24 fe80::1/64"
+                          const parts = l.split(/\s+/);
+                          if (parts.length >= 2) {
+                            const name = parts[0].replace(/^\d+:\s*/, '');
+                            const state = parts[1];
+                            const addrs = parts.slice(2).filter(p => p.includes('.') || p.includes(':'));
+                            if (addrs.length > 0 || state === 'UP' || state === 'DOWN') {
+                              interfaces.push({ name, state, addresses: addrs });
+                            }
+                          }
+                        }
+                      });
+                      // Windows format: key : value pairs grouped by interface
+                      if (interfaces.length === 0 && networkInfoOutput.includes(':')) {
+                        let current = {};
+                        lines.forEach(l => {
+                          const kv = l.match(/^(\w[\w\s]*?)\s*:\s*(.+)/);
+                          if (kv) {
+                            const k = kv[1].trim(), v = kv[2].trim();
+                            if (k === 'InterfaceAlias') {
+                              if (current.name) interfaces.push(current);
+                              current = { name: v, state: 'UP', addresses: [] };
+                            } else if (k.includes('IPv4') && !k.includes('Gateway')) {
+                              current.addresses.push(v.replace(/[{}]/g, ''));
+                            } else if (k.includes('Gateway')) {
+                              gateway = gateway || v.replace(/[{}]/g, '');
+                            } else if (k.includes('DNS')) {
+                              dnsServers.push(v.replace(/[{}]/g, ''));
+                            }
+                          }
+                        });
+                        if (current.name) interfaces.push(current);
+                      }
+                      // Fallback: if we couldn't parse, show raw
+                      if (interfaces.length === 0 && !gateway && dnsServers.length === 0) {
+                        return <pre style={{ margin: 0, padding: '16px', background: darkMode ? '#111' : '#f8fafc', border: `1px solid ${c.border}`, color: c.text, fontSize: '12px', lineHeight: '1.7', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '500px', overflow: 'auto', fontFamily: '"JetBrains Mono",monospace', borderRadius: '12px' }}>{networkInfoOutput}</pre>;
+                      }
+                      return (
+                        <div style={{ display: 'grid', gap: '12px' }}>
+                          {/* Interface cards */}
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+                            {interfaces.map((iface, i) => (
+                              <div key={i} style={{ padding: '16px', background: darkMode ? '#111' : '#fff', border: `1px solid ${c.border}`, borderRadius: '12px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                  <span style={{ fontSize: '14px', fontWeight: '700', color: c.text }}>{iface.name}</span>
+                                  <span style={{ fontSize: '10px', padding: '2px 10px', borderRadius: '9999px', fontWeight: '700',
+                                    background: iface.state === 'UP' ? '#10b98120' : '#ef444420',
+                                    color: iface.state === 'UP' ? '#10b981' : '#ef4444'
+                                  }}>{iface.state}</span>
+                                </div>
+                                {iface.addresses.map((addr, j) => (
+                                  <div key={j} style={{ fontSize: '13px', fontFamily: '"JetBrains Mono",monospace', color: addr.includes(':') ? c.textMuted : c.primary, padding: '3px 0' }}>
+                                    {addr}
+                                  </div>
+                                ))}
+                                {iface.addresses.length === 0 && <div style={{ fontSize: '12px', color: c.textMuted }}>No address</div>}
+                              </div>
+                            ))}
+                          </div>
+                          {/* Gateway & DNS row */}
+                          <div style={{ display: 'grid', gridTemplateColumns: gateway && dnsServers.length > 0 ? '1fr 1fr' : '1fr', gap: '12px' }}>
+                            {gateway && (
+                              <div style={{ padding: '14px 16px', background: darkMode ? '#111' : '#fff', border: `1px solid ${c.border}`, borderRadius: '12px' }}>
+                                <div style={{ fontSize: '9px', letterSpacing: '0.15em', color: c.textMuted, marginBottom: '6px', fontWeight: '600' }}>DEFAULT GATEWAY</div>
+                                <div style={{ fontSize: '15px', fontWeight: '700', fontFamily: '"JetBrains Mono",monospace', color: '#10b981' }}>{gateway}</div>
+                              </div>
+                            )}
+                            {dnsServers.length > 0 && (
+                              <div style={{ padding: '14px 16px', background: darkMode ? '#111' : '#fff', border: `1px solid ${c.border}`, borderRadius: '12px' }}>
+                                <div style={{ fontSize: '9px', letterSpacing: '0.15em', color: c.textMuted, marginBottom: '6px', fontWeight: '600' }}>DNS SERVERS</div>
+                                {dnsServers.map((dns, i) => (
+                                  <div key={i} style={{ fontSize: '13px', fontFamily: '"JetBrains Mono",monospace', color: c.text, padding: '2px 0' }}>{dns}</div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    {!networkInfoLoading && networkInfoOutput && networkSubTab === 'ports' && (() => {
+                      const lines = networkInfoOutput.split('\n').filter(l => l.trim());
+                      const ports = [];
+                      // Parse ss/netstat: "tcp  LISTEN  0  128  0.0.0.0:22  0.0.0.0:*  users:(("sshd",...))"
+                      // Parse Windows: "LocalAddress  LocalPort  OwningProcess"
+                      const isWindows = lines[0]?.includes('LocalAddress') || lines[0]?.includes('LocalPort');
+                      if (isWindows) {
+                        const dataLines = lines.filter(l => !l.startsWith('Local') && !l.startsWith('---'));
+                        dataLines.forEach(l => {
+                          const parts = l.trim().split(/\s+/);
+                          if (parts.length >= 3) {
+                            ports.push({ proto: 'tcp', addr: parts[0], port: parts[1], process: `PID ${parts[2]}` });
+                          }
+                        });
+                      } else {
+                        lines.forEach(l => {
+                          const parts = l.trim().split(/\s+/);
+                          if ((parts[0] === 'tcp' || parts[0] === 'udp' || parts[0] === 'tcp6' || parts[0] === 'udp6') && parts.length >= 5) {
+                            const localAddr = parts[4] || parts[3];
+                            const lastColon = localAddr.lastIndexOf(':');
+                            const addr = lastColon > 0 ? localAddr.substring(0, lastColon) : '*';
+                            const port = lastColon > 0 ? localAddr.substring(lastColon + 1) : localAddr;
+                            const proc = parts.slice(6).join(' ').replace(/users:\(\("|"\)\)/g, '').replace(/",pid=\d+,fd=\d+/g, '') || '';
+                            ports.push({ proto: parts[0], addr, port, process: proc });
+                          }
+                        });
+                      }
+                      if (ports.length === 0) {
+                        return <pre style={{ margin: 0, padding: '16px', background: darkMode ? '#111' : '#f8fafc', border: `1px solid ${c.border}`, color: c.text, fontSize: '12px', lineHeight: '1.7', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '500px', overflow: 'auto', fontFamily: '"JetBrains Mono",monospace', borderRadius: '12px' }}>{networkInfoOutput}</pre>;
+                      }
+                      return (
+                        <div style={{ border: `1px solid ${c.border}`, borderRadius: '12px', overflow: 'hidden' }}>
+                          <div style={{ overflowX: 'auto', maxHeight: '500px', overflowY: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                              <thead>
+                                <tr style={{ background: darkMode ? '#1A1A1A' : '#f0f5f8', position: 'sticky', top: 0 }}>
+                                  <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '10px', letterSpacing: '0.12em', color: c.textMuted, fontWeight: '700', borderBottom: `1px solid ${c.border}` }}>PROTO</th>
+                                  <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '10px', letterSpacing: '0.12em', color: c.textMuted, fontWeight: '700', borderBottom: `1px solid ${c.border}` }}>ADDRESS</th>
+                                  <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '10px', letterSpacing: '0.12em', color: c.textMuted, fontWeight: '700', borderBottom: `1px solid ${c.border}` }}>PORT</th>
+                                  <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '10px', letterSpacing: '0.12em', color: c.textMuted, fontWeight: '700', borderBottom: `1px solid ${c.border}` }}>PROCESS</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {ports.map((p, i) => (
+                                  <tr key={i} style={{ borderBottom: `1px solid ${c.border}20`, background: i % 2 === 0 ? 'transparent' : (darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)') }}>
+                                    <td style={{ padding: '8px 14px', fontFamily: '"JetBrains Mono",monospace' }}>
+                                      <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '6px', fontWeight: '700', background: p.proto.startsWith('tcp') ? '#3b82f620' : '#f59e0b20', color: p.proto.startsWith('tcp') ? '#3b82f6' : '#f59e0b' }}>{p.proto.toUpperCase()}</span>
+                                    </td>
+                                    <td style={{ padding: '8px 14px', fontFamily: '"JetBrains Mono",monospace', fontSize: '12px', color: c.textMuted }}>{p.addr}</td>
+                                    <td style={{ padding: '8px 14px', fontFamily: '"JetBrains Mono",monospace', fontSize: '13px', fontWeight: '700', color: c.primary }}>{p.port}</td>
+                                    <td style={{ padding: '8px 14px', fontFamily: '"JetBrains Mono",monospace', fontSize: '11px', color: c.textMuted }}>{p.process}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                          <div style={{ padding: '8px 14px', borderTop: `1px solid ${c.border}`, fontSize: '11px', color: c.textMuted, background: darkMode ? '#111' : '#f8fafc' }}>
+                            {ports.length} listening port{ports.length !== 1 ? 's' : ''}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    {!networkInfoLoading && networkInfoOutput && networkSubTab === 'firewall' && (() => {
+                      const lines = networkInfoOutput.split('\n').filter(l => l.trim());
+                      const isUfw = lines.some(l => l.includes('Status:'));
+                      const isWindows = lines.some(l => l.includes('Name') && l.includes('Enabled'));
+                      const statusLine = isUfw ? lines.find(l => l.includes('Status:')) : null;
+                      const status = statusLine?.split(':')[1]?.trim() || (isWindows ? 'active' : 'unknown');
+                      const defaultLine = isUfw ? lines.find(l => l.toLowerCase().includes('default:')) : null;
+
+                      // Parse ufw rules
+                      const rules = [];
+                      if (isUfw) {
+                        let inRules = false;
+                        lines.forEach(l => {
+                          if (l.startsWith('--')) { inRules = true; return; }
+                          if (inRules && l.trim()) {
+                            const parts = l.trim().split(/\s{2,}/);
+                            rules.push({ to: parts[0] || '', action: parts[1] || '', from: parts[2] || '' });
+                          }
+                        });
+                      }
+
+                      // Parse Windows profiles
+                      const profiles = [];
+                      if (isWindows) {
+                        const dataLines = lines.filter(l => !l.startsWith('Name') && !l.startsWith('---') && !l.startsWith('-'));
+                        dataLines.forEach(l => {
+                          const parts = l.trim().split(/\s+/);
+                          if (parts.length >= 4) profiles.push({ name: parts[0], enabled: parts[1], inbound: parts[2], outbound: parts[3] });
+                        });
+                      }
+
+                      const fwRunAction = async (cmd) => {
+                        setFwLoading(true); setFwResult('');
+                        try {
+                          const data = await agentAction(cmd);
+                          setFwResult(data.output || data.detail || 'Done');
+                          fetchNetworkInfo('firewall_status');
+                        } catch (e) { setFwResult('Error: ' + e.message); }
+                        setFwLoading(false);
+                      };
+
+                      const isFallback = !isUfw && !isWindows;
+
+                      return (
+                        <div style={{ display: 'grid', gap: '16px' }}>
+                          {/* Status + Enable/Disable row */}
+                          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'stretch' }}>
+                            <div style={{ padding: '16px 20px', background: darkMode ? '#111' : '#fff', border: `1px solid ${c.border}`, borderRadius: '12px', minWidth: '140px' }}>
+                              <div style={{ fontSize: '9px', letterSpacing: '0.15em', color: c.textMuted, marginBottom: '6px', fontWeight: '600' }}>STATUS</div>
+                              <div style={{ fontSize: '20px', fontWeight: '800', color: status === 'active' ? '#10b981' : status === 'inactive' ? '#ef4444' : '#f59e0b' }}>{status.toUpperCase()}</div>
+                            </div>
+                            {defaultLine && (
+                              <div style={{ padding: '16px 20px', background: darkMode ? '#111' : '#fff', border: `1px solid ${c.border}`, borderRadius: '12px', minWidth: '200px' }}>
+                                <div style={{ fontSize: '9px', letterSpacing: '0.15em', color: c.textMuted, marginBottom: '6px', fontWeight: '600' }}>DEFAULT POLICY</div>
+                                <div style={{ fontSize: '12px', fontFamily: '"JetBrains Mono",monospace', color: c.text }}>{defaultLine.replace(/Default:\s*/i, '')}</div>
+                              </div>
+                            )}
+                            {isAdmin && (
+                              <div style={{ padding: '16px 20px', background: darkMode ? '#111' : '#fff', border: `1px solid ${c.border}`, borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <button onClick={() => fwRunAction('firewall:enable')} disabled={fwLoading}
+                                  style={{ ...styles.btn, padding: '8px 16px', fontSize: '12px', fontWeight: '700', background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', opacity: fwLoading ? 0.5 : 1 }}>
+                                  Enable
+                                </button>
+                                <button onClick={() => fwRunAction('firewall:disable')} disabled={fwLoading}
+                                  style={{ ...styles.btn, padding: '8px 16px', fontSize: '12px', fontWeight: '700', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', opacity: fwLoading ? 0.5 : 1 }}>
+                                  Disable
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Windows profiles */}
+                          {profiles.length > 0 && (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
+                              {profiles.map((p, i) => (
+                                <div key={i} style={{ padding: '16px', background: darkMode ? '#111' : '#fff', border: `1px solid ${c.border}`, borderRadius: '12px' }}>
+                                  <div style={{ fontSize: '15px', fontWeight: '700', color: c.text, marginBottom: '10px' }}>{p.name}</div>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                    <span style={{ fontSize: '11px', color: c.textMuted }}>Enabled</span>
+                                    <span style={{ fontSize: '11px', fontWeight: '700', color: p.enabled === 'True' ? '#10b981' : '#ef4444' }}>{p.enabled}</span>
+                                  </div>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                    <span style={{ fontSize: '11px', color: c.textMuted }}>Inbound</span>
+                                    <span style={{ fontSize: '10px', padding: '1px 8px', borderRadius: '6px', fontWeight: '700',
+                                      background: p.inbound === 'Allow' ? '#10b98120' : '#ef444420',
+                                      color: p.inbound === 'Allow' ? '#10b981' : '#ef4444'
+                                    }}>{p.inbound}</span>
+                                  </div>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ fontSize: '11px', color: c.textMuted }}>Outbound</span>
+                                    <span style={{ fontSize: '10px', padding: '1px 8px', borderRadius: '6px', fontWeight: '700',
+                                      background: p.outbound === 'Allow' ? '#10b98120' : '#ef444420',
+                                      color: p.outbound === 'Allow' ? '#10b981' : '#ef4444'
+                                    }}>{p.outbound}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Rules table (ufw) */}
+                          {rules.length > 0 && (
+                            <div style={{ border: `1px solid ${c.border}`, borderRadius: '12px', overflow: 'hidden' }}>
+                              <div style={{ padding: '10px 14px', borderBottom: `1px solid ${c.border}`, fontSize: '10px', letterSpacing: '0.12em', color: c.primary, fontWeight: '700', background: darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.04)' }}>FIREWALL RULES</div>
+                              <div style={{ overflowX: 'auto', maxHeight: '400px', overflowY: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                                  <thead>
+                                    <tr style={{ background: darkMode ? '#1A1A1A' : '#f0f5f8' }}>
+                                      <th style={{ padding: '8px 14px', textAlign: 'left', fontSize: '10px', letterSpacing: '0.12em', color: c.textMuted, fontWeight: '700' }}>TO</th>
+                                      <th style={{ padding: '8px 14px', textAlign: 'left', fontSize: '10px', letterSpacing: '0.12em', color: c.textMuted, fontWeight: '700' }}>ACTION</th>
+                                      <th style={{ padding: '8px 14px', textAlign: 'left', fontSize: '10px', letterSpacing: '0.12em', color: c.textMuted, fontWeight: '700' }}>FROM</th>
+                                      {isAdmin && <th style={{ padding: '8px 14px', textAlign: 'right', fontSize: '10px', letterSpacing: '0.12em', color: c.textMuted, fontWeight: '700' }}></th>}
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {rules.map((r, i) => (
+                                      <tr key={i} style={{ borderBottom: `1px solid ${c.border}20`, background: i % 2 === 0 ? 'transparent' : (darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)') }}>
+                                        <td style={{ padding: '8px 14px', fontFamily: '"JetBrains Mono",monospace', fontWeight: '600' }}>{r.to}</td>
+                                        <td style={{ padding: '8px 14px' }}>
+                                          <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '6px', fontWeight: '700',
+                                            background: r.action.includes('ALLOW') ? '#10b98120' : r.action.includes('DENY') || r.action.includes('REJECT') ? '#ef444420' : '#71717a20',
+                                            color: r.action.includes('ALLOW') ? '#10b981' : r.action.includes('DENY') || r.action.includes('REJECT') ? '#ef4444' : '#71717a'
+                                          }}>{r.action}</span>
+                                        </td>
+                                        <td style={{ padding: '8px 14px', fontFamily: '"JetBrains Mono",monospace', fontSize: '12px', color: c.textMuted }}>{r.from}</td>
+                                        {isAdmin && (
+                                          <td style={{ padding: '8px 14px', textAlign: 'right' }}>
+                                            <button onClick={() => {
+                                              if (confirm(`Remove rule: ${r.action.toLowerCase().split(' ')[0]} ${r.to}?`)) {
+                                                fwRunAction(`firewall:remove:${r.action.toLowerCase().split(' ')[0]} ${r.to}`);
+                                              }
+                                            }} disabled={fwLoading}
+                                              style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '11px', fontWeight: '600', opacity: fwLoading ? 0.5 : 1, padding: '2px 6px', borderRadius: '4px' }}>
+                                              Remove
+                                            </button>
+                                          </td>
+                                        )}
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Fallback raw output */}
+                          {isFallback && <pre style={{ margin: 0, padding: '16px', background: darkMode ? '#111' : '#f8fafc', border: `1px solid ${c.border}`, color: c.text, fontSize: '12px', lineHeight: '1.7', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '500px', overflow: 'auto', fontFamily: '"JetBrains Mono",monospace', borderRadius: '12px' }}>{networkInfoOutput}</pre>}
+
+                          {/* Add Rule form */}
+                          {isAdmin && (
+                            <div style={{ border: `1px solid ${c.border}`, borderRadius: '12px', overflow: 'hidden' }}>
+                              <div style={{ padding: '10px 14px', borderBottom: `1px solid ${c.border}`, fontSize: '10px', letterSpacing: '0.12em', color: c.primary, fontWeight: '700', background: darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.04)' }}>ADD RULE</div>
+                              <div style={{ padding: '14px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                                <div>
+                                  <div style={{ fontSize: '10px', color: c.textMuted, marginBottom: '4px', fontWeight: '600' }}>Action</div>
+                                  <select value={fwAction} onChange={e => setFwAction(e.target.value)} style={{ ...styles.input, padding: '7px 10px', fontSize: '12px', width: '100px' }}>
+                                    <option value="allow">Allow</option>
+                                    <option value="deny">Deny</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <div style={{ fontSize: '10px', color: c.textMuted, marginBottom: '4px', fontWeight: '600' }}>Direction</div>
+                                  <select value={fwDirection} onChange={e => setFwDirection(e.target.value)} style={{ ...styles.input, padding: '7px 10px', fontSize: '12px', width: '100px' }}>
+                                    <option value="in">Inbound</option>
+                                    <option value="out">Outbound</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <div style={{ fontSize: '10px', color: c.textMuted, marginBottom: '4px', fontWeight: '600' }}>Protocol</div>
+                                  <select value={fwProto} onChange={e => setFwProto(e.target.value)} style={{ ...styles.input, padding: '7px 10px', fontSize: '12px', width: '90px' }}>
+                                    <option value="tcp">TCP</option>
+                                    <option value="udp">UDP</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <div style={{ fontSize: '10px', color: c.textMuted, marginBottom: '4px', fontWeight: '600' }}>Port</div>
+                                  <input type="text" value={fwPort} onChange={e => setFwPort(e.target.value)} placeholder="e.g. 8080"
+                                    style={{ ...styles.input, padding: '7px 10px', fontSize: '12px', width: '100px' }} />
+                                </div>
+                                <button onClick={() => {
+                                  if (!fwPort) return;
+                                  fwRunAction(`firewall:add:${fwAction},${fwDirection},${fwProto},${fwPort}`);
+                                  setFwPort('');
+                                }} disabled={fwLoading || !fwPort}
+                                  style={{ ...styles.btn, padding: '7px 18px', fontSize: '12px', fontWeight: '700', background: c.primary, color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', opacity: (fwLoading || !fwPort) ? 0.5 : 1 }}>
+                                  Add Rule
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Result output */}
+                          {fwResult && (
+                            <div style={{ padding: '12px 14px', background: darkMode ? '#111' : '#f8fafc', border: `1px solid ${c.border}`, borderRadius: '10px', fontSize: '12px', fontFamily: '"JetBrains Mono",monospace', color: c.text, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                              {fwResult}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                     {!networkInfoLoading && !networkInfoOutput && (
-                      <div style={{ padding: '20px', textAlign: 'center', color: c.textMuted, fontSize: '13px' }}>
+                      <div style={{ padding: '40px', textAlign: 'center', color: c.textMuted, fontSize: '13px' }}>
                         Select a category above to load network information.
                       </div>
                     )}
@@ -4117,7 +4592,7 @@ const Dashboard = () => {
                       <button onClick={runNetworkTool} style={{ ...styles.btn, ...styles.btnPrimary }} disabled={networkLoading}>Run</button>
                       {networkLoading && <button onClick={stopNetworkTool} style={{ ...styles.btn, ...styles.btnDanger }}>Stop</button>}
                     </div>
-                    {networkOutput && <pre style={{ margin: 0, padding: '16px', background: darkMode ? '#0a1218' : '#f0f5f8', border: `1px solid ${c.border}`, color: c.text, fontSize: '12px', lineHeight: '1.7', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '500px', overflow: 'auto', fontFamily: '"Hack","Courier New",monospace', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }}>{networkOutput}</pre>}
+                    {networkOutput && <pre style={{ margin: 0, padding: '16px', background: darkMode ? '#0a1218' : '#f0f5f8', border: `1px solid ${c.border}`, color: c.text, fontSize: '12px', lineHeight: '1.7', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '500px', overflow: 'auto', fontFamily: '"JetBrains Mono",monospace', borderRadius: '12px' }}>{networkOutput}</pre>}
                   </div>
                 )}
               </div>
@@ -4131,12 +4606,12 @@ const Dashboard = () => {
                     {/* Agent Info Cards */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '24px' }}>
                       {[
-                        { label: 'VERSION', value: agentInfo.version || '?', color: '#A8987C' },
-                        { label: 'UPTIME', value: agentInfo.uptime || '?', color: '#3dd68c' },
-                        { label: 'PLATFORM', value: `${(agentInfo.os || '').toUpperCase()} / ${agentInfo.arch || ''}`, color: '#467885' },
+                        { label: 'VERSION', value: agentInfo.version || '?', color: '#10b981' },
+                        { label: 'UPTIME', value: agentInfo.uptime || '?', color: '#22c55e' },
+                        { label: 'PLATFORM', value: `${(agentInfo.os || '').toUpperCase()} / ${agentInfo.arch || ''}`, color: '#71717A' },
                         { label: 'GO VERSION', value: agentInfo.go_version || '?', color: '#4888e8' },
                       ].map(card => (
-                        <div key={card.label} style={{ padding: '16px 18px', background: darkMode ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.04)', border: `1px solid ${card.color}30`, clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)' }}>
+                        <div key={card.label} style={{ padding: '16px 18px', background: darkMode ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.04)', border: `1px solid ${card.color}30`, borderRadius: '12px' }}>
                           <div style={{ fontSize: '9px', letterSpacing: '0.18em', color: c.textMuted, marginBottom: '6px' }}>{card.label}</div>
                           <div style={{ fontSize: '18px', fontWeight: '800', color: card.color }}>{card.value}</div>
                         </div>
@@ -4144,8 +4619,8 @@ const Dashboard = () => {
                     </div>
 
                     {/* Agent Details Table */}
-                    <div style={{ border: `1px solid ${c.border}`, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', overflow: 'hidden', marginBottom: '24px' }}>
-                      <div style={{ padding: '10px 16px', borderBottom: `1px solid ${c.border}`, fontSize: '10px', letterSpacing: '0.15em', color: '#A8987C', background: darkMode ? 'rgba(168,152,124,0.06)' : 'rgba(168,152,124,0.04)', fontWeight: '700' }}>
+                    <div style={{ border: `1px solid ${c.border}`, borderRadius: '12px', overflow: 'hidden', marginBottom: '24px' }}>
+                      <div style={{ padding: '10px 16px', borderBottom: `1px solid ${c.border}`, fontSize: '10px', letterSpacing: '0.15em', color: '#10b981', background: darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.04)', fontWeight: '700' }}>
                         AGENT DETAILS
                       </div>
                       {[
@@ -4156,7 +4631,7 @@ const Dashboard = () => {
                       ].map((row, i) => (
                         <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: `1px solid ${c.border}20`, background: i % 2 === 0 ? 'transparent' : (darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)') }}>
                           <span style={{ fontSize: '12px', color: c.textMuted, fontWeight: '600' }}>{row.label}</span>
-                          <span style={{ fontSize: '12px', color: c.text, fontFamily: '"Hack","Courier New",monospace' }}>{row.value || '—'}</span>
+                          <span style={{ fontSize: '12px', color: c.text, fontFamily: '"JetBrains Mono",monospace' }}>{row.value || '—'}</span>
                         </div>
                       ))}
                     </div>
@@ -4170,7 +4645,7 @@ const Dashboard = () => {
                         <button onClick={handleUpdateAgent} style={{ ...styles.btn, ...styles.btnPrimary, display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <span>⬆</span> Update Agent
                         </button>
-                        <button onClick={handleUninstallAgent} style={{ ...styles.btn, background: '#ef444420', color: '#ef4444', border: '1px solid #ef444440', display: 'flex', alignItems: 'center', gap: '6px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))' }}>
+                        <button onClick={handleUninstallAgent} style={{ ...styles.btn, background: '#ef444420', color: '#ef4444', border: '1px solid #ef444440', display: 'flex', alignItems: 'center', gap: '6px', borderRadius: '8px' }}>
                           <span>🗑</span> Uninstall Agent
                         </button>
                       </div>
@@ -4178,10 +4653,10 @@ const Dashboard = () => {
                   </div>
                 )}
                 {agentInfo?.error_detail && !agentInfo?.error && (
-                  <div style={{ padding: '16px 20px', marginBottom: '16px', background: darkMode ? 'rgba(232,168,56,0.06)' : 'rgba(232,168,56,0.04)', border: '1px solid #e8a83840', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ padding: '16px 20px', marginBottom: '16px', background: darkMode ? 'rgba(232,168,56,0.06)' : 'rgba(232,168,56,0.04)', border: '1px solid #f59e0b40', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span style={{ fontSize: '18px' }}>⚠</span>
                     <div>
-                      <div style={{ fontSize: '12px', fontWeight: '700', color: '#e8a838', marginBottom: '2px' }}>Agent Update Required</div>
+                      <div style={{ fontSize: '12px', fontWeight: '700', color: '#f59e0b', marginBottom: '2px' }}>Agent Update Required</div>
                       <div style={{ fontSize: '11px', color: c.textMuted }}>{agentInfo.error_detail}</div>
                     </div>
                   </div>
@@ -4194,7 +4669,7 @@ const Dashboard = () => {
                   </div>
                 )}
                 {agentInfo?.error && (
-                  <div style={{ padding: '20px', textAlign: 'center', color: '#f06060', fontSize: '13px', border: '1px solid #f0606030', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))' }}>
+                  <div style={{ padding: '20px', textAlign: 'center', color: '#ef4444', fontSize: '13px', border: '1px solid #ef444430', borderRadius: '12px' }}>
                     Error: {agentInfo.error}
                   </div>
                 )}
@@ -4215,7 +4690,7 @@ const Dashboard = () => {
       {/* Bulk Action Progress Modal */}
       {showBulkModal && bulkProgress.length > 0 && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div style={{ background: c.card, clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, width: '100%', maxWidth: '640px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 48px rgba(0,0,0,0.4)' }}>
+          <div style={{ background: c.card, borderRadius: '12px', border: `1px solid ${c.border}`, width: '100%', maxWidth: '640px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 48px rgba(0,0,0,0.4)' }}>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `1px solid ${c.border}`, flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -4233,7 +4708,7 @@ const Dashboard = () => {
             {/* Progress list */}
             <div style={{ overflowY: 'auto', padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {bulkProgress.map(p => (
-                <div key={p.id} style={{ background: darkMode ? '#0d1820' : '#f0f5f8', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', padding: '12px 14px', border: `1px solid ${c.border}` }}>
+                <div key={p.id} style={{ background: darkMode ? '#0F0F0F' : '#f0f5f8', borderRadius: '8px', padding: '12px 14px', border: `1px solid ${c.border}` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{ width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
@@ -4242,7 +4717,7 @@ const Dashboard = () => {
                         animation: p.status === 'running' ? 'pulse 1s infinite' : 'none',
                       }} />
                       <span style={{ fontWeight: '600', fontSize: '13px' }}>{p.name}</span>
-                      <span style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace' }}>{p.host}</span>
+                      <span style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"JetBrains Mono", monospace' }}>{p.host}</span>
                     </div>
                     <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em',
                       color: p.status === 'done' ? '#22c55e' : p.status === 'error' ? '#ef4444' : p.status === 'running' ? '#f59e0b' : c.textMuted,
@@ -4258,7 +4733,7 @@ const Dashboard = () => {
                     }} />
                   </div>
                   {p.output && p.status !== 'pending' && (
-                    <div style={{ marginTop: '8px', fontSize: '11px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace', whiteSpace: 'pre-wrap', maxHeight: '120px', overflowY: 'auto', background: darkMode ? '#020617' : '#f1f5f9', borderRadius: '4px', padding: '6px 8px', lineHeight: 1.5 }}>
+                    <div style={{ marginTop: '8px', fontSize: '11px', color: c.textMuted, fontFamily: '"JetBrains Mono", monospace', whiteSpace: 'pre-wrap', maxHeight: '120px', overflowY: 'auto', background: darkMode ? '#020617' : '#f1f5f9', borderRadius: '4px', padding: '6px 8px', lineHeight: 1.5 }}>
                       {p.output.length > 800 ? p.output.slice(0, 800) + '\n…' : p.output}
                     </div>
                   )}
@@ -4277,10 +4752,10 @@ const Dashboard = () => {
       )}
 
       {showToken && (
-        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: c.card, padding: '24px', clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))', border: `1px solid ${c.border}`, zIndex: 1001, boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: c.card, padding: '24px', borderRadius: '12px', border: `1px solid ${c.border}`, zIndex: 1001, boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
           <h3 style={{ margin: '0 0 16px 0' }}>Deploy Agent on {showToken.host}</h3>
           <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '8px' }}>Run this on the target server as root or with sudo:</div>
-          <div style={{ background: '#0d1117', color: '#86efac', padding: '12px', borderRadius: '6px', fontFamily: '"Hack", "Courier New", monospace', fontSize: '12px', wordBreak: 'break-all', marginBottom: '4px', position: 'relative' }}>
+          <div style={{ background: '#0F0F0F', color: '#86efac', padding: '12px', borderRadius: '6px', fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', wordBreak: 'break-all', marginBottom: '4px', position: 'relative' }}>
             {showToken.installCmd || `curl -fsSL "..." | sudo sh`}
             {showToken.installCmd && <button onClick={() => copyToClipboard(showToken.installCmd)} style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(255,255,255,0.1)', border: 'none', color: '#94a3b8', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer', fontSize: '11px' }}>Copy</button>}
           </div>
@@ -4299,7 +4774,7 @@ const Dashboard = () => {
           <div style={styles.modal} onClick={closeWizard}>
             <div style={{ ...styles.modalContent, maxWidth: '560px', padding: 0, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
               {/* Header */}
-              <div style={{ background: 'linear-gradient(135deg, #16232E, #25515E)', padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ background: 'linear-gradient(135deg, #000, #111111)', padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
                   <div style={{ fontSize: '17px', fontWeight: '700', color: '#fff' }}>Add New Host</div>
                   <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Step {wizardStep} of {steps.length} — {steps[wizardStep - 1]}</div>
@@ -4324,7 +4799,7 @@ const Dashboard = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       {osOptions.map(os => (
                         <div key={os.id} onClick={() => !os.disabled && setWizardOS(os.id)}
-                          style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 18px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', border: `2px solid ${wizardOS === os.id ? '#3b82f6' : c.border}`, background: wizardOS === os.id ? 'rgba(59,130,246,0.08)' : 'rgba(30,41,59,0.4)', cursor: os.disabled ? 'not-allowed' : 'pointer', opacity: os.disabled ? 0.45 : 1, transition: 'all 0.15s' }}>
+                          style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 18px', borderRadius: '8px', border: `2px solid ${wizardOS === os.id ? '#3b82f6' : c.border}`, background: wizardOS === os.id ? 'rgba(59,130,246,0.08)' : 'rgba(30,41,59,0.4)', cursor: os.disabled ? 'not-allowed' : 'pointer', opacity: os.disabled ? 0.45 : 1, transition: 'all 0.15s' }}>
                           <div style={{ fontSize: '32px' }}>{os.icon}</div>
                           <div>
                             <div style={{ fontWeight: '600', fontSize: '15px', color: c.text }}>{os.label}</div>
@@ -4404,7 +4879,7 @@ const Dashboard = () => {
                           ⊞ PowerShell — Run as Administrator (right-click → Run as Administrator)
                         </div>
                       )}
-                      <div style={{ background: 'rgba(0,0,0,0.35)', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', padding: '14px 16px', fontFamily: '"Hack", "Courier New", monospace', fontSize: '12px', color: '#86efac', wordBreak: 'break-all', position: 'relative', border: '1px solid rgba(34,197,94,0.2)', minHeight: '52px' }}>
+                      <div style={{ background: 'rgba(0,0,0,0.35)', borderRadius: '8px', padding: '14px 16px', fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', color: '#86efac', wordBreak: 'break-all', position: 'relative', border: '1px solid rgba(34,197,94,0.2)', minHeight: '52px' }}>
                         {wizardInstallCmdLoading ? <span style={{ color: '#60a5fa' }}>Loading...</span> : wizardInstallCmd}
                         {wizardInstallCmd && (
                           <button onClick={() => copyToClipboard(wizardInstallCmd)}
@@ -4508,7 +4983,7 @@ const Dashboard = () => {
           <div style={{ background: c.card, borderRadius: '16px', border: `1px solid ${c.border}`, width: '100%', maxWidth: '460px', boxShadow: '0 24px 48px rgba(0,0,0,0.4)', overflow: 'hidden' }}>
             {/* Header */}
             <div style={{ padding: '20px 24px', borderBottom: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '36px', height: '36px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', background: '#ef444420', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>↺</div>
+              <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#ef444420', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>↺</div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: '700', fontSize: '15px' }}>Odaberi servere za reboot</div>
                 <div style={{ fontSize: '12px', color: c.textMuted, marginTop: '2px' }}>Odznači servere koje ne želiš restartovati</div>
@@ -4537,9 +5012,9 @@ const Dashboard = () => {
                       style={{ width: '16px', height: '16px', accentColor: '#ef4444', flexShrink: 0 }} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '13px', fontWeight: '600', color: checked ? c.text : c.textMuted }}>{s.name}</div>
-                      <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"Hack", "Courier New", monospace' }}>{s.host}</div>
+                      <div style={{ fontSize: '11px', color: c.textMuted, fontFamily: '"JetBrains Mono", monospace' }}>{s.host}</div>
                     </div>
-                    <span style={{ fontSize: '11px', background: checked ? '#ef444420' : c.cardHover, color: checked ? '#ef4444' : c.textMuted, padding: '2px 8px', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', fontWeight: '600' }}>
+                    <span style={{ fontSize: '11px', background: checked ? '#ef444420' : c.cardHover, color: checked ? '#ef4444' : c.textMuted, padding: '2px 8px', borderRadius: '8px', fontWeight: '600' }}>
                       {checked ? 'reboot' : 'preskoči'}
                     </span>
                   </label>
@@ -4552,7 +5027,7 @@ const Dashboard = () => {
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button onClick={() => setShowRebootConfirm(false)} style={{ ...styles.btn, ...styles.btnSecondary, padding: '8px 20px' }}>Otkaži</button>
                 <button onClick={executeReboot} disabled={rebootSelected.size === 0}
-                  style={{ background: '#ef4444', color: '#fff', border: 'none', clipPath: 'polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px))', padding: '8px 20px', fontWeight: '600', cursor: rebootSelected.size === 0 ? 'not-allowed' : 'pointer', fontSize: '13px', opacity: rebootSelected.size === 0 ? 0.4 : 1 }}>
+                  style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 20px', fontWeight: '600', cursor: rebootSelected.size === 0 ? 'not-allowed' : 'pointer', fontSize: '13px', opacity: rebootSelected.size === 0 ? 0.4 : 1 }}>
                   ↺ Rebootuj ({rebootSelected.size})
                 </button>
               </div>
@@ -4566,18 +5041,18 @@ const Dashboard = () => {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
           <div style={{ background: darkMode ? '#1e293b' : '#fff', borderRadius: '20px', padding: '36px 40px', maxWidth: '420px', width: '90%', boxShadow: '0 24px 80px rgba(0,0,0,0.4)', textAlign: 'center', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}` }}>
             <div style={{ fontSize: '48px', marginBottom: '12px' }}>☕</div>
-            <div style={{ fontSize: '22px', fontWeight: '800', marginBottom: '8px', background: 'linear-gradient(135deg, #A8987C, #467885)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', textShadow: 'none' }}>Enjoying ServerCTL?</div>
+            <div style={{ fontSize: '22px', fontWeight: '800', marginBottom: '8px', background: 'linear-gradient(135deg, #10b981, #71717A)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', textShadow: 'none' }}>Enjoying ServerCTL?</div>
             <div style={{ fontSize: '14px', color: darkMode ? '#94a3b8' : '#64748b', lineHeight: 1.7, marginBottom: '28px' }}>
               ServerCTL is free and open-source. If it saves you time and makes your life easier, consider buying me a coffee — it helps keep the project alive and growing.
             </div>
             <a href="https://buymeacoffee.com/vilic355" target="_blank" rel="noreferrer"
-              style={{ display: 'block', background: '#FFDD00', color: '#000', fontWeight: '800', fontSize: '15px', padding: '13px 24px', clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', textDecoration: 'none', marginBottom: '12px', transition: 'transform 0.15s, filter 0.15s' }}
+              style={{ display: 'block', background: '#FFDD00', color: '#000', fontWeight: '800', fontSize: '15px', padding: '13px 24px', borderRadius: '8px', textDecoration: 'none', marginBottom: '12px', transition: 'transform 0.15s, filter 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.08)'}
               onMouseLeave={e => e.currentTarget.style.filter = ''}>
               ☕ Buy me a coffee
             </a>
             <button onClick={() => { localStorage.setItem('serverctl_donated', 'true'); setShowDonationModal(false); }}
-              style={{ display: 'block', width: '100%', background: darkMode ? '#0f172a' : '#f1f5f9', color: darkMode ? '#94a3b8' : '#475569', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`, clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', padding: '11px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', marginBottom: '8px' }}>
+              style={{ display: 'block', width: '100%', background: darkMode ? '#0f172a' : '#f1f5f9', color: darkMode ? '#94a3b8' : '#475569', border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`, borderRadius: '8px', padding: '11px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', marginBottom: '8px' }}>
               I've donated — don't show again
             </button>
             <button onClick={() => setShowDonationModal(false)}
@@ -4590,14 +5065,14 @@ const Dashboard = () => {
 
       {/* Global Task Progress Panel */}
       {globalTasks.length > 0 && (
-        <div style={{ position: 'fixed', bottom: '24px', left: '224px', zIndex: 9998, width: '360px', background: darkMode ? '#0f1a24' : '#fff', border: `1px solid ${darkMode ? '#1e3d4f' : '#c0d4da'}`, borderRadius: '4px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
+        <div style={{ position: 'fixed', bottom: '24px', left: '224px', zIndex: 9998, width: '360px', background: darkMode ? '#0f1a24' : '#fff', border: `1px solid ${darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`, borderRadius: '4px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: `1px solid ${darkMode ? '#1e3d4f' : '#c0d4da'}`, background: darkMode ? '#0d1820' : '#e6eef2' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: `1px solid ${darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`, background: darkMode ? '#0F0F0F' : '#FFFFFF' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               {globalTasks.some(t => t.status === 'running') && (
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3dd68c', animation: 'pulse 1s infinite', flexShrink: 0 }} />
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 1s infinite', flexShrink: 0 }} />
               )}
-              <span style={{ fontSize: '11px', fontWeight: '700', color: '#A8987C', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: '#10b981', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                 Tasks {globalTasks.filter(t => t.status === 'running').length > 0 && `(${globalTasks.filter(t => t.status === 'running').length} running)`}
               </span>
             </div>
@@ -4614,11 +5089,11 @@ const Dashboard = () => {
               const elapsed = Math.round((Date.now() - task.startTime) / 1000);
               const elapsedStr = elapsed < 60 ? `${elapsed}s` : `${Math.floor(elapsed / 60)}m ${elapsed % 60}s`;
               return (
-                <div key={task.id} style={{ display: 'flex', gap: '10px', padding: '10px 14px', borderBottom: `1px solid ${darkMode ? '#1e3d4f20' : '#e2e8f020'}`, alignItems: 'flex-start' }}>
+                <div key={task.id} style={{ display: 'flex', gap: '10px', padding: '10px 14px', borderBottom: `1px solid ${darkMode ? 'rgba(255,255,255,0.08)20' : '#e2e8f020'}`, alignItems: 'flex-start' }}>
                   <div style={{ flexShrink: 0, marginTop: '2px' }}>
-                    {task.status === 'running' && <div style={{ width: '14px', height: '14px', border: '2px solid #A8987C40', borderTopColor: '#A8987C', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />}
-                    {task.status === 'done' && <span style={{ color: '#3dd68c', fontSize: '14px' }}>✓</span>}
-                    {task.status === 'error' && <span style={{ color: '#f06060', fontSize: '14px' }}>✗</span>}
+                    {task.status === 'running' && <div style={{ width: '14px', height: '14px', border: '2px solid #10b98140', borderTopColor: '#10b981', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />}
+                    {task.status === 'done' && <span style={{ color: '#22c55e', fontSize: '14px' }}>✓</span>}
+                    {task.status === 'error' && <span style={{ color: '#ef4444', fontSize: '14px' }}>✗</span>}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
@@ -4627,12 +5102,12 @@ const Dashboard = () => {
                     </div>
                     <div style={{ fontSize: '11px', color: c.textMuted, marginBottom: task.status === 'running' ? '6px' : '0' }}>{task.server}</div>
                     {task.status === 'running' && (
-                      <div style={{ height: '3px', background: darkMode ? '#1e3d4f' : '#c0d4da', borderRadius: '2px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', background: '#A8987C', borderRadius: '2px', animation: 'progressIndeterminate 1.5s ease-in-out infinite', width: '40%' }} />
+                      <div style={{ height: '3px', background: darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', background: '#10b981', borderRadius: '2px', animation: 'progressIndeterminate 1.5s ease-in-out infinite', width: '40%' }} />
                       </div>
                     )}
                     {task.output && task.status !== 'running' && (
-                      <div style={{ fontSize: '10px', color: task.status === 'error' ? '#f06060' : '#3dd68c', marginTop: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.output}</div>
+                      <div style={{ fontSize: '10px', color: task.status === 'error' ? '#ef4444' : '#22c55e', marginTop: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.output}</div>
                     )}
                   </div>
                   <button onClick={() => removeTask(task.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.textMuted, fontSize: '12px', padding: 0, flexShrink: 0, opacity: 0.5 }}>×</button>
@@ -4647,7 +5122,7 @@ const Dashboard = () => {
       {toasts.length > 0 && (
         <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '380px' }}>
           {toasts.map(t => (
-            <div key={t.id} style={{ background: darkMode ? '#1e293b' : '#fff', border: `1px solid ${t.type === 'error' ? '#ef444440' : '#22c55e40'}`, borderLeft: `4px solid ${t.type === 'error' ? '#ef4444' : '#22c55e'}`, clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))', padding: '12px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.2)', display: 'flex', gap: '12px', alignItems: 'flex-start', animation: 'slideIn 0.2s ease' }}>
+            <div key={t.id} style={{ background: darkMode ? '#1e293b' : '#fff', border: `1px solid ${t.type === 'error' ? '#ef444440' : '#22c55e40'}`, borderLeft: `4px solid ${t.type === 'error' ? '#ef4444' : '#22c55e'}`, borderRadius: '8px', padding: '12px 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.2)', display: 'flex', gap: '12px', alignItems: 'flex-start', animation: 'slideIn 0.2s ease' }}>
               <span style={{ fontSize: '18px', flexShrink: 0 }}>{t.type === 'error' ? '⚠️' : '✅'}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '13px', fontWeight: '700', color: t.type === 'error' ? '#ef4444' : '#22c55e', marginBottom: '3px' }}>{t.title}</div>

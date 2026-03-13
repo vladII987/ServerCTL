@@ -28,7 +28,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const agentVersion = "1.3.2"
+var agentVersion = "1.3.6"
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -223,11 +223,20 @@ func hostname() string {
 
 // ─── Update / reboot helpers ─────────────────────────────────────────────────
 
+func ensurePSWindowsUpdate() {
+	runPowerShell(`if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
+  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+  Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -ErrorAction SilentlyContinue | Out-Null
+  Install-Module PSWindowsUpdate -Force -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+}`)
+}
+
 func countUpgradable(pm *pkgManager) int {
 	if runtime.GOOS == "windows" {
+		ensurePSWindowsUpdate()
 		out, err := runPowerShell(`try {
   $updates = Get-WindowsUpdate -ErrorAction Stop
-  Write-Output $updates.Count
+  if ($updates) { Write-Output $updates.Count } else { Write-Output "0" }
 } catch {
   Write-Output "0"
 }`)
@@ -414,6 +423,7 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 
 	case "upgradable_packages":
 		if runtime.GOOS == "windows" {
+			ensurePSWindowsUpdate()
 			out, err := runPowerShell(`try {
   $updates = Get-WindowsUpdate -ErrorAction Stop
   if ($updates -and $updates.Count -gt 0) {
@@ -633,8 +643,9 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 
 	case "update":
 		if runtime.GOOS == "windows" {
+			ensurePSWindowsUpdate()
 			out, _ := runPowerShell(`try {
-  $updates = Get-WindowsUpdate -AcceptAll -ErrorAction Stop
+  $updates = Get-WindowsUpdate -ErrorAction Stop
   if ($updates) {
     Write-Output "$($updates.Count) update(s) available."
     $updates | ForEach-Object { Write-Output "  - $($_.Title)" }
@@ -642,7 +653,7 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
     Write-Output "No updates available."
   }
 } catch {
-  Write-Output "Windows Update module not installed. Run: Install-Module PSWindowsUpdate -Force"
+  Write-Output "Failed to check updates: $_"
 }`)
 			return out
 		}
@@ -654,6 +665,7 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 
 	case "upgrade":
 		if runtime.GOOS == "windows" {
+			ensurePSWindowsUpdate()
 			out, _ := runPowerShell(`try {
   $result = Get-WindowsUpdate -Install -AcceptAll -AutoReboot:$false -ErrorAction Stop
   if ($result) {
@@ -663,7 +675,7 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
     Write-Output "No updates to install."
   }
 } catch {
-  Write-Output "Windows Update module not installed. Run: Install-Module PSWindowsUpdate -Force"
+  Write-Output "Failed to install updates: $_"
 }`)
 			return out
 		}
@@ -676,6 +688,7 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 
 	case "update_packages":
 		if runtime.GOOS == "windows" {
+			ensurePSWindowsUpdate()
 			out, _ := runPowerShell(`try {
   $result = Get-WindowsUpdate -Install -AcceptAll -AutoReboot:$false -ErrorAction Stop
   if ($result) {
@@ -685,7 +698,7 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
     Write-Output "No updates to install."
   }
 } catch {
-  Write-Output "Windows Update module not installed. Run: Install-Module PSWindowsUpdate -Force"
+  Write-Output "Failed to install updates: $_"
 }`)
 			return out
 		}
@@ -715,8 +728,12 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 
 	case "reboot":
 		if runtime.GOOS == "windows" {
-			out, _ := runShell("shutdown /r /t 5 /c \"ServerCTL reboot\"")
-			return "Rebooting in 5 seconds...\n" + out
+			// Use shutdown.exe directly via runCmd to avoid shell quoting issues
+			go func() {
+				time.Sleep(2 * time.Second)
+				exec.Command("shutdown", "/r", "/t", "5", "/c", "ServerCTL reboot").Run()
+			}()
+			return "Rebooting in 7 seconds..."
 		}
 		out, _ := runShell("sudo reboot || reboot || shutdown -r now")
 		return "Reboot initiated.\n" + out
@@ -806,6 +823,89 @@ func handleCommand(command, target string, pm *pkgManager, cfg *Config) string {
 		if strings.HasPrefix(command, "shell:") {
 			out, _ := runShell(strings.TrimPrefix(command, "shell:"))
 			return out
+		}
+		if strings.HasPrefix(command, "firewall:") {
+			parts := strings.SplitN(command, ":", 3)
+			if len(parts) < 2 {
+				return "invalid firewall command"
+			}
+			action := parts[1]
+			arg := ""
+			if len(parts) == 3 {
+				arg = parts[2]
+			}
+			switch action {
+			case "enable":
+				if runtime.GOOS == "windows" {
+					out, _ := runPowerShell("Set-NetFirewallProfile -All -Enabled True; Get-NetFirewallProfile | Format-Table Name,Enabled -AutoSize | Out-String -Width 300")
+					return out
+				}
+				out, _ := runShell("echo 'y' | ufw enable 2>&1")
+				return out
+			case "disable":
+				if runtime.GOOS == "windows" {
+					out, _ := runPowerShell("Set-NetFirewallProfile -All -Enabled False; Get-NetFirewallProfile | Format-Table Name,Enabled -AutoSize | Out-String -Width 300")
+					return out
+				}
+				out, _ := runShell("ufw disable 2>&1")
+				return out
+			case "add":
+				if arg == "" {
+					return "missing rule argument"
+				}
+				if runtime.GOOS == "windows" {
+					// arg format: "allow|deny,in|out,tcp|udp,port[,name]"
+					p := strings.Split(arg, ",")
+					if len(p) < 4 {
+						return "format: allow|deny,in|out,tcp|udp,port[,name]"
+					}
+					act := "Allow"
+					if strings.ToLower(p[0]) == "deny" || strings.ToLower(p[0]) == "block" {
+						act = "Block"
+					}
+					dir := "Inbound"
+					if strings.ToLower(p[1]) == "out" {
+						dir = "Outbound"
+					}
+					proto := strings.ToUpper(p[2])
+					port := p[3]
+					name := fmt.Sprintf("ServerCTL_%s_%s_%s", act, proto, port)
+					if len(p) >= 5 && p[4] != "" {
+						name = p[4]
+					}
+					cmd := fmt.Sprintf(`New-NetFirewallRule -DisplayName "%s" -Direction %s -Action %s -Protocol %s -LocalPort %s -Enabled True | Format-List DisplayName,Direction,Action,Protocol,LocalPort,Enabled | Out-String -Width 300`, name, dir, act, proto, port)
+					out, _ := runPowerShell(cmd)
+					return out
+				}
+				// Linux ufw: arg format: "allow|deny,in|out,tcp|udp,port"
+				p := strings.Split(arg, ",")
+				if len(p) < 4 {
+					return "format: allow|deny,in|out,tcp|udp,port"
+				}
+				act := strings.ToLower(p[0])
+				dir := strings.ToLower(p[1])
+				proto := strings.ToLower(p[2])
+				port := p[3]
+				cmd := fmt.Sprintf("ufw %s %s %s/%s 2>&1", act, dir, port, proto)
+				out, _ := runShell(cmd)
+				return out
+			case "remove":
+				if arg == "" {
+					return "missing rule argument"
+				}
+				if runtime.GOOS == "windows" {
+					// Remove by display name
+					cmd := fmt.Sprintf(`Remove-NetFirewallRule -DisplayName "%s" 2>&1; Write-Output "Rule '%s' removed"`, arg, arg)
+					out, _ := runPowerShell(cmd)
+					return out
+				}
+				// Linux: arg is the full rule spec like "allow in 22/tcp"
+				cmd := fmt.Sprintf("ufw delete %s 2>&1", arg)
+				out, _ := runShell(cmd)
+				return out
+			default:
+				return "unknown firewall action: " + action
+			}
 		}
 		if strings.HasPrefix(command, "service:") {
 			parts := strings.SplitN(command, ":", 3)
@@ -1047,10 +1147,19 @@ fi
 }
 
 func repoSpeedTest() string {
-	repos := []struct{ name, url string }{
-		{"Ubuntu Archive", "http://archive.ubuntu.com/ubuntu/dists/noble/Release"},
-		{"Ubuntu Security", "http://security.ubuntu.com/ubuntu/dists/noble-security/Release"},
-		{"Ubuntu Updates", "http://archive.ubuntu.com/ubuntu/dists/noble-updates/Release"},
+	var repos []struct{ name, url string }
+	if runtime.GOOS == "windows" {
+		repos = []struct{ name, url string }{
+			{"Microsoft CDN", "https://download.microsoft.com/download/robots.txt"},
+			{"Winget CDN", "https://cdn.winget.microsoft.com/cache/source2.msix"},
+			{"Cloudflare", "https://speed.cloudflare.com/__down?bytes=262144"},
+		}
+	} else {
+		repos = []struct{ name, url string }{
+			{"Ubuntu Archive", "http://archive.ubuntu.com/ubuntu/dists/noble/Release"},
+			{"Ubuntu Security", "http://security.ubuntu.com/ubuntu/dists/noble-security/Release"},
+			{"Ubuntu Updates", "http://archive.ubuntu.com/ubuntu/dists/noble-updates/Release"},
+		}
 	}
 	var lines []string
 	lines = append(lines, "[From agent]")

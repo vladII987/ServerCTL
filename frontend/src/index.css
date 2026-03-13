@@ -1,0 +1,107 @@
+/* Inter — UI font (variable weight) */
+@font-face {
+  font-family: "Inter";
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/Inter.woff2") format("woff2");
+}
+
+/* JetBrains Mono — code / data font */
+@font-face {
+  font-family: "JetBrains Mono";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/JetBrainsMono-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/JetBrainsMono-SemiBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/JetBrainsMono-Bold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/JetBrainsMono-ExtraBold.woff2") format("woff2");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-text-size-adjust: 100%;
+}
+
+html {
+  font-variant-ligatures: common-ligatures;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.grid-bg-dark {
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.03) 1px, transparent 0);
+  background-size: 40px 40px;
+}
+
+.grid-bg-light {
+  background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.04) 1px, transparent 0);
+  background-size: 40px 40px;
+}
+
+/* Responsive */
+html, body, #root {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Prevent text overflow globally */
+div, span, p, pre, td, th {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+@media (max-width: 1100px) {
+  .sidebar-nav { width: 64px !important; }
+  .main-content { margin-left: 64px !important; }
+}
+
+@media (max-width: 900px) {
+  .main-content-pad { padding: 16px !important; }
+  .top-header-pad { padding: 0 16px !important; }
+  .stats-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+  .grid-3col { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 700px) {
+  .sidebar-nav { width: 0 !important; overflow: hidden !important; border: none !important; }
+  .main-content { margin-left: 0 !important; }
+  .main-content-pad { padding: 12px !important; }
+  .top-header-pad { padding: 0 12px !important; }
+  .stats-grid-4 { grid-template-columns: 1fr 1fr !important; }
+}

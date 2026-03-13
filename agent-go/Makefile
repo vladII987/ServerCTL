@@ -1,7 +1,7 @@
-VERSION    := 1.0.0
+VERSION    := $(shell cat ../VERSION 2>/dev/null || echo "dev")
 BINARY     := serverctl-agent
 GO         := go
-LDFLAGS    := -ldflags="-s -w -X main.version=$(VERSION)"
+LDFLAGS    := -ldflags="-s -w -X main.agentVersion=$(VERSION)"
 
 # Output dirs
 OUT        := dist
