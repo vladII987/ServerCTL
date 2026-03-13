@@ -1,0 +1,27 @@
+agent-go/main.go
+  d9c50ba8813a031f 226-242,594-595,599,847-849
+VERSION
+  d9c50ba8813a031f 1
+frontend/src/Dashboard.jsx
+  d9c50ba8813a031f 4432-4481
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.10",
+  "base_commit_sha": "28a55ae059c58356585c9c2b87492b4d6ff27082",
+  "prompts": {
+    "d9c50ba8813a031f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "06ba4ab7-17d4-463c-8f68-73497db7c6ce",
+        "model": "unknown"
+      },
+      "human_author": "Vladimir Ilic <vlada87ilic@hotmail.com>",
+      "messages": [],
+      "total_additions": 74,
+      "total_deletions": 61,
+      "accepted_lines": 74,
+      "overriden_lines": 0
+    }
+  }
+}
