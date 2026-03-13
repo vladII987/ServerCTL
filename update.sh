@@ -23,6 +23,35 @@ echo ""
 OLD_VERSION=$(cat "$DIR/VERSION" 2>/dev/null || echo "unknown")
 info "Current version: ${OLD_VERSION}"
 
+# ══════════════════════════════════════════════════════════════
+# CRITICAL: Verify .env and backup before doing anything
+# ══════════════════════════════════════════════════════════════
+if [[ ! -f "$DIR/.env" ]]; then
+    err ".env file not found! Cannot update without it — tokens and config would be lost.
+    If you lost .env, run setup.sh again to generate new tokens."
+fi
+
+# Verify .env has required tokens
+MISSING=""
+for VAR in SECRET_KEY DASHBOARD_TOKEN AGENT_TOKEN; do
+    VAL=$(grep "^${VAR}=" "$DIR/.env" | cut -d'=' -f2)
+    if [[ -z "$VAL" ]]; then
+        MISSING="$MISSING $VAR"
+    fi
+done
+if [[ -n "$MISSING" ]]; then
+    err "Missing tokens in .env:${MISSING}
+    Run setup.sh to regenerate or restore from backup."
+fi
+
+# Create backup of critical files
+BACKUP_DIR="$DIR/.backup/$(date +%Y%m%d_%H%M%S)"
+mkdir -p "$BACKUP_DIR"
+cp "$DIR/.env" "$BACKUP_DIR/.env"
+cp "$DIR/backend/servers.json" "$BACKUP_DIR/servers.json" 2>/dev/null
+cp "$DIR/backend/users.json" "$BACKUP_DIR/users.json" 2>/dev/null
+ok "Backup saved → $BACKUP_DIR"
+
 # ── Detect install mode ──────────────────────────────────────
 if [[ -f /etc/systemd/system/serverctl-backend.service ]]; then
     MODE="native"
@@ -82,6 +111,14 @@ case "$GIT_CHOICE" in
         git pull || err "git pull failed."
         ;;
 esac
+
+# Restore .env in case git pull overwrote it (shouldn't happen, but safety)
+if [[ ! -f "$DIR/.env" ]] || [[ ! -s "$DIR/.env" ]]; then
+    warn ".env was lost during pull — restoring from backup..."
+    cp "$BACKUP_DIR/.env" "$DIR/.env"
+    ok ".env restored from backup."
+fi
+
 NEW_VERSION=$(cat "$DIR/VERSION" 2>/dev/null || echo "unknown")
 ok "Updated: ${OLD_VERSION} → ${NEW_VERSION}"
 echo ""
@@ -89,16 +126,15 @@ echo ""
 # ── Docker update ─────────────────────────────────────────────
 if [[ "$MODE" == "docker" ]]; then
     # Load .env file so docker compose has all required variables
-    if [[ -f "$DIR/.env" ]]; then
-        set -a
-        source "$DIR/.env"
-        set +a
-    fi
+    set -a
+    source "$DIR/.env"
+    set +a
     info "Rebuilding Docker containers..."
     APP_VERSION="$NEW_VERSION" docker compose up --build -d || err "Docker build failed."
     ok "Docker containers rebuilt and running."
     echo ""
     ok "Update complete! (v${NEW_VERSION})"
+    echo -e "  ${Y}Backup:${NC} $BACKUP_DIR"
     exit 0
 fi
 
@@ -127,11 +163,8 @@ if command -v npm >/dev/null 2>&1; then
     info "Rebuilding frontend..."
     cd "$DIR/frontend"
 
-    # Read env from .env file if it exists
-    DASHBOARD_TOKEN=""
-    if [[ -f "$DIR/.env" ]]; then
-        DASHBOARD_TOKEN=$(grep '^DASHBOARD_TOKEN=' "$DIR/.env" | cut -d'=' -f2)
-    fi
+    # Read env from .env file
+    DASHBOARD_TOKEN=$(grep '^DASHBOARD_TOKEN=' "$DIR/.env" | cut -d'=' -f2)
 
     # Run npm as the real user to avoid permission issues
     if [[ -n "$SUDO_USER" ]]; then
@@ -174,3 +207,4 @@ fi
 
 echo ""
 ok "Update complete! (v${NEW_VERSION})"
+echo -e "  ${Y}Backup:${NC} $BACKUP_DIR"

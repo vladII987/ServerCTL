@@ -21,6 +21,9 @@ frontend/dist/
 backend/servers.json
 backend/users.json
 
+# Backups
+.backup/
+
 # Archives
 *.tgz
 *.tar.gz
