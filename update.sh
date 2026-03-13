@@ -108,8 +108,13 @@ else
     warn "Python venv not found at $VENV — skipping backend deps."
 fi
 
+# Fix ownership if running under sudo (git pull as user, rest as root)
+if [[ -n "$SUDO_USER" ]]; then
+    chown -R "$SUDO_USER:$(id -gn "$SUDO_USER")" "$DIR" 2>/dev/null
+fi
+
 # Write VERSION for backend
-echo "$NEW_VERSION" > "$DIR/backend/VERSION"
+cp "$DIR/VERSION" "$DIR/backend/VERSION" 2>/dev/null || echo "$NEW_VERSION" > "$DIR/backend/VERSION"
 
 # Frontend rebuild
 if command -v npm >/dev/null 2>&1; then
@@ -122,15 +127,25 @@ if command -v npm >/dev/null 2>&1; then
         DASHBOARD_TOKEN=$(grep '^DASHBOARD_TOKEN=' "$DIR/.env" | cut -d'=' -f2)
     fi
 
-    npm install --silent 2>/dev/null
-    VITE_API_URL="" \
-    VITE_DASHBOARD_TOKEN="${DASHBOARD_TOKEN}" \
-    VITE_APP_VERSION="${NEW_VERSION}" \
-        npm run build -- --logLevel silent || err "Frontend build failed."
+    # Run npm as the real user to avoid permission issues
+    if [[ -n "$SUDO_USER" ]]; then
+        su - "$SUDO_USER" -c "cd '$DIR/frontend' && npm install --silent 2>/dev/null && VITE_API_URL='' VITE_DASHBOARD_TOKEN='${DASHBOARD_TOKEN}' VITE_APP_VERSION='${NEW_VERSION}' npm run build" || err "Frontend build failed."
+    else
+        npm install --silent 2>/dev/null
+        VITE_API_URL="" \
+        VITE_DASHBOARD_TOKEN="${DASHBOARD_TOKEN}" \
+        VITE_APP_VERSION="${NEW_VERSION}" \
+            npm run build || err "Frontend build failed."
+    fi
     ok "Frontend rebuilt."
     cd "$DIR"
 
     # Ensure nginx can read dist
+    PARENT="$DIR"
+    while [[ "$PARENT" != "/" ]]; do
+        chmod o+x "$PARENT" 2>/dev/null
+        PARENT="$(dirname "$PARENT")"
+    done
     chmod -R o+r "$DIR/frontend/dist" 2>/dev/null
 else
     warn "npm not found — skipping frontend rebuild."
