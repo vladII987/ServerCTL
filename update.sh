@@ -37,6 +37,13 @@ echo ""
 # ── Pull latest code ─────────────────────────────────────────
 info "Pulling latest changes from git..."
 cd "$DIR"
+# Switch SSH remote to HTTPS if needed (avoids SSH key issues)
+REMOTE_URL=$(git remote get-url origin 2>/dev/null)
+if [[ "$REMOTE_URL" == git@github.com:* ]]; then
+    HTTPS_URL=$(echo "$REMOTE_URL" | sed 's|git@github.com:|https://github.com/|')
+    git remote set-url origin "$HTTPS_URL"
+    info "Switched remote to HTTPS: $HTTPS_URL"
+fi
 git pull || err "git pull failed. Resolve conflicts and try again."
 NEW_VERSION=$(cat "$DIR/VERSION" 2>/dev/null || echo "unknown")
 ok "Updated: ${OLD_VERSION} → ${NEW_VERSION}"
