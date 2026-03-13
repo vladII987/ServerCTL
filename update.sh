@@ -88,6 +88,12 @@ echo ""
 
 # ── Docker update ─────────────────────────────────────────────
 if [[ "$MODE" == "docker" ]]; then
+    # Load .env file so docker compose has all required variables
+    if [[ -f "$DIR/.env" ]]; then
+        set -a
+        source "$DIR/.env"
+        set +a
+    fi
     info "Rebuilding Docker containers..."
     APP_VERSION="$NEW_VERSION" docker compose up --build -d || err "Docker build failed."
     ok "Docker containers rebuilt and running."
