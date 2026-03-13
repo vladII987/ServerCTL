@@ -1,0 +1,23 @@
+uninstall.sh
+  d9c50ba8813a031f 1-2,7-8,15,17,23,34,40,55,58-60,75-77,82-83,85-87,91-93,100,107,114,121-126,130-136
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.10",
+  "base_commit_sha": "f80290a0e2803da5cd2ceb07a88d207571398125",
+  "prompts": {
+    "d9c50ba8813a031f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "06ba4ab7-17d4-463c-8f68-73497db7c6ce",
+        "model": "unknown"
+      },
+      "human_author": "Vladimir Ilic <vlada87ilic@hotmail.com>",
+      "messages": [],
+      "total_additions": 131,
+      "total_deletions": 130,
+      "accepted_lines": 41,
+      "overriden_lines": 0
+    }
+  }
+}
