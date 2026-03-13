@@ -331,9 +331,22 @@ if [[ "$MODE" == "native" ]]; then
 
     # ── Python venv for backend ───────────────────────────────
     VENV="$DIR/backend/.venv"
-    if [[ ! -d "$VENV" ]]; then
+    if [[ ! -d "$VENV" ]] || [[ ! -f "$VENV/bin/pip" ]]; then
         info "Creating Python venv..."
-        python3 -m venv "$VENV"
+        rm -rf "$VENV"
+        python3 -m venv "$VENV" || {
+            warn "venv creation failed, installing ensurepip..."
+            _install_pkg python3-pip
+            python3 -m venv "$VENV" || err "Failed to create Python venv."
+        }
+    fi
+    # Ensure pip exists inside the venv
+    if [[ ! -f "$VENV/bin/pip" ]]; then
+        info "Bootstrapping pip in venv..."
+        "$VENV/bin/python3" -m ensurepip --upgrade 2>/dev/null || {
+            _install_pkg python3-pip
+            "$VENV/bin/python3" -m ensurepip --upgrade || err "Cannot install pip in venv."
+        }
     fi
     info "Installing Python dependencies..."
     "$VENV/bin/pip" install -q --upgrade pip
