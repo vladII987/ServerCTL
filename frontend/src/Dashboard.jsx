@@ -5,13 +5,13 @@ const WS_HOST = `${WS_PROTOCOL}//${window.location.host}`;
 
 const colors = {
   dark: {
-    bg: '#0F0F0F',
-    card: '#111111',
-    cardHover: '#1A1A1A',
-    text: '#E4E3E0',
-    textMuted: '#71717A',
-    border: 'rgba(255,255,255,0.08)',
-    input: '#111111',
+    bg: '#0B0E11',
+    card: '#131620',
+    cardHover: '#1A1D26',
+    text: '#E8E9ED',
+    textMuted: '#6B7280',
+    border: 'rgba(255,255,255,0.07)',
+    input: '#0F1117',
     inputBorder: 'rgba(255,255,255,0.1)',
     primary: '#10b981',
     primaryHover: '#34d399',
@@ -37,14 +37,14 @@ const colors = {
     rose: '#f43f5e',
   },
   light: {
-    bg: '#F4F4F5',
+    bg: '#F5F6F8',
     card: '#FFFFFF',
     cardHover: '#F9FAFB',
-    text: '#18181B',
-    textMuted: '#71717A',
-    border: 'rgba(0,0,0,0.08)',
+    text: '#111827',
+    textMuted: '#6B7280',
+    border: 'rgba(0,0,0,0.07)',
     input: '#FFFFFF',
-    inputBorder: 'rgba(0,0,0,0.15)',
+    inputBorder: 'rgba(0,0,0,0.12)',
     primary: '#10b981',
     primaryHover: '#059669',
     success: '#22c55e',
@@ -95,15 +95,16 @@ const LoginPage = ({ onLogin, darkMode, toggleDark }) => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: darkMode ? '#0F0F0F' : '#F4F4F5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', color: c.text, position: 'relative', overflow: 'hidden' }}>
+    <div style={{ minHeight: '100vh', background: darkMode ? '#0B0E11' : '#F5F6F8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif', color: c.text, position: 'relative', overflow: 'hidden' }}>
       <style>{`
-        .login-input:focus { border-color: #10b981 !important; box-shadow: 0 0 0 1px #10b98140, 0 0 12px #10b98120 !important; outline: none; }
-        .login-btn:hover:not(:disabled) { background: #34d399 !important; box-shadow: 0 0 20px #10b98140 !important; }
+        .login-input:focus { border-color: #10b981 !important; box-shadow: 0 0 0 2px rgba(16,185,129,0.25), 0 1px 2px 0 rgb(0 0 0 / 0.05) !important; outline: none; }
+        .login-input:hover { border-color: ${darkMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)'} !important; }
+        .login-btn:hover:not(:disabled) { background: #34d399 !important; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important; }
       `}</style>
       {/* Grid background */}
       <div className={darkMode ? 'grid-bg-dark' : 'grid-bg-light'} style={{ position: 'absolute', inset: 0 }} />
       {/* Glow */}
-      {darkMode && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '400px', height: '400px', background: 'rgba(16,185,129,0.08)', borderRadius: '50%', filter: 'blur(120px)', pointerEvents: 'none' }} />}
+      {darkMode && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '500px', height: '500px', background: 'rgba(16,185,129,0.06)', borderRadius: '50%', filter: 'blur(140px)', pointerEvents: 'none' }} />}
 
       <div style={{ width: '100%', maxWidth: '400px', padding: '0 24px', position: 'relative', zIndex: 1 }}>
         {/* Logo */}
@@ -116,7 +117,7 @@ const LoginPage = ({ onLogin, darkMode, toggleDark }) => {
         </div>
 
         {/* Card */}
-        <div style={{ background: darkMode ? '#111111' : '#FFFFFF', border: `1px solid ${c.border}`, padding: '32px', borderRadius: '16px', boxShadow: darkMode ? '0 25px 50px rgba(0,0,0,0.5)' : '0 25px 50px rgba(0,0,0,0.1)' }}>
+        <div style={{ background: darkMode ? '#131620' : '#FFFFFF', border: `1px solid ${c.border}`, padding: '32px', borderRadius: '16px', boxShadow: darkMode ? '0 25px 50px -12px rgba(0,0,0,0.5)' : '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)' }}>
 
           <div style={{ fontSize: '10px', letterSpacing: '0.15em', color: c.textMuted, textTransform: 'uppercase', marginBottom: '24px' }}>Authentication Required</div>
 
@@ -124,12 +125,12 @@ const LoginPage = ({ onLogin, darkMode, toggleDark }) => {
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '6px', color: c.textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Username</label>
               <input value={username} onChange={e => setUsername(e.target.value)} autoFocus required className="login-input"
-                style={{ width: '100%', padding: '10px 14px', border: `1px solid ${c.border}`, background: darkMode ? '#0F0F0F' : '#F4F4F5', color: c.text, fontSize: '14px', boxSizing: 'border-box', transition: 'all 0.2s', borderRadius: '8px' }} />
+                style={{ width: '100%', padding: '10px 14px', border: `1px solid ${c.border}`, background: darkMode ? '#0F1117' : '#F5F6F8', color: c.text, fontSize: '14px', boxSizing: 'border-box', transition: 'all 0.2s ease-in-out', borderRadius: '8px', lineHeight: '1.5' }} />
             </div>
             <div style={{ marginBottom: '24px' }}>
               <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', marginBottom: '6px', color: c.textMuted, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Password</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} required className="login-input"
-                style={{ width: '100%', padding: '10px 14px', border: `1px solid ${c.border}`, background: darkMode ? '#0F0F0F' : '#F4F4F5', color: c.text, fontSize: '14px', boxSizing: 'border-box', transition: 'all 0.2s', borderRadius: '8px' }} />
+                style={{ width: '100%', padding: '10px 14px', border: `1px solid ${c.border}`, background: darkMode ? '#0F1117' : '#F5F6F8', color: c.text, fontSize: '14px', boxSizing: 'border-box', transition: 'all 0.2s ease-in-out', borderRadius: '8px', lineHeight: '1.5' }} />
             </div>
             {error && <div style={{ border: '1px solid #ef444440', background: '#ef444412', color: '#ef4444', padding: '10px 14px', marginBottom: '16px', fontSize: '12px', borderRadius: '8px' }}>⚠ {error}</div>}
             <button type="submit" disabled={loading} className="login-btn"
@@ -207,8 +208,8 @@ const XTerminal = ({ server, username, authMethod, password, keyContent, token, 
         scrollback: 5000,
         convertEol: false,
         theme: {
-          background: '#0F0F0F',
-          foreground: '#E4E3E0',
+          background: '#0B0E11',
+          foreground: '#E8E9ED',
           black: '#484f58',    red: '#ff7b72',    green: '#3fb950',   yellow: '#d29922',
           blue: '#58a6ff',     magenta: '#bc8cff', cyan: '#39c5cf',   white: '#b1bac4',
           brightBlack: '#6e7681', brightRed: '#ffa198', brightGreen: '#56d364',
@@ -272,7 +273,7 @@ const XTerminal = ({ server, username, authMethod, password, keyContent, token, 
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return <div ref={containerRef} style={{ width: '100%', height: '100%', background: '#0F0F0F' }} />;
+  return <div ref={containerRef} style={{ width: '100%', height: '100%', background: '#0B0E11' }} />;
 };
 
 
@@ -290,11 +291,13 @@ const Dashboard = () => {
   const toggleSidebar = () => setSidebarCollapsed(v => { localStorage.setItem('sidebarCollapsed', !v); return !v; });
   React.useEffect(() => {
     localStorage.setItem('darkMode', darkMode);
-    const bg = darkMode ? '#0F0F0F' : '#F4F4F5';
+    const bg = darkMode ? '#0B0E11' : '#F5F6F8';
     document.documentElement.style.background = bg;
     document.body.style.background = bg;
     document.body.style.margin = '0';
-    document.documentElement.style.setProperty('--scrollbar-track', darkMode ? '#0F0F0F' : '#e0e8ec');
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+    document.documentElement.style.setProperty('--scrollbar-track', darkMode ? '#0B0E11' : '#F5F6F8');
+    document.documentElement.style.setProperty('--scrollbar-thumb', darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.12)');
     document.documentElement.style.setProperty('--color-scheme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
   const [hoveredRow, setHoveredRow] = useState(null);
@@ -1995,8 +1998,8 @@ const Dashboard = () => {
       borderRadius: '6px 6px 0 0',
     }),
     sshTerminal: {
-      background: '#0F0F0F',
-      color: '#E4E3E0',
+      background: '#0B0E11',
+      color: '#E8E9ED',
       padding: '16px',
       borderRadius: '8px',
       fontFamily: '"JetBrains Mono", monospace',
@@ -2012,8 +2015,8 @@ const Dashboard = () => {
       padding: '10px 14px',
       borderRadius: '8px',
       border: '1px solid #30363d',
-      background: '#0F0F0F',
-      color: '#E4E3E0',
+      background: '#0B0E11',
+      color: '#E8E9ED',
       fontFamily: '"JetBrains Mono", monospace',
       fontSize: '13px',
       marginTop: '12px',
@@ -2032,7 +2035,7 @@ const Dashboard = () => {
       border: `1px solid ${darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
       fontSize: '13px',
       outline: 'none',
-      background: darkMode ? '#0F0F0F' : '#f0f5f8',
+      background: darkMode ? '#0B0E11' : '#f0f5f8',
       color: c.text,
       minWidth: '180px',
       borderRadius: '8px',
@@ -2273,13 +2276,13 @@ const Dashboard = () => {
     if (kv) return <KVGrid data={kv} />;
     return (
       <div style={{ borderRadius: '8px', border: `1px solid ${c.border}`, overflow: 'hidden' }}>
-        <div style={{ background: darkMode ? '#0F0F0F' : '#f0f5f8', padding: '8px 14px', borderBottom: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ background: darkMode ? '#0B0E11' : '#f0f5f8', padding: '8px 14px', borderBottom: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', gap: '6px' }}>
           <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#ef4444' }} />
           <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#f59e0b' }} />
           <div style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#22c55e' }} />
           <span style={{ fontSize: '11px', color: c.textMuted, marginLeft: '6px', fontFamily: '"JetBrains Mono", monospace' }}>output</span>
         </div>
-        <pre style={{ margin: 0, padding: '14px 16px', background: darkMode ? '#0F0F0F' : '#f8fafc', color: darkMode ? '#E4E3E0' : '#1e293b', fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', lineHeight: '1.7', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '320px', overflow: 'auto' }}>{text}</pre>
+        <pre style={{ margin: 0, padding: '14px 16px', background: darkMode ? '#0B0E11' : '#f8fafc', color: darkMode ? '#E8E9ED' : '#1e293b', fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', lineHeight: '1.7', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '320px', overflow: 'auto' }}>{text}</pre>
       </div>
     );
   };
@@ -2303,27 +2306,14 @@ const Dashboard = () => {
     <div style={{ display: 'flex', minHeight: '100vh', color: c.text, fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', background: c.bg, position: 'relative' }}>
       <style dangerouslySetInnerHTML={{ __html: `
         * { font-family: 'JetBrains Mono', monospace !important; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
-        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes progressIndeterminate { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
         .probe-info-wrap:hover .probe-info-icon { background: #10b981 !important; color: #000 !important; }
         .probe-info-wrap:hover .probe-tooltip { display: block !important; }
-        button:not(:disabled):active { transform: scale(0.97) !important; }
-        button:disabled { opacity: 0.35 !important; cursor: not-allowed !important; pointer-events: auto !important; }
-        button:not(:disabled) { transition: filter 0.12s, transform 0.1s, box-shadow 0.15s; }
-        button:not(:disabled):hover { filter: brightness(1.1); }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: ${darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.15)'}; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
         input, select, textarea { color-scheme: ${darkMode ? 'dark' : 'light'}; }
       `}} />
       {/* Background grid */}
       <div className={darkMode ? 'grid-bg-dark' : 'grid-bg-light'} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} />
       {/* ── Left Nav Sidebar ── */}
-      <nav className="sidebar-nav" style={{ width: sidebarCollapsed ? '64px' : '220px', position: 'fixed', top: 0, bottom: 0, left: 0, background: darkMode ? '#0F0F0F' : '#FFFFFF', borderRight: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', zIndex: 200, overflowY: 'auto', transition: 'width 0.2s ease' }}>
+      <nav className="sidebar-nav" style={{ width: sidebarCollapsed ? '64px' : '220px', position: 'fixed', top: 0, bottom: 0, left: 0, background: darkMode ? '#0B0E11' : '#FFFFFF', borderRight: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', zIndex: 200, overflowY: 'auto', transition: 'width 0.2s ease' }}>
         {/* Logo */}
         <div style={{ padding: sidebarCollapsed ? '12px 0' : '16px', borderBottom: `1px solid ${c.border}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: sidebarCollapsed ? '64px' : '100px', boxSizing: 'border-box', position: 'relative' }}>
           <button onClick={toggleSidebar} style={{ background: 'none', border: 'none', color: c.textMuted, cursor: 'pointer', padding: '4px', fontSize: '12px', position: 'absolute', top: '8px', right: '8px' }}>
@@ -2394,7 +2384,7 @@ const Dashboard = () => {
       {/* ── Main content area ── */}
       <div className="main-content" style={{ marginLeft: sidebarCollapsed ? '64px' : '220px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh', position: 'relative', zIndex: 1, transition: 'margin-left 0.2s ease' }}>
         {/* Top Header */}
-        <div className="top-header-pad" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 32px', height: '64px', borderBottom: `1px solid ${c.border}`, background: darkMode ? 'rgba(10,10,10,0.8)' : 'rgba(244,244,245,0.8)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div className="top-header-pad" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 32px', height: '64px', borderBottom: `1px solid ${c.border}`, background: darkMode ? 'rgba(11,14,17,0.85)' : 'rgba(245,246,248,0.85)', backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 100 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <h1 style={{ fontSize: '16px', fontWeight: '700', margin: 0, textTransform: 'capitalize' }}>
               {navSection === 'manage' && selectedServer ? selectedServer.name : (navItems.find(n => n.key === navSection)?.label || customTabTitle)}
@@ -2928,7 +2918,7 @@ const Dashboard = () => {
                 <div style={{ fontWeight: '700', fontSize: '13px', marginBottom: '12px', color: c.text }}>Servers Needing Updates</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {servers.filter(s => s.pending_updates?.count > 0).map(s => (
-                    <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderRadius: '8px', background: darkMode ? '#0F0F0F' : '#f0f5f8', border: `1px solid ${c.border}` }}>
+                    <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', borderRadius: '8px', background: darkMode ? '#0B0E11' : '#f0f5f8', border: `1px solid ${c.border}` }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: s.online ? '#22c55e' : '#ef4444', boxShadow: s.online ? '0 0 4px #22c55e80' : 'none' }} />
                         <div>
@@ -2992,7 +2982,7 @@ const Dashboard = () => {
               {repoTestLoading && <div style={{ width: '14px', height: '14px', border: `2px solid ${c.primary}40`, borderTopColor: c.primary, borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />}
             </div>
             {repoTestResult && (
-              <div style={{ marginTop: '12px', background: darkMode ? '#0F0F0F' : '#f0f5f8', borderRadius: '8px', padding: '10px 14px', fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', color: c.text, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflow: 'auto', border: `1px solid ${c.border}` }}>
+              <div style={{ marginTop: '12px', background: darkMode ? '#0B0E11' : '#f0f5f8', borderRadius: '8px', padding: '10px 14px', fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', color: c.text, whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflow: 'auto', border: `1px solid ${c.border}` }}>
                 {repoTestResult}
               </div>
             )}
@@ -3377,7 +3367,7 @@ const Dashboard = () => {
             {bulkProgress.length > 0 && (
               <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {bulkProgress.map(p => (
-                  <div key={p.id} style={{ background: darkMode ? '#0F0F0F' : '#f0f5f8', borderRadius: '8px', padding: '10px 14px', border: `1px solid ${c.border}` }}>
+                  <div key={p.id} style={{ background: darkMode ? '#0B0E11' : '#f0f5f8', borderRadius: '8px', padding: '10px 14px', border: `1px solid ${c.border}` }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.status === 'done' ? '#22c55e' : p.status === 'error' ? '#ef4444' : p.status === 'running' ? '#f59e0b' : c.border, animation: p.status === 'running' ? 'pulse 1s infinite' : 'none' }} />
@@ -3405,7 +3395,7 @@ const Dashboard = () => {
                 const isSelected = selectedServers.includes(s.id);
                 return (
                   <div key={s.id} style={{ background: c.card, borderRadius: '12px', border: `1px solid ${isSelected ? c.primary : c.border}`, marginBottom: '12px', overflow: 'hidden', transition: 'border-color 0.15s' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 18px', borderBottom: `1px solid ${c.border}`, background: darkMode ? '#0F0F0F' : '#f0f5f8' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 18px', borderBottom: `1px solid ${c.border}`, background: darkMode ? '#0B0E11' : '#f0f5f8' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <input type="checkbox" checked={isSelected} onChange={() => toggleServerSelection(s.id)} style={{ width: '14px', height: '14px', cursor: 'pointer', accentColor: c.primary }} />
                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: s.online ? '#22c55e' : '#ef4444', boxShadow: s.online ? '0 0 5px #22c55e80' : 'none' }} />
@@ -3521,7 +3511,7 @@ const Dashboard = () => {
                   </div>
 
                   {/* Log content */}
-                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: darkMode ? '#0F0F0F' : '#f8fafc' }}>
+                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: darkMode ? '#0B0E11' : '#f8fafc' }}>
                     {!logsSelectedItem && (
                       <div style={styles.empty}>
                         <div style={{ fontSize: '28px', opacity: 0.3, marginBottom: '8px' }}>📄</div>
@@ -3533,7 +3523,7 @@ const Dashboard = () => {
                     )}
                     {logsSelectedItem && !logsContentLoading && (
                       <pre ref={logsOutputRef}
-                        style={{ flex: 1, margin: 0, padding: '14px 16px', fontFamily: '"Cascadia Code", "Source Code Pro", Menlo, monospace', fontSize: '12px', color: darkMode ? '#E4E3E0' : '#1e293b', overflowY: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: 1.5 }}>
+                        style={{ flex: 1, margin: 0, padding: '14px 16px', fontFamily: '"Cascadia Code", "Source Code Pro", Menlo, monospace', fontSize: '12px', color: darkMode ? '#E8E9ED' : '#1e293b', overflowY: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all', lineHeight: 1.5 }}>
                         {logsContent}
                       </pre>
                     )}
@@ -3627,7 +3617,7 @@ const Dashboard = () => {
                 {/* Terminal — always rendered, shows placeholder when not connected */}
                 <div style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex', flexDirection: 'column' }}>
                   {shellSessionKey === 0 && (
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0F0F0F', color: '#475569', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0B0E11', color: '#475569', flexDirection: 'column', gap: '8px' }}>
                       <div style={{ fontSize: '28px', opacity: 0.3 }}>⌨</div>
                       <div style={{ fontSize: '13px' }}>Press Connect to start session</div>
                     </div>
@@ -3987,7 +3977,7 @@ const Dashboard = () => {
                 {serviceFloatingOpen && selectedService && (
                   <div style={{ position: 'fixed', bottom: '20px', right: '20px', width: '624px', maxWidth: 'calc(100vw - 40px)', maxHeight: '72vh', background: c.card, border: `1px solid ${c.border}`, borderRadius: '12px', boxShadow: '0 16px 48px rgba(0,0,0,0.4)', zIndex: 500, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     {/* Header */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: `1px solid ${c.border}`, background: darkMode ? '#1A1A1A' : '#f0f5f8', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: `1px solid ${c.border}`, background: darkMode ? '#1A1D26' : '#f0f5f8', flexShrink: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
                         <span style={{ fontSize: '13px', fontWeight: '700', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedService}</span>
                       </div>
@@ -3997,7 +3987,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     {/* Content */}
-                    <pre style={{ margin: 0, padding: '12px 14px', flex: 1, overflowY: 'auto', fontSize: '11px', lineHeight: '1.6', fontFamily: '"JetBrains Mono", monospace', color: c.text, whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: darkMode ? '#0F0F0F' : '#f8fafc' }}>
+                    <pre style={{ margin: 0, padding: '12px 14px', flex: 1, overflowY: 'auto', fontSize: '11px', lineHeight: '1.6', fontFamily: '"JetBrains Mono", monospace', color: c.text, whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: darkMode ? '#0B0E11' : '#f8fafc' }}>
                       {serviceDetail || 'Click a service to view details...'}
                     </pre>
                   </div>
@@ -4331,7 +4321,7 @@ const Dashboard = () => {
                           <div style={{ overflowX: 'auto', maxHeight: '500px', overflowY: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                               <thead>
-                                <tr style={{ background: darkMode ? '#1A1A1A' : '#f0f5f8', position: 'sticky', top: 0 }}>
+                                <tr style={{ background: darkMode ? '#1A1D26' : '#f0f5f8', position: 'sticky', top: 0 }}>
                                   <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '10px', letterSpacing: '0.12em', color: c.textMuted, fontWeight: '700', borderBottom: `1px solid ${c.border}` }}>PROTO</th>
                                   <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '10px', letterSpacing: '0.12em', color: c.textMuted, fontWeight: '700', borderBottom: `1px solid ${c.border}` }}>ADDRESS</th>
                                   <th style={{ padding: '10px 14px', textAlign: 'left', fontSize: '10px', letterSpacing: '0.12em', color: c.textMuted, fontWeight: '700', borderBottom: `1px solid ${c.border}` }}>PORT</th>
@@ -4515,7 +4505,7 @@ const Dashboard = () => {
                               <div style={{ overflowX: 'auto', maxHeight: '400px', overflowY: 'auto' }}>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                                   <thead>
-                                    <tr style={{ background: darkMode ? '#1A1A1A' : '#f0f5f8' }}>
+                                    <tr style={{ background: darkMode ? '#1A1D26' : '#f0f5f8' }}>
                                       <th style={{ padding: '8px 14px', textAlign: 'left', fontSize: '10px', letterSpacing: '0.12em', color: c.textMuted, fontWeight: '700' }}>TO</th>
                                       <th style={{ padding: '8px 14px', textAlign: 'left', fontSize: '10px', letterSpacing: '0.12em', color: c.textMuted, fontWeight: '700' }}>ACTION</th>
                                       <th style={{ padding: '8px 14px', textAlign: 'left', fontSize: '10px', letterSpacing: '0.12em', color: c.textMuted, fontWeight: '700' }}>FROM</th>
@@ -4708,7 +4698,7 @@ const Dashboard = () => {
             {/* Progress list */}
             <div style={{ overflowY: 'auto', padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {bulkProgress.map(p => (
-                <div key={p.id} style={{ background: darkMode ? '#0F0F0F' : '#f0f5f8', borderRadius: '8px', padding: '12px 14px', border: `1px solid ${c.border}` }}>
+                <div key={p.id} style={{ background: darkMode ? '#0B0E11' : '#f0f5f8', borderRadius: '8px', padding: '12px 14px', border: `1px solid ${c.border}` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{ width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
@@ -4755,7 +4745,7 @@ const Dashboard = () => {
         <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: c.card, padding: '24px', borderRadius: '12px', border: `1px solid ${c.border}`, zIndex: 1001, boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
           <h3 style={{ margin: '0 0 16px 0' }}>Deploy Agent on {showToken.host}</h3>
           <div style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '8px' }}>Run this on the target server as root or with sudo:</div>
-          <div style={{ background: '#0F0F0F', color: '#86efac', padding: '12px', borderRadius: '6px', fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', wordBreak: 'break-all', marginBottom: '4px', position: 'relative' }}>
+          <div style={{ background: '#0B0E11', color: '#86efac', padding: '12px', borderRadius: '6px', fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', wordBreak: 'break-all', marginBottom: '4px', position: 'relative' }}>
             {showToken.installCmd || `curl -fsSL "..." | sudo sh`}
             {showToken.installCmd && <button onClick={() => copyToClipboard(showToken.installCmd)} style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(255,255,255,0.1)', border: 'none', color: '#94a3b8', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer', fontSize: '11px' }}>Copy</button>}
           </div>
@@ -4774,7 +4764,7 @@ const Dashboard = () => {
           <div style={styles.modal} onClick={closeWizard}>
             <div style={{ ...styles.modalContent, maxWidth: '560px', padding: 0, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
               {/* Header */}
-              <div style={{ background: 'linear-gradient(135deg, #000, #111111)', padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ background: 'linear-gradient(135deg, #000, #131620)', padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
                   <div style={{ fontSize: '17px', fontWeight: '700', color: '#fff' }}>Add New Host</div>
                   <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>Step {wizardStep} of {steps.length} — {steps[wizardStep - 1]}</div>
@@ -5067,7 +5057,7 @@ const Dashboard = () => {
       {globalTasks.length > 0 && (
         <div style={{ position: 'fixed', bottom: '24px', left: '224px', zIndex: 9998, width: '360px', background: darkMode ? '#0f1a24' : '#fff', border: `1px solid ${darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`, borderRadius: '4px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: `1px solid ${darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`, background: darkMode ? '#0F0F0F' : '#FFFFFF' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: `1px solid ${darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`, background: darkMode ? '#0B0E11' : '#FFFFFF' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               {globalTasks.some(t => t.status === 'running') && (
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 1s infinite', flexShrink: 0 }} />

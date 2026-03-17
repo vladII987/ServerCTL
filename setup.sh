@@ -214,6 +214,7 @@ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
     fi
 
     # Ensure data files exist as files (not directories)
+    mkdir -p "$DIR/data"
     [[ -f "$DIR/backend/servers.json" ]] || echo '{"servers":[]}' > "$DIR/backend/servers.json"
     [[ -f "$DIR/backend/users.json"   ]] || echo '[]'             > "$DIR/backend/users.json"
 
@@ -318,6 +319,7 @@ if [[ "$MODE" == "native" ]]; then
     fi
 
     # ── Ensure data files ─────────────────────────────────────
+    mkdir -p "$DIR/data"
     [[ -f "$DIR/backend/servers.json" ]] || echo '{"servers":[]}' > "$DIR/backend/servers.json"
     [[ -f "$DIR/backend/users.json"   ]] || echo '[]'             > "$DIR/backend/users.json"
 
@@ -443,6 +445,7 @@ Environment="PROMETHEUS_URL=${PROMETHEUS_URL}"
 Environment="CORS_ORIGINS=*"
 Environment="AGENT_BINS_DIR=${DIR}/agent-go/dist"
 Environment="PUBLIC_HOST=${PUBLIC_HOST:-${HOST_IP}}"
+Environment="SERVERCTL_DB=${DIR}/data/serverctl.db"
 ExecStart=${VENV}/bin/python -m uvicorn main:app --host 0.0.0.0 --port ${BACKEND_PORT}
 Restart=always
 RestartSec=5

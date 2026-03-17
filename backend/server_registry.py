@@ -1,44 +1,31 @@
 """
-Server Registry — čita servers.json, podržava runtime dodavanje servera.
+Server Registry — backed by SQLite via database.py
+Keeps an in-memory cache for fast lookups, writes through to DB.
 """
-import json
-import os
-from pathlib import Path
 from typing import Optional
+
+import database as db
 
 
 class ServerRegistry:
     def __init__(self):
         self._servers: dict[str, dict] = {}
-        self._path = Path(__file__).parent / "servers.json"
+        # Don't load yet — wait for init() after db.init_db()
+
+    def init(self):
+        """Called after db.init_db() to load servers from database."""
         self._load()
 
     def _load(self):
-        if self._path.exists():
-            try:
-                text = self._path.read_text().strip()
-                if not text:
-                    print("[Registry] servers.json je prazan — resetujem.")
-                    self._path.write_text('{"servers":[]}')
-                    return
-                data = json.loads(text)
-                for s in data.get("servers", []):
-                    self._servers[s["id"]] = s
-                print(f"[Registry] Učitano {len(self._servers)} servera iz servers.json")
-            except (json.JSONDecodeError, KeyError) as e:
-                print(f"[Registry] Greška u servers.json: {e} — resetujem.")
-                self._path.write_text('{"servers":[]}')
-        else:
-            print("[Registry] servers.json nije pronađen — prazan registry.")
-            self._path.write_text('{"servers":[]}')
+        servers = db.get_all_servers()
+        for s in servers:
+            self._servers[s["id"]] = s
+        print(f"[Registry] Loaded {len(self._servers)} servers from database")
 
     def save(self):
-        """Snima trenutni registry u servers.json."""
-        clean = []
+        """Write all servers to DB (bulk sync)."""
         for s in self._servers.values():
-            clean.append({k: v for k, v in s.items()
-                          if k not in ("online", "last_seen")})
-        self._path.write_text(json.dumps({"servers": clean}, indent=2, ensure_ascii=False))
+            db.add_server(s)
 
     def all(self) -> list[dict]:
         return list(self._servers.values())
@@ -48,7 +35,7 @@ class ServerRegistry:
 
     def add(self, server: dict):
         self._servers[server["id"]] = server
-        self.save()
+        db.add_server(server)
 
     def get_by_host(self, host: str) -> Optional[dict]:
         for s in self._servers.values():
@@ -63,53 +50,44 @@ class ServerRegistry:
         return None
 
     def get_by_token(self, token: str) -> Optional[dict]:
-        """Find server by its unique agent_token."""
         for s in self._servers.values():
             if s.get("agent_token") == token:
                 return s
         return None
 
     def migrate_shared_token(self, old_token: str):
-        """Replace shared agent_token with unique per-server tokens on first run."""
-        import secrets as _secrets
-        changed = False
-        for s in self._servers.values():
-            if s.get("agent_token") == old_token:
-                s["agent_token"] = _secrets.token_hex(32)
-                changed = True
-        if changed:
-            self.save()
-            print("[Registry] Migrated shared agent tokens to unique per-server tokens")
+        db.migrate_shared_token(old_token)
+        # Reload cache
+        self._servers.clear()
+        self._load()
 
     def update_name(self, server_id: str, name: str):
         if server_id in self._servers:
             self._servers[server_id]["name"] = name
-            self.save()
+            db.update_server_name(server_id, name)
 
     def update_platform(self, server_id: str, platform: str):
         if server_id in self._servers:
             self._servers[server_id]["platform"] = platform
-            self.save()
+            db.update_server_platform(server_id, platform)
 
     def update_host(self, server_id: str, host: str):
-        """Update the host IP (e.g. after DHCP change) and derived URLs."""
         if server_id in self._servers:
             self._servers[server_id]["host"] = host
             self._servers[server_id]["agent_url"] = f"http://{host}:8080"
-            self.save()
+            db.update_server_host(server_id, host)
 
     def update_pending_updates(self, host: str, count: int, packages: list, reboot_required: bool = False):
         for s in self._servers.values():
             if s.get("host") == host:
                 s["pending_updates"] = {"count": count, "packages": packages, "reboot_required": reboot_required}
-                self.save()
+                db.update_pending_updates(host, count, packages, reboot_required)
                 break
 
     def remove(self, server_id: str) -> bool:
         if server_id in self._servers:
             del self._servers[server_id]
-            self.save()
-            return True
+            return db.remove_server(server_id)
         return False
 
 

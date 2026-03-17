@@ -24,6 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from config import settings
+import database as db
 from server_registry import registry
 from ssh_handler import handle_ssh_websocket
 from scanner import handle_scan_websocket
@@ -32,6 +33,9 @@ import users as user_module
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    db.init_db()
+    db.migrate_from_json()
+    registry.init()
     user_module.ensure_default_admin(settings.SECRET_KEY)
     registry.migrate_shared_token(settings.AGENT_TOKEN)
     yield
@@ -140,27 +144,21 @@ async def list_users():
 async def create_user(req: CreateUserRequest):
     if req.role not in ("admin", "user"):
         raise HTTPException(400, "Role must be 'admin' or 'user'")
-    existing = user_module.load_users()
-    if any(u["username"] == req.username for u in existing):
+    if db.get_user(req.username):
         raise HTTPException(409, "Username already exists")
-    existing.append({
-        "username": req.username,
-        "password_hash": user_module._hash(req.password, settings.SECRET_KEY),
-        "role": req.role,
-    })
-    user_module.save_users(existing)
+    db.add_user(req.username, user_module._hash(req.password, settings.SECRET_KEY), req.role)
     return {"status": "created", "username": req.username, "role": req.role}
 
 
 @app.delete("/api/users/{username}", dependencies=[Depends(verify_admin)])
 async def delete_user(username: str):
-    users = user_module.load_users()
-    new = [u for u in users if u["username"] != username]
-    if len(new) == len(users):
+    if not db.get_user(username):
         raise HTTPException(404, "User not found")
-    if not any(u["role"] == "admin" for u in new):
-        raise HTTPException(400, "Cannot delete the last admin")
-    user_module.save_users(new)
+    if db.count_admins() <= 1:
+        user = db.get_user(username)
+        if user and user["role"] == "admin":
+            raise HTTPException(400, "Cannot delete the last admin")
+    db.delete_user(username)
     return {"status": "deleted"}
 
 
@@ -168,13 +166,9 @@ async def delete_user(username: str):
 async def change_password(username: str, body: dict, user: dict = Depends(verify)):
     if user["role"] != "admin" and user["username"] != username:
         raise HTTPException(403, "Forbidden")
-    users = user_module.load_users()
-    for u in users:
-        if u["username"] == username:
-            u["password_hash"] = user_module._hash(body.get("password", ""), settings.SECRET_KEY)
-            user_module.save_users(users)
-            return {"status": "updated"}
-    raise HTTPException(404, "User not found")
+    if not db.update_user_password(username, user_module._hash(body.get("password", ""), settings.SECRET_KEY)):
+        raise HTTPException(404, "User not found")
+    return {"status": "updated"}
 
 
 # ─── Agent WebSocket endpoint ─────────────────────────────────

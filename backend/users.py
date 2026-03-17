@@ -1,11 +1,10 @@
 """
-User management — stores users in /app/users.json
+User management — backed by SQLite via database.py
 Roles: admin (full access), user (read + add servers, no delete, no push updates)
 """
 import hashlib, hmac, base64, json, time
-from pathlib import Path
 
-USERS_FILE = Path("/app/users.json")
+import database as db
 
 
 def _hash(password: str, secret: str) -> str:
@@ -13,34 +12,27 @@ def _hash(password: str, secret: str) -> str:
 
 
 def load_users() -> list:
-    if USERS_FILE.exists():
-        try:
-            data = json.loads(USERS_FILE.read_text())
-            return data if isinstance(data, list) else []
-        except Exception:
-            pass
-    return []
+    return db.load_users()
 
 
 def save_users(users: list):
-    USERS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    USERS_FILE.write_text(json.dumps(users, indent=2))
+    db.save_users(users)
 
 
 def ensure_default_admin(secret: str):
     """Create admin:admin if no users exist."""
-    users = load_users()
+    users = db.load_users()
     if not users:
-        users = [{"username": "admin", "password_hash": _hash("admin", secret), "role": "admin"}]
-        save_users(users)
+        db.add_user("admin", _hash("admin", secret), "admin")
         print("[Users] Created default admin user (password: admin) — change it immediately!")
+        return [{"username": "admin", "password_hash": _hash("admin", secret), "role": "admin"}]
     return users
 
 
 def authenticate(username: str, password: str, secret: str):
-    for u in load_users():
-        if u["username"] == username and u["password_hash"] == _hash(password, secret):
-            return {"username": u["username"], "role": u["role"]}
+    user = db.get_user(username)
+    if user and user["password_hash"] == _hash(password, secret):
+        return {"username": user["username"], "role": user["role"]}
     return None
 
 

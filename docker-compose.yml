@@ -19,9 +19,11 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       AGENT_BINS_DIR: /app/agent-bins
       PUBLIC_HOST: ${PUBLIC_HOST:-}
+      SERVERCTL_DB: /app/data/serverctl.db
     volumes:
-      - ./backend/servers.json:/app/servers.json
-      - ./backend/users.json:/app/users.json
+      - ./data:/app/data
+      - ./backend/servers.json:/app/servers.json:ro
+      - ./backend/users.json:/app/users.json:ro
       - ./agent-go/dist:/app/agent-bins:ro
       - ./VERSION:/app/VERSION:ro
     healthcheck:

@@ -1,0 +1,5 @@
+{
+  "name": "ServerCTL",
+  "description": "Self-hosted server monitoring & management dashboard. No cloud. No agents phoning home. Just you and your infrastructure.",
+  "requestFramePermissions": []
+}
