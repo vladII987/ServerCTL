@@ -6,11 +6,11 @@
 
 <p align="center">
   A self-hosted infrastructure management dashboard.<br/>
-  Monitor, manage, and update your servers from a single web interface — no VPN, no inbound ports required.
+  Monitor, manage, and remotely access your servers from a single web interface — no VPN, no inbound ports required.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.3.3-green" alt="Version"/>
+  <img src="https://img.shields.io/badge/version-1.4.0-green" alt="Version"/>
   <img src="https://img.shields.io/badge/License-CC%20BY--ND%204.0-lightgrey.svg" alt="License"/>
   <img src="https://img.shields.io/badge/backend-FastAPI-009688" alt="FastAPI"/>
   <img src="https://img.shields.io/badge/frontend-React%20%2B%20Vite-61DAFB" alt="React"/>
@@ -26,6 +26,7 @@
 - **Package updates** — view pending updates, install upgrades per-server or in bulk with selective checkboxes
 - **Reboot management** — identify servers requiring reboot, reboot selectively with confirmation
 - **SSH terminal** — browser-based SSH shell via WebSocket (Linux servers)
+- **RDP remote desktop** — browser-based RDP via FreeRDP + noVNC (Windows servers)
 - **Service management** — start, stop, restart and inspect systemd / Windows services
 - **Log viewer** — browse and read log files remotely (`/var/log/` on Linux, Event Log on Windows)
 - **Probe Monitor** — test connectivity via Ping, TCP, UDP, HTTP, or DB port with per-result tooltips
@@ -36,7 +37,7 @@
 - **Agent management** — dedicated Agents tab with selective update checkboxes, version tracking, and one-click updates
 - **User management** — role-based access control (admin / user)
 - **Custom branding** — upload your own logo and set a custom dashboard title
-- **Dark/Light theme** — emerald-accented dark theme with JetBrains Mono font, plus a light theme option
+- **Theme system** — modern dark SaaS dashboard with multiple accent color themes
 - **Collapsible sidebar** — toggle sidebar between expanded and icon-only mode
 - **Windows support** — native Go agent with automatic PSWindowsUpdate module installation for Windows Update detection
 - **No inbound ports** — agents connect outbound to the backend over WebSocket
@@ -49,12 +50,15 @@
 Browser
   └── Frontend  (React + Vite, served by nginx)
         └── Backend API  (FastAPI + Python)
-              └── WebSocket hub
-                    └── Agent  (Go binary, runs on each managed server)
+              ├── WebSocket hub
+              │     └── Agent  (Go binary, runs on each managed server)
+              └── RDP Bridge  (FreeRDP + TigerVNC + noVNC)
+                    └── WebSocket → VNC proxy for browser-based RDP
 ```
 
-- **Frontend** — React SPA, Vite build, served by nginx, JetBrains Mono font (bundled offline)
-- **Backend** — FastAPI, manages agent WebSocket connections, proxies commands, stores server registry
+- **Frontend** — React SPA, Vite build, served by nginx, noVNC client bundled for RDP
+- **Backend** — FastAPI, manages agent WebSocket connections, proxies commands and RDP sessions
+- **RDP Bridge** — FreeRDP renders RDP to a virtual X display (TigerVNC), proxied over WebSocket to the browser via noVNC
 - **Agent (Linux)** — pre-compiled Go binary, runs as a systemd service, connects outbound via WebSocket
 - **Agent (Windows)** — pre-compiled Go binary, runs as a Windows Service, connects outbound via WebSocket
 
@@ -65,10 +69,11 @@ Browser
 | Component | Technology | Version |
 |-----------|-----------|---------|
 | Frontend | React + Vite | React 18.3, Vite 6.0 |
-| Backend | FastAPI + Uvicorn | Python 3.12 |
+| Backend | FastAPI + Uvicorn | Python 3.13 |
 | Agent | Go (cross-compiled) | Go 1.24 |
 | Terminal | xterm.js | 6.0 |
-| Font | JetBrains Mono | Bundled woff2 |
+| RDP | FreeRDP + TigerVNC + noVNC | noVNC 1.5.0 |
+| Font | Ubuntu | Bundled TTF |
 | Deployment | Docker Compose | - |
 
 ---
@@ -81,6 +86,7 @@ Browser
 ### Native Mode (no Docker)
 - **Python 3.8+** and **Node.js 18+** — on the host running ServerCTL
 - **nginx** — for serving the frontend
+- **FreeRDP + TigerVNC** — for browser-based RDP (installed automatically by `setup.sh`)
 
 ### Managed Servers
 - **Outbound internet access** — managed servers must be able to reach the ServerCTL host on the backend port
@@ -262,15 +268,18 @@ ServerCTL/
 ├── frontend/                 # React app (Vite)
 │   ├── public/
 │   │   ├── logo.png          # Default logo
-│   │   └── fonts/            # JetBrains Mono woff2 (bundled)
+│   │   └── fonts/            # Ubuntu font family (bundled TTF)
 │   └── src/
 │       ├── Dashboard.jsx     # Main UI component
 │       ├── main.jsx          # App entry point
-│       └── index.css         # Font-face declarations, base styles
+│       ├── index.css         # Font-face declarations, base styles
+│       ├── themes/           # Accent color theme definitions
+│       └── novnc/            # noVNC ESM source (downloaded at build time)
 ├── backend/                  # FastAPI backend
 │   ├── main.py               # API routes, WebSocket hub, agent installer scripts
 │   ├── config.py             # Settings (pydantic-settings)
 │   ├── users.py              # User management, JWT auth
+│   ├── rdp_handler.py        # RDP WebSocket proxy (FreeRDP bridge)
 │   ├── scanner.py            # Network scanner
 │   ├── ssh_handler.py        # SSH WebSocket proxy
 │   ├── server_registry.py    # Server registry class
@@ -278,6 +287,9 @@ ServerCTL/
 │   ├── servers.json          # Server registry (persisted)
 │   ├── users.json            # User database (persisted)
 │   └── requirements.txt
+├── rdpbridge/                # FreeRDP + TigerVNC RDP bridge
+│   ├── Dockerfile
+│   └── manager.py            # WebSocket → VNC session manager
 ├── agent-go/                 # Go agent (cross-platform)
 │   ├── main.go               # Agent source code
 │   ├── go.mod
@@ -291,7 +303,7 @@ ServerCTL/
 ├── VERSION                   # Single source of truth for app version
 ├── .env.example
 ├── DOCS.md                   # Full feature documentation
-└── LICENSE                   # AGPL-3.0
+└── LICENSE                   # CC BY-ND 4.0
 ```
 
 ---
@@ -302,6 +314,7 @@ ServerCTL/
 |---------|-------------|--------------|
 | `frontend` | nginx serving the React build | `8090` |
 | `backend` | FastAPI + WebSocket server | `8765` |
+| `rdpbridge` | FreeRDP + TigerVNC WebSocket bridge | `8080` (internal) |
 
 Agent binaries in `agent-go/dist/` are mounted read-only into the backend container at `/app/agent-bins`.
 

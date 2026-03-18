@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
 
   # ── Backend ───────────────────────────────────────────────────
@@ -14,24 +16,44 @@ services:
       BACKEND_PORT: ${BACKEND_PORT:-8765}
       DASHBOARD_TOKEN: ${DASHBOARD_TOKEN}
       AGENT_TOKEN: ${AGENT_TOKEN}
-      PROMETHEUS_URL: ${PROMETHEUS_URL:-http://localhost:9090}
+      PROMETHEUS_URL: ${PROMETHEUS_URL:-http://host.docker.internal:9090}
       CORS_ORIGINS: "*"
       SECRET_KEY: ${SECRET_KEY}
       AGENT_BINS_DIR: /app/agent-bins
       PUBLIC_HOST: ${PUBLIC_HOST:-}
       SERVERCTL_DB: /app/data/serverctl.db
+      RDPBRIDGE_HOST: rdpbridge
+      RDPBRIDGE_PORT: "8080"
     volumes:
       - ./data:/app/data
       - ./backend/servers.json:/app/servers.json:ro
       - ./backend/users.json:/app/users.json:ro
       - ./agent-go/dist:/app/agent-bins:ro
       - ./VERSION:/app/VERSION:ro
+    depends_on:
+      - rdpbridge
+    networks:
+      - guac-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT:-8765}/health"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
+
+  # ── RDP Bridge (FreeRDP + TigerVNC per session) ───────────────
+  rdpbridge:
+    build:
+      context: ./rdpbridge
+    container_name: serverctl-rdpbridge
+    restart: unless-stopped
+    networks:
+      - guac-net
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import socket; s=socket.create_connection(('localhost',8080),2); s.close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # ── Frontend ──────────────────────────────────────────────────
   frontend:
@@ -49,3 +71,10 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    networks:
+      - guac-net
+
+# ── Networks ───────────────────────────────────────────────────
+networks:
+  guac-net:
+    driver: bridge

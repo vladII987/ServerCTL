@@ -72,10 +72,11 @@ command -v openssl >/dev/null 2>&1 || {
 
 # ── .env handling ──────────────────────────────────────────────
 SKIP_GEN=false
+WIPE_DB=false
 if [[ -f "$ENV" ]]; then
     warn ".env already exists."
-    echo -e "  ${W}1)${NC} Use existing .env"
-    echo -e "  ${W}2)${NC} Generate new tokens"
+    echo -e "  ${W}1)${NC} Use existing .env  (update/restart — keeps all data)"
+    echo -e "  ${W}2)${NC} Generate new tokens (fresh install — optionally wipe database)"
     echo -e "  ${W}3)${NC} Cancel"
     echo ""
     read -rp "  Choice [1/2/3]: " C
@@ -85,6 +86,22 @@ if [[ -f "$ENV" ]]; then
         3) exit 0 ;;
         *) err "Unknown choice." ;;
     esac
+
+    if [[ "$SKIP_GEN" == "false" ]]; then
+        DB="$DIR/data/serverctl.db"
+        if [[ -f "$DB" ]]; then
+            echo ""
+            warn "Existing database found (servers, users)."
+            echo -e "  ${W}1)${NC} Keep existing data"
+            echo -e "  ${W}2)${NC} Wipe database (true fresh install)"
+            echo ""
+            read -rp "  Choice [1/2]: " DC
+            case "$DC" in
+                2) WIPE_DB=true ;;
+                *) WIPE_DB=false ;;
+            esac
+        fi
+    fi
 fi
 
 echo ""
@@ -120,6 +137,28 @@ PUBLIC_HOST=${HOST_IP}
 EOF
     ok ".env created"
     grep -q "^\.env$" "$DIR/.gitignore" 2>/dev/null || echo ".env" >> "$DIR/.gitignore"
+
+    # Wipe database if user requested a true fresh install
+    if [[ "$WIPE_DB" == "true" ]]; then
+        rm -f "$DIR/data/serverctl.db" "$DIR/data/serverctl.db-shm" "$DIR/data/serverctl.db-wal"
+        ok "Database wiped — starting fresh."
+    fi
+
+    # If a database already exists, rehash the admin password with the new SECRET_KEY
+    # so admin/admin always works after a fresh token generation
+    DB="$DIR/data/serverctl.db"
+    if [[ -f "$DB" ]] && command -v python3 >/dev/null 2>&1; then
+        python3 - <<PYEOF 2>/dev/null
+import hashlib, sqlite3
+secret = '${SECRET_KEY}'
+pw_hash = hashlib.sha256(('admin' + secret).encode()).hexdigest()
+conn = sqlite3.connect('${DB}')
+conn.execute("UPDATE users SET password_hash = ? WHERE username = 'admin'", (pw_hash,))
+conn.commit()
+conn.close()
+PYEOF
+        ok "Admin password rehashed with new SECRET_KEY (admin/admin)"
+    fi
 fi
 
 set -a; source "$ENV"; set +a
@@ -218,10 +257,11 @@ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
     [[ -f "$DIR/backend/servers.json" ]] || echo '{"servers":[]}' > "$DIR/backend/servers.json"
     [[ -f "$DIR/backend/users.json"   ]] || echo '[]'             > "$DIR/backend/users.json"
 
-    info "Running: docker compose up --build -d"
+    APP_VERSION=$(cat "$DIR/VERSION" 2>/dev/null || echo "dev")
+    info "Running: docker compose up --build -d (v${APP_VERSION})"
     echo ""
     cd "$DIR"
-    FRONTEND_PORT="$FRONTEND_PORT" BACKEND_PORT="$BACKEND_PORT" docker compose up --build -d
+    FRONTEND_PORT="$FRONTEND_PORT" BACKEND_PORT="$BACKEND_PORT" APP_VERSION="$APP_VERSION" docker compose up --build -d
 
     echo ""
     ok "All services started!"
@@ -318,6 +358,21 @@ if [[ "$MODE" == "native" ]]; then
         ok "nginx available."
     fi
 
+    # FreeRDP + TigerVNC (for RDP bridge)
+    info "Ensuring FreeRDP and TigerVNC for RDP support..."
+    if command -v apt-get >/dev/null 2>&1; then
+        _install_pkg freerdp2-x11 tigervnc-standalone-server \
+            libx11-6 libxext6 libxinerama1 libxcursor1 libxv1 \
+            libxkbfile1 libxrandr2 libxi6 libxrender1 libxfixes3 \
+            dbus-x11 xfonts-base
+    elif command -v dnf >/dev/null 2>&1; then
+        _install_pkg freerdp tigervnc-server xorg-x11-fonts-base dbus-x11
+    elif command -v yum >/dev/null 2>&1; then
+        _install_pkg freerdp tigervnc-server xorg-x11-fonts-base dbus-x11
+    fi
+    command -v xfreerdp >/dev/null 2>&1 && ok "xfreerdp available." || warn "xfreerdp not found — RDP will not work."
+    command -v Xtigervnc >/dev/null 2>&1 && ok "Xtigervnc available." || warn "Xtigervnc not found — RDP will not work."
+
     # ── Ensure data files ─────────────────────────────────────
     mkdir -p "$DIR/data"
     [[ -f "$DIR/backend/servers.json" ]] || echo '{"servers":[]}' > "$DIR/backend/servers.json"
@@ -354,6 +409,19 @@ if [[ "$MODE" == "native" ]]; then
     info "Installing frontend dependencies (npm)..."
     cd "$DIR/frontend"
     npm install --silent
+
+    # Download noVNC ESM source (npm package ships broken CJS, need raw ESM from GitHub)
+    if [[ ! -d "$DIR/frontend/src/novnc" ]]; then
+        info "Downloading noVNC ESM source..."
+        curl -sL https://github.com/novnc/noVNC/archive/refs/tags/v1.5.0.tar.gz -o /tmp/novnc.tar.gz
+        tar -xzf /tmp/novnc.tar.gz -C /tmp
+        cp -r /tmp/noVNC-1.5.0/core "$DIR/frontend/src/novnc"
+        cp -r /tmp/noVNC-1.5.0/vendor "$DIR/frontend/src/vendor"
+        rm -rf /tmp/novnc.tar.gz /tmp/noVNC-1.5.0
+        ok "noVNC ESM source downloaded."
+    else
+        ok "noVNC source already present."
+    fi
 
     info "Building frontend (v${APP_VERSION})..."
     VITE_API_URL="" \
@@ -427,13 +495,45 @@ NGINXEOF
     fi
     ok "nginx configured and running."
 
+    # ── Python venv for rdpbridge ─────────────────────────────
+    RDPVENV="$DIR/rdpbridge/.venv"
+    if [[ ! -d "$RDPVENV" ]] || [[ ! -f "$RDPVENV/bin/pip" ]]; then
+        info "Creating Python venv for rdpbridge..."
+        rm -rf "$RDPVENV"
+        python3 -m venv "$RDPVENV" || err "Failed to create rdpbridge venv."
+    fi
+    "$RDPVENV/bin/pip" install -q --upgrade pip
+    "$RDPVENV/bin/pip" install -q "websockets>=13.0"
+    ok "RDP bridge dependencies installed."
+
+    # ── systemd service for rdpbridge ─────────────────────────
+    RDPSVC="/etc/systemd/system/serverctl-rdpbridge.service"
+    info "Creating systemd service for rdpbridge..."
+    cat > "$RDPSVC" << RDPSVCEOF
+[Unit]
+Description=ServerCTL RDP Bridge (FreeRDP + TigerVNC)
+After=network.target
+
+[Service]
+WorkingDirectory=${DIR}/rdpbridge
+Environment="MANAGER_PORT=8080"
+ExecStart=${RDPVENV}/bin/python manager.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+RDPSVCEOF
+
     # ── systemd service for backend ───────────────────────────
     SVCFILE="/etc/systemd/system/serverctl-backend.service"
     info "Creating systemd service for backend..."
     cat > "$SVCFILE" << SVCEOF
 [Unit]
 Description=ServerCTL Backend
-After=network.target
+After=network.target serverctl-rdpbridge.service
 
 [Service]
 WorkingDirectory=${DIR}/backend
@@ -446,6 +546,8 @@ Environment="CORS_ORIGINS=*"
 Environment="AGENT_BINS_DIR=${DIR}/agent-go/dist"
 Environment="PUBLIC_HOST=${PUBLIC_HOST:-${HOST_IP}}"
 Environment="SERVERCTL_DB=${DIR}/data/serverctl.db"
+Environment="RDPBRIDGE_HOST=127.0.0.1"
+Environment="RDPBRIDGE_PORT=8080"
 ExecStart=${VENV}/bin/python -m uvicorn main:app --host 0.0.0.0 --port ${BACKEND_PORT}
 Restart=always
 RestartSec=5
@@ -457,10 +559,17 @@ WantedBy=multi-user.target
 SVCEOF
 
     systemctl daemon-reload
+    systemctl enable serverctl-rdpbridge --now
     systemctl enable serverctl-backend --now
+    ok "serverctl-rdpbridge service started."
     ok "serverctl-backend service started."
 
     sleep 2
+    if systemctl is-active --quiet serverctl-rdpbridge; then
+        ok "RDP bridge running on port 8080."
+    else
+        warn "RDP bridge may not have started. Check: journalctl -u serverctl-rdpbridge -n 30"
+    fi
     if systemctl is-active --quiet serverctl-backend; then
         ok "Backend running on port ${BACKEND_PORT}."
     else

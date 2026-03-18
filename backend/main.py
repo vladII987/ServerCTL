@@ -27,6 +27,7 @@ from config import settings
 import database as db
 from server_registry import registry
 from ssh_handler import handle_ssh_websocket
+from rdp_handler import handle_rdp_websocket
 from scanner import handle_scan_websocket
 import users as user_module
 
@@ -492,6 +493,31 @@ async def ssh_terminal(websocket: WebSocket, server_id: str):
         await websocket.send_json({"type": "error", "data": f"\r\nServer '{server_id}' not found\r\n"})
         await websocket.close(1011); return
     await handle_ssh_websocket(websocket, server, settings.DASHBOARD_TOKEN, _validate_ws_token)
+
+
+@app.websocket("/ws/rdp/{server_id}")
+async def rdp_terminal(
+    websocket: WebSocket,
+    server_id: str,
+    token:    str = Query(default=""),
+    username: str = Query(default="Administrator"),
+    password: str = Query(default=""),
+    domain:   str = Query(default=""),
+    rdp_port: int = Query(default=3389),
+    width:    int = Query(default=1280),
+    height:   int = Query(default=720),
+    security: str = Query(default="nla"),
+):
+    server = registry.get(server_id)
+    if not server:
+        await websocket.close(1008)
+        return
+    await handle_rdp_websocket(
+        websocket, server, settings.DASHBOARD_TOKEN, _validate_ws_token,
+        username=username, password=password, domain=domain,
+        rdp_port=rdp_port, width=width, height=height,
+        security=security, token=token,
+    )
 
 
 @app.websocket("/ws/scan")

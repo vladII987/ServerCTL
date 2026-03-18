@@ -3,6 +3,13 @@ WORKDIR /app
 COPY package.json .
 RUN npm install
 COPY . .
+# Download noVNC ESM source into src/novnc/ so Vite bundles it directly
+RUN apk add --no-cache wget && \
+    wget -qO /tmp/novnc.tar.gz https://github.com/novnc/noVNC/archive/refs/tags/v1.5.0.tar.gz && \
+    tar -xzf /tmp/novnc.tar.gz -C /tmp && \
+    cp -r /tmp/noVNC-1.5.0/core /app/src/novnc && \
+    cp -r /tmp/noVNC-1.5.0/vendor /app/src/vendor && \
+    rm -rf /tmp/novnc.tar.gz /tmp/noVNC-1.5.0
 ARG VITE_API_URL=""
 ARG VITE_DASHBOARD_TOKEN="change-me"
 ARG VITE_APP_VERSION="dev"
