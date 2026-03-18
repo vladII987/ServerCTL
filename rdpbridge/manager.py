@@ -1,11 +1,12 @@
 """
-RDP Bridge — Spawns Xtigervnc + xfreerdp per session, proxies raw VNC binary to WebSocket.
-Browser (noVNC) ↔ WebSocket ↔ this manager ↔ VNC TCP ↔ Xtigervnc ↔ xfreerdp ↔ Windows RDP
+RDP Bridge — Spawns Xvnc/Tigervnc + xfreerdp per session, proxies raw VNC binary to WebSocket.
+Browser (noVNC) ↔ WebSocket ↔ this manager ↔ VNC TCP ↔ Xvnc ↔ xfreerdp ↔ Windows RDP
 """
 import asyncio
 import logging
 import os
 import socket
+import shutil
 from urllib.parse import urlparse, parse_qs
 
 import websockets
@@ -17,6 +18,25 @@ MANAGER_PORT = int(os.environ.get("MANAGER_PORT", "8080"))
 
 _used_displays: set = set()
 _display_lock = asyncio.Lock()
+
+VNC_SERVER = None
+
+
+def _find_vnc_server():
+    global VNC_SERVER
+    candidates = ["Xtigervnc", "Xtigervncserver", "vncserver", "Xvnc"]
+    for name in candidates:
+        if shutil.which(name):
+            VNC_SERVER = name
+            log.info(f"Using VNC server: {name}")
+            return
+    for name in candidates:
+        path = f"/usr/bin/{name}"
+        if os.path.exists(path):
+            VNC_SERVER = path
+            log.info(f"Using VNC server: {name}")
+            return
+    raise RuntimeError("No VNC server found (Xtigervnc, vncserver, or Xvnc)")
 
 
 def _find_free_display() -> int:
@@ -77,22 +97,32 @@ async def handle_session(websocket):
     vnc_writer  = None
 
     try:
-        # ── Start Xtigervnc (virtual X + VNC server) ──────────────
-        log.info(f"[:{display_num}] Starting Xtigervnc {width}x{height}")
+        # ── Start VNC server (Xtigervnc, vncserver, or Xvnc) ───────────
+        log.info(f"[:{display_num}] Starting {VNC_SERVER} {width}x{height}")
+        if VNC_SERVER == "vncserver":
+            cmd = [
+                VNC_SERVER, f":{display_num}",
+                "-geometry", f"{width}x{height}",
+                "-depth", "24",
+            ]
+        else:
+            cmd = [
+                VNC_SERVER, f":{display_num}",
+                "-geometry", f"{width}x{height}",
+                "-depth", "24",
+                "-SecurityTypes", "None",
+                "-localhost", "yes",
+                "-nolisten", "tcp6",
+            ]
         xvnc_proc = await asyncio.create_subprocess_exec(
-            "Xtigervnc", f":{display_num}",
-            "-geometry", f"{width}x{height}",
-            "-depth", "24",
-            "-SecurityTypes", "None",
-            "-localhost", "yes",
-            "-nolisten", "tcp6",
+            *cmd,
             stdout=asyncio.subprocess.DEVNULL,
             stderr=asyncio.subprocess.DEVNULL,
         )
 
         if not await _wait_for_port("127.0.0.1", vnc_port, timeout=15):
-            log.error(f"[:{display_num}] Xtigervnc failed to start")
-            await websocket.close(1011, "Xtigervnc failed to start")
+            log.error(f"[:{display_num}] {VNC_SERVER} failed to start")
+            await websocket.close(1011, f"{VNC_SERVER} failed to start")
             return
 
         # ── Start xfreerdp rendering into the virtual X display ───
@@ -208,6 +238,7 @@ async def _proxy(ws, reader: asyncio.StreamReader, writer: asyncio.StreamWriter)
 
 
 async def main():
+    _find_vnc_server()
     log.info(f"RDP Bridge listening on 0.0.0.0:{MANAGER_PORT}")
     async with websockets.serve(handle_session, "0.0.0.0", MANAGER_PORT, max_size=None):
         await asyncio.Future()  # run forever

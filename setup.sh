@@ -325,7 +325,7 @@ if [[ "$MODE" == "native" ]]; then
     if command -v apt-get >/dev/null 2>&1; then
         _install_pkg python3-pip python3-venv
     else
-        _install_pkg python3-pip python3-libs
+        _install_pkg python3-pip python3-venv python3-devel gcc
     fi
 
     # curl
@@ -337,11 +337,22 @@ if [[ "$MODE" == "native" ]]; then
     # Node.js / npm
     if ! command -v npm >/dev/null 2>&1; then
         info "Installing Node.js and npm..."
-        if command -v apt-get >/dev/null 2>&1; then
-            curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >/dev/null 2>&1
-            _install_pkg nodejs
-        elif command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1; then
-            curl -fsSL https://rpm.nodesource.com/setup_20.x | bash - >/dev/null 2>&1
+        if command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1; then
+            PKG_MGR=$(command -v dnf || command -v yum)
+            if $PKG_MGR list installed nodejs &>/dev/null; then
+                ok "Node.js already available."
+            else
+                if command -v dnf >/dev/null 2>&1; then
+                    dnf module reset nodejs -y 2>/dev/null
+                    dnf module enable nodejs:20 -y 2>/dev/null || true
+                    dnf install -y nodejs npm
+                else
+                    curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+                    $PKG_MGR install -y nodejs npm
+                fi
+            fi
+        elif command -v apt-get >/dev/null 2>&1; then
+            curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
             _install_pkg nodejs
         else
             _install_pkg nodejs npm
@@ -360,18 +371,18 @@ if [[ "$MODE" == "native" ]]; then
 
     # FreeRDP + TigerVNC (for RDP bridge)
     info "Ensuring FreeRDP and TigerVNC for RDP support..."
-    if command -v apt-get >/dev/null 2>&1; then
+    if command -v dnf >/dev/null 2>&1; then
+        _install_pkg freerdp tigervnc xorg-x11-fonts-base dbus-x11 xorg-x11-server-Xvfb xauth
+    elif command -v yum >/dev/null 2>&1; then
+        _install_pkg freerdp tigervnc xorg-x11-fonts-base dbus-x11 xorg-x11-server-Xvfb xauth
+    elif command -v apt-get >/dev/null 2>&1; then
         _install_pkg freerdp2-x11 tigervnc-standalone-server \
             libx11-6 libxext6 libxinerama1 libxcursor1 libxv1 \
             libxkbfile1 libxrandr2 libxi6 libxrender1 libxfixes3 \
-            dbus-x11 xfonts-base
-    elif command -v dnf >/dev/null 2>&1; then
-        _install_pkg freerdp tigervnc-server xorg-x11-fonts-base dbus-x11
-    elif command -v yum >/dev/null 2>&1; then
-        _install_pkg freerdp tigervnc-server xorg-x11-fonts-base dbus-x11
+            dbus-x11 xfonts-base xvfb
     fi
     command -v xfreerdp >/dev/null 2>&1 && ok "xfreerdp available." || warn "xfreerdp not found — RDP will not work."
-    command -v Xtigervnc >/dev/null 2>&1 && ok "Xtigervnc available." || warn "Xtigervnc not found — RDP will not work."
+    (command -v Xtigervnc >/dev/null 2>&1 || command -v vncserver >/dev/null 2>&1) && ok "TigerVNC available." || warn "TigerVNC not found — RDP will not work."
 
     # ── Ensure data files ─────────────────────────────────────
     mkdir -p "$DIR/data"

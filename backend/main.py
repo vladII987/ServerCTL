@@ -277,6 +277,34 @@ async def _ping(server: dict) -> dict:
             "last_seen": datetime.utcnow().isoformat() if online else None}
 
 
+# ─── Ping All Servers (ICMP) ─────────────────────────────────
+@app.get("/api/ping-all", dependencies=[Depends(verify)])
+async def ping_all_servers():
+    import subprocess, platform, re, time
+    servers = registry.all()
+    flag = "-n" if platform.system().lower() == "windows" else "-c"
+
+    async def _icmp(server):
+        host = server["host"]
+        try:
+            t0 = time.monotonic()
+            proc = await asyncio.create_subprocess_exec(
+                "ping", flag, "1", "-W", "2", host,
+                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+            )
+            stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=5)
+            if proc.returncode == 0:
+                m = re.search(rb"time[=<]([\d.]+)\s*ms", stdout)
+                latency = round(float(m.group(1))) if m else round((time.monotonic() - t0) * 1000)
+                return {"id": server["id"], "host": host, "name": server.get("name", host), "status": "up", "latency_ms": latency}
+            return {"id": server["id"], "host": host, "name": server.get("name", host), "status": "down", "latency_ms": None}
+        except Exception:
+            return {"id": server["id"], "host": host, "name": server.get("name", host), "status": "error", "latency_ms": None}
+
+    results = await asyncio.gather(*[_icmp(s) for s in servers])
+    return {"pings": results, "ts": datetime.utcnow().isoformat() + "Z"}
+
+
 # ─── Servers: Add / Delete / Import ───────────────────────────
 @app.post("/api/servers", dependencies=[Depends(verify)])
 async def add_manual_server(req: ManualServerRequest):
