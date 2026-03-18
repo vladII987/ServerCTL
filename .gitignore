@@ -20,6 +20,9 @@ frontend/dist/
 # Runtime data — generated on first run, not for version control
 backend/servers.json
 backend/users.json
+data/serverctl.db
+data/serverctl.db-shm
+data/serverctl.db-wal
 
 # Backups
 .backup/
