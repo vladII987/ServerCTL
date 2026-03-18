@@ -320,26 +320,23 @@ if [[ "$MODE" == "native" ]]; then
         ok "Python3 available: $(python3 --version)"
     fi
 
-    # Always ensure pip and venv packages are installed
-    info "Ensuring python3-pip and python3-venv..."
+    # Always ensure pip, venv and build tools are installed
+    info "Ensuring python3-pip, python3-venv and build tools..."
     if command -v apt-get >/dev/null 2>&1; then
-        _install_pkg python3-pip python3-venv
-    else
-        _install_pkg python3-pip python3-venv python3-devel gcc
-    fi
-
-    # Rust (needed for pydantic-core and other native extensions)
-    if ! command -v rustc >/dev/null 2>&1; then
-        info "Installing Rust..."
-        if command -v dnf >/dev/null 2>&1; then
-            _install_pkg rust cargo
-        elif command -v yum >/dev/null 2>&1; then
-            _install_pkg rust cargo
-        elif command -v apt-get >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable 2>/dev/null
+        _install_pkg python3-pip python3-venv build-essential
+    elif command -v dnf >/dev/null 2>&1; then
+        _install_pkg python3-pip python3-devel gcc gcc-c++ make
+        # Fedora 41+ ships Python 3.13/3.14 — pin pydantic to versions with pre-built wheels
+        # Ensure cc symlink exists for Rust/maturin builds
+        if ! command -v cc >/dev/null 2>&1 && command -v gcc >/dev/null 2>&1; then
+            ln -sf "$(command -v gcc)" /usr/local/bin/cc
+        fi
+    elif command -v yum >/dev/null 2>&1; then
+        _install_pkg python3-pip python3-devel gcc gcc-c++ make
+        if ! command -v cc >/dev/null 2>&1 && command -v gcc >/dev/null 2>&1; then
+            ln -sf "$(command -v gcc)" /usr/local/bin/cc
         fi
     fi
-    command -v rustc >/dev/null 2>&1 && ok "Rust available." || warn "Rust not found — pydantic-core may fail to build."
 
     # curl
     if ! command -v curl >/dev/null 2>&1; then
@@ -385,9 +382,9 @@ if [[ "$MODE" == "native" ]]; then
     # FreeRDP + TigerVNC (for RDP bridge)
     info "Ensuring FreeRDP and TigerVNC for RDP support..."
     if command -v dnf >/dev/null 2>&1; then
-        _install_pkg freerdp tigervnc xorg-x11-fonts-base dbus-x11 xorg-x11-server-Xvfb xauth
+        _install_pkg freerdp tigervnc-server xorg-x11-fonts-base dbus-x11 xorg-x11-server-Xvfb xauth
     elif command -v yum >/dev/null 2>&1; then
-        _install_pkg freerdp tigervnc xorg-x11-fonts-base dbus-x11 xorg-x11-server-Xvfb xauth
+        _install_pkg freerdp tigervnc-server xorg-x11-fonts-base dbus-x11 xorg-x11-server-Xvfb xauth
     elif command -v apt-get >/dev/null 2>&1; then
         _install_pkg freerdp2-x11 tigervnc-standalone-server \
             libx11-6 libxext6 libxinerama1 libxcursor1 libxv1 \
@@ -395,7 +392,7 @@ if [[ "$MODE" == "native" ]]; then
             dbus-x11 xfonts-base xvfb
     fi
     command -v xfreerdp >/dev/null 2>&1 && ok "xfreerdp available." || warn "xfreerdp not found — RDP will not work."
-    (command -v Xtigervnc >/dev/null 2>&1 || command -v vncserver >/dev/null 2>&1) && ok "TigerVNC available." || warn "TigerVNC not found — RDP will not work."
+    (command -v Xtigervnc >/dev/null 2>&1 || command -v Xvnc >/dev/null 2>&1 || command -v vncserver >/dev/null 2>&1) && ok "TigerVNC available." || warn "Xtigervnc/Xvnc not found — RDP will not work."
 
     # ── Ensure data files ─────────────────────────────────────
     mkdir -p "$DIR/data"
@@ -502,6 +499,19 @@ NGINXEOF
         ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/serverctl
     fi
 
+    # On RHEL/Fedora with conf.d, disable the default server block in nginx.conf
+    # so it doesn't conflict with our config on port 80 or cause startup failures
+    if [[ ! -d /etc/nginx/sites-available ]] && [[ -f /etc/nginx/nginx.conf ]]; then
+        # Comment out the default server{} block inside nginx.conf if present
+        if grep -q '^\s*server\s*{' /etc/nginx/nginx.conf 2>/dev/null; then
+            info "Disabling default server block in /etc/nginx/nginx.conf..."
+            # Backup original
+            cp -n /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak 2>/dev/null
+            # Use sed to comment out the server block inside http{}
+            sed -i '/^\s*server\s*{/,/^\s*}/s/^/#/' /etc/nginx/nginx.conf 2>/dev/null
+        fi
+    fi
+
     # Ensure nginx can traverse to the frontend dist directory
     PARENT="$DIR"
     while [[ "$PARENT" != "/" ]]; do
@@ -509,6 +519,11 @@ NGINXEOF
         PARENT="$(dirname "$PARENT")"
     done
     chmod -R o+r "$DIR/frontend/dist" 2>/dev/null
+
+    # SELinux: allow nginx to connect to backend (for proxy_pass)
+    if command -v setsebool >/dev/null 2>&1; then
+        setsebool -P httpd_can_network_connect 1 2>/dev/null && ok "SELinux: httpd_can_network_connect enabled."
+    fi
 
     nginx -t 2>&1 || err "nginx config is invalid."
     systemctl enable nginx 2>/dev/null

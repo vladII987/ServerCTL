@@ -112,8 +112,11 @@ async def handle_session(websocket):
                 "-depth", "24",
                 "-SecurityTypes", "None",
                 "-localhost", "yes",
-                "-nolisten", "tcp6",
             ]
+            # Xtigervnc supports -nolisten tcp6, Xvnc may not
+            if "Xtigervnc" in VNC_SERVER:
+                cmd.append("-nolisten")
+                cmd.append("tcp6")
         xvnc_proc = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=asyncio.subprocess.DEVNULL,
