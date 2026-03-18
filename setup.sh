@@ -232,10 +232,28 @@ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
             apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin -qq \
                 || err "Docker installation failed. If you see 'not valid yet' errors, your system clock may be out of sync. Run: sudo timedatectl set-ntp true && sudo systemctl restart systemd-timesyncd"
             systemctl enable docker --now || err "Failed to start Docker service."
-        elif command -v yum >/dev/null 2>&1 || command -v dnf >/dev/null 2>&1; then
+        elif command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1; then
             PKG_MGR=$(command -v dnf || command -v yum)
-            $PKG_MGR install -y yum-utils || err "Failed to install yum-utils."
-            yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+            # Detect distro: Fedora uses its own Docker repo, CentOS/RHEL use the centos repo
+            if grep -qi "fedora" /etc/os-release 2>/dev/null; then
+                DOCKER_REPO="https://download.docker.com/linux/fedora/docker-ce.repo"
+            else
+                DOCKER_REPO="https://download.docker.com/linux/centos/docker-ce.repo"
+            fi
+            $PKG_MGR install -y dnf-plugins-core 2>/dev/null || $PKG_MGR install -y yum-utils 2>/dev/null || true
+            # dnf5 (Fedora 41+) uses "dnf config-manager addrepo --from-repofile=URL"
+            # dnf4 and yum use "config-manager --add-repo URL"
+            if dnf config-manager addrepo --help >/dev/null 2>&1; then
+                dnf config-manager addrepo --from-repofile="$DOCKER_REPO" \
+                    || err "Failed to add Docker repo."
+            elif $PKG_MGR config-manager --add-repo "$DOCKER_REPO" 2>/dev/null; then
+                true
+            elif command -v yum-config-manager >/dev/null 2>&1; then
+                yum-config-manager --add-repo "$DOCKER_REPO" \
+                    || err "Failed to add Docker repo."
+            else
+                err "Failed to add Docker repo. Install Docker manually: https://docs.docker.com/engine/install/"
+            fi
             $PKG_MGR install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin \
                 || err "Docker installation failed."
             systemctl enable docker --now || err "Failed to start Docker service."
@@ -250,6 +268,13 @@ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
 
     if ! docker compose version >/dev/null 2>&1; then
         err "docker compose plugin not found. Install 'docker-compose-plugin'."
+    fi
+
+    # SELinux: allow containers to connect to network and manage ports
+    if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce 2>/dev/null)" != "Disabled" ]; then
+        info "SELinux detected — setting required booleans..."
+        setsebool -P container_connect_any 1 2>/dev/null || true
+        ok "SELinux booleans configured for Docker."
     fi
 
     # Ensure data files exist as files (not directories)
