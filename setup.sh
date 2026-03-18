@@ -328,6 +328,19 @@ if [[ "$MODE" == "native" ]]; then
         _install_pkg python3-pip python3-venv python3-devel gcc
     fi
 
+    # Rust (needed for pydantic-core and other native extensions)
+    if ! command -v rustc >/dev/null 2>&1; then
+        info "Installing Rust..."
+        if command -v dnf >/dev/null 2>&1; then
+            _install_pkg rust cargo
+        elif command -v yum >/dev/null 2>&1; then
+            _install_pkg rust cargo
+        elif command -v apt-get >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable 2>/dev/null
+        fi
+    fi
+    command -v rustc >/dev/null 2>&1 && ok "Rust available." || warn "Rust not found — pydantic-core may fail to build."
+
     # curl
     if ! command -v curl >/dev/null 2>&1; then
         info "Installing curl..."
