@@ -5107,6 +5107,7 @@ const Dashboard = () => {
                             // NOTE: do NOT add sid to wizardPreServersRef so polling can detect it
                           } catch {}
                         }
+                        if (sid) fetchWizardInstallCmd(sid, wizardOS);
                         setWizardStep(3);
                       }} data-wizard-next disabled={!wizardHost} style={{ ...styles.btn, ...styles.btnPrimary, opacity: wizardHost ? 1 : 0.5 }}>Next →</button>
                     </div>
