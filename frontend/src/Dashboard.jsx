@@ -515,6 +515,8 @@ const Dashboard = () => {
   const [rdpNla, setRdpNla] = useState(true);
   const [rdpSessionKey, setRdpSessionKey] = useState(0);
   const [rdpConnected, setRdpConnected] = useState(false);
+  const [rdpWidth, setRdpWidth] = useState(1280);
+  const [rdpHeight, setRdpHeight] = useState(720);
   // Logs section state
   const [logsServer, setLogsServer] = useState(null);
   const [logsTab, setLogsTab] = useState('files'); // 'files' | 'services'
@@ -3868,9 +3870,23 @@ const Dashboard = () => {
                     {!rdpConnected
                       ? <button onClick={connectRDP} style={{ ...styles.btn, ...styles.btnPrimary, padding: '4px 14px', fontSize: '12px' }}>Connect</button>
                       : <>
-                          <button onClick={() => {
+                          <button onClick={async () => {
                             const el = document.querySelector('[data-rdp-container]');
-                            if (el) { if (!document.fullscreenElement) el.requestFullscreen().catch(() => {}); else document.exitFullscreen(); }
+                            if (!el) return;
+                            if (!document.fullscreenElement) {
+                              await el.requestFullscreen().catch(() => {});
+                              // Reconnect with screen resolution for native fullscreen RDP
+                              setRdpWidth(screen.width);
+                              setRdpHeight(screen.height);
+                              setRdpConnected(false);
+                              setRdpSessionKey(k => k + 1);
+                            } else {
+                              document.exitFullscreen();
+                              setRdpWidth(1280);
+                              setRdpHeight(720);
+                              setRdpConnected(false);
+                              setRdpSessionKey(k => k + 1);
+                            }
                           }} style={{ ...styles.btn, background: 'rgba(96,165,250,0.12)', color: '#60a5fa', border: 'none', padding: '4px 12px', fontSize: '12px' }}>⛶ Fullscreen</button>
                           <button onClick={disconnectRDP} style={{ ...styles.btn, background: 'rgba(231,130,132,0.12)', color: '#e78284', border: 'none', padding: '4px 12px', fontSize: '12px' }}>Disconnect</button>
                         </>
@@ -3896,8 +3912,8 @@ const Dashboard = () => {
                       security={rdpNla ? 'nla' : 'any'}
                       token={user?.token || import.meta.env.VITE_DASHBOARD_TOKEN || ''}
                       wsHost={WS_HOST}
-                      width={1280}
-                      height={720}
+                      width={rdpWidth}
+                      height={rdpHeight}
                       onConnected={() => setRdpConnected(true)}
                       onDisconnected={() => setRdpConnected(false)}
                     />
