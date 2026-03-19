@@ -24,6 +24,9 @@ data/serverctl.db
 data/serverctl.db-shm
 data/serverctl.db-wal
 
+# SSL certificates
+ssl/
+
 # Backups
 .backup/
 

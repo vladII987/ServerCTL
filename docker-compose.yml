@@ -64,10 +64,14 @@ services:
         VITE_DASHBOARD_TOKEN: ${DASHBOARD_TOKEN}
         VITE_APP_VERSION: "${APP_VERSION:-dev}"
         BACKEND_PORT: ${BACKEND_PORT:-8765}
+        SSL_MODE: ${SSL_MODE:-none}
     container_name: serverctl-frontend
     restart: unless-stopped
     ports:
-      - "${FRONTEND_PORT:-8090}:80"
+      - "${FRONTEND_PORT:-8090}:${SSL_FRONTEND_CONTAINER_PORT:-80}"
+    volumes:
+      - ${SSL_CERT_PATH:-/dev/null}:/etc/nginx/ssl/serverctl.crt:ro
+      - ${SSL_KEY_PATH:-/dev/null}:/etc/nginx/ssl/serverctl.key:ro
     depends_on:
       backend:
         condition: service_healthy

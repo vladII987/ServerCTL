@@ -304,15 +304,47 @@ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
     [[ -f "$DIR/backend/users.json"   ]] || echo '[]'             > "$DIR/backend/users.json"
 
     APP_VERSION=$(cat "$DIR/VERSION" 2>/dev/null || echo "dev")
+
+    # ── Docker SSL setup ───────────────────────────────────────
+    SSL_CERT_PATH="/dev/null"
+    SSL_KEY_PATH="/dev/null"
+    SSL_FRONTEND_CONTAINER_PORT="80"
+    if [[ "$SSL_MODE" == "selfsigned" ]]; then
+        SSL_DIR="$DIR/ssl"
+        mkdir -p "$SSL_DIR"
+        if [[ ! -f "$SSL_DIR/serverctl.crt" ]] || [[ ! -f "$SSL_DIR/serverctl.key" ]]; then
+            info "Generating self-signed SSL certificate..."
+            openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+                -keyout "$SSL_DIR/serverctl.key" -out "$SSL_DIR/serverctl.crt" \
+                -subj "/CN=${HOST_IP}/O=ServerCTL" \
+                -addext "subjectAltName=IP:${HOST_IP}" 2>/dev/null \
+                || openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+                    -keyout "$SSL_DIR/serverctl.key" -out "$SSL_DIR/serverctl.crt" \
+                    -subj "/CN=${HOST_IP}/O=ServerCTL" 2>/dev/null
+            ok "Self-signed certificate created."
+        fi
+        SSL_CERT_PATH="$SSL_DIR/serverctl.crt"
+        SSL_KEY_PATH="$SSL_DIR/serverctl.key"
+        SSL_FRONTEND_CONTAINER_PORT="443"
+    fi
+
     info "Running: docker compose up --build -d (v${APP_VERSION})"
     echo ""
     cd "$DIR"
-    FRONTEND_PORT="$FRONTEND_PORT" BACKEND_PORT="$BACKEND_PORT" APP_VERSION="$APP_VERSION" docker compose up --build -d
+    FRONTEND_PORT="$FRONTEND_PORT" BACKEND_PORT="$BACKEND_PORT" APP_VERSION="$APP_VERSION" \
+    SSL_MODE="$SSL_MODE" SSL_CERT_PATH="$SSL_CERT_PATH" SSL_KEY_PATH="$SSL_KEY_PATH" \
+    SSL_FRONTEND_CONTAINER_PORT="$SSL_FRONTEND_CONTAINER_PORT" \
+        docker compose up --build -d
 
     echo ""
     ok "All services started!"
     echo ""
-    echo -e "  ${W}Dashboard:${NC}  http://${HOST_IP}:${FRONTEND_PORT}"
+    if [[ "$SSL_MODE" == "selfsigned" ]]; then
+        echo -e "  ${W}Dashboard:${NC}  https://${HOST_IP}:${FRONTEND_PORT}"
+        echo -e "  ${Y}Note:${NC}       Browser will show a security warning — click Advanced → Proceed"
+    else
+        echo -e "  ${W}Dashboard:${NC}  http://${HOST_IP}:${FRONTEND_PORT}"
+    fi
     echo -e "  ${W}Backend:${NC}    http://${HOST_IP}:${BACKEND_PORT}/health"
     echo -e "  ${W}Logs:${NC}       docker compose logs -f"
     echo -e "  ${W}Stop:${NC}       docker compose down"

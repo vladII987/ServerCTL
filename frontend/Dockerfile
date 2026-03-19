@@ -21,6 +21,14 @@ RUN npm run build
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx-ssl.conf /etc/nginx/conf.d/ssl.conf.disabled
 ARG BACKEND_PORT=8765
-RUN sed -i "s|\${BACKEND_PORT}|${BACKEND_PORT}|g" /etc/nginx/conf.d/default.conf
-EXPOSE 80
+ARG SSL_MODE=none
+RUN sed -i "s|\${BACKEND_PORT}|${BACKEND_PORT}|g" /etc/nginx/conf.d/default.conf && \
+    sed -i "s|\${BACKEND_PORT}|${BACKEND_PORT}|g" /etc/nginx/conf.d/ssl.conf.disabled
+# If SSL_MODE is selfsigned or letsencrypt, swap configs
+RUN if [ "$SSL_MODE" != "none" ]; then \
+      mv /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.disabled && \
+      mv /etc/nginx/conf.d/ssl.conf.disabled /etc/nginx/conf.d/default.conf; \
+    fi
+EXPOSE 80 443
