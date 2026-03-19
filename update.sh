@@ -123,6 +123,27 @@ NEW_VERSION=$(cat "$DIR/VERSION" 2>/dev/null || echo "unknown")
 ok "Updated: ${OLD_VERSION} → ${NEW_VERSION}"
 echo ""
 
+# ── Ensure SSL vars are in .env ───────────────────────────────
+# Older installs may be missing these — auto-detect and add
+if ! grep -q "^SSL_MODE=" "$DIR/.env" 2>/dev/null; then
+    if [[ -f "$DIR/ssl/serverctl.crt" && -f "$DIR/ssl/serverctl.key" ]]; then
+        info "Detected SSL certs but missing SSL_MODE in .env — adding..."
+        cat >> "$DIR/.env" << EOF
+SSL_MODE=selfsigned
+SSL_CERT_PATH=./ssl/serverctl.crt
+SSL_KEY_PATH=./ssl/serverctl.key
+SSL_FRONTEND_CONTAINER_PORT=443
+EOF
+        ok "SSL settings added to .env"
+    elif [[ -f /etc/nginx/ssl/serverctl.crt ]]; then
+        info "Detected native SSL certs but missing SSL_MODE in .env — adding..."
+        echo "SSL_MODE=selfsigned" >> "$DIR/.env"
+        ok "SSL_MODE added to .env"
+    else
+        echo "SSL_MODE=none" >> "$DIR/.env"
+    fi
+fi
+
 # ── Docker update ─────────────────────────────────────────────
 if [[ "$MODE" == "docker" ]]; then
     # Load .env file so docker compose has all required variables
