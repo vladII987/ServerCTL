@@ -223,7 +223,7 @@ const NoVNCDisplay = React.forwardRef(({ server, username, password, domain, rdp
       username: username || 'Administrator',
       password: password || '',
       domain:   domain || '',
-      port:     rdpPort || 3389,
+      rdp_port: rdpPort || 3389,
       width:    width  || 1280,
       height:   height || 720,
       security: security || 'nla',

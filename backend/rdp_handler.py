@@ -2,11 +2,14 @@
 RDP WebSocket Handler — browser (noVNC) ↔ backend (auth) ↔ rdpbridge ↔ Windows
 """
 import asyncio
+import logging
 import os
 from urllib.parse import urlencode
 
 import websockets as ws_lib
 from fastapi import WebSocket, WebSocketDisconnect
+
+log = logging.getLogger("rdp_handler")
 
 RDPBRIDGE_HOST = os.environ.get("RDPBRIDGE_HOST", "rdpbridge")
 RDPBRIDGE_PORT = int(os.environ.get("RDPBRIDGE_PORT", "8080"))
@@ -30,6 +33,7 @@ async def handle_rdp_websocket(
     # Validate token before accepting the WebSocket
     token_valid = validate_token(token) if validate_token else token == dashboard_token
     if not token_valid:
+        log.warning("[RDP] Token validation failed for %s", server.get("host"))
         await websocket.close(1008)
         return
 
@@ -47,14 +51,16 @@ async def handle_rdp_websocket(
         "security": security,
     })
     bridge_url = f"ws://{RDPBRIDGE_HOST}:{RDPBRIDGE_PORT}/?{params}"
+    log.info("[RDP] Connecting to bridge: ws://%s:%s/ for %s", RDPBRIDGE_HOST, RDPBRIDGE_PORT, server.get("host"))
 
     try:
         async with ws_lib.connect(bridge_url, max_size=None) as bridge:
+            log.info("[RDP] Bridge connected for %s", server.get("host"))
             await _proxy(websocket, bridge)
     except ConnectionRefusedError:
-        pass
-    except Exception:
-        pass
+        log.error("[RDP] Bridge connection refused at %s:%s — is rdpbridge running?", RDPBRIDGE_HOST, RDPBRIDGE_PORT)
+    except Exception as e:
+        log.error("[RDP] Bridge error for %s: %s", server.get("host"), e)
     finally:
         try:
             await websocket.close()
