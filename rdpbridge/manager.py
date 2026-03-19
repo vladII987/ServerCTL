@@ -133,6 +133,13 @@ async def handle_session(websocket):
         # ── Start xfreerdp rendering into the virtual X display ───
         env = os.environ.copy()
         env["DISPLAY"] = f":{display_num}"
+        # Ensure HOME is set (systemd may not set it for root)
+        if "HOME" not in env or not env["HOME"]:
+            env["HOME"] = "/root"
+        # Ensure freerdp config dirs exist
+        freerdp_dir = os.path.join(env["HOME"], ".config", "freerdp")
+        os.makedirs(os.path.join(freerdp_dir, "certs"), exist_ok=True)
+        os.makedirs(os.path.join(freerdp_dir, "server"), exist_ok=True)
 
         rdp_cmd = [
             "xfreerdp",
@@ -162,8 +169,8 @@ async def handle_session(websocket):
         rdp_proc = await asyncio.create_subprocess_exec(
             *rdp_cmd,
             env=env,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL,
         )
 
         # Brief pause so FreeRDP can authenticate and draw its first frame
@@ -171,10 +178,7 @@ async def handle_session(websocket):
 
         # Check that FreeRDP didn't exit immediately (auth failure, etc.)
         if rdp_proc.returncode is not None:
-            stdout_data, stderr_data = await rdp_proc.communicate()
             log.error(f"[:{display_num}] xfreerdp exited with code {rdp_proc.returncode}")
-            log.error(f"[:{display_num}] xfreerdp stdout: {stdout_data.decode(errors='replace')}")
-            log.error(f"[:{display_num}] xfreerdp stderr: {stderr_data.decode(errors='replace')}")
             await websocket.close(1011, f"xfreerdp exited: {rdp_proc.returncode}")
             return
 
