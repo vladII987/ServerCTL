@@ -3450,7 +3450,7 @@ const Dashboard = () => {
                 const info = agentsPageInfo[s.id];
                 const isExpanded = agentsExpandedId === s.id;
                 const version = info?.version || s.agent_version || '?';
-                const isOutdated = version && version !== appVersion && version !== '?';
+                const isOutdated = version && version !== agentVer && version !== '?';
                 const isOnline = s.online;
                 return (
                   <div key={s.id} style={{ border: `1px solid var(--border-color)`, borderRadius: '12px', overflow: 'hidden', background: 'var(--bg-card)' }}>
