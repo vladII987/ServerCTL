@@ -153,6 +153,9 @@ if [[ "$MODE" == "docker" ]]; then
     info "Rebuilding Docker containers..."
     APP_VERSION="$NEW_VERSION" docker compose up --build -d || err "Docker build failed."
     ok "Docker containers rebuilt and running."
+    info "Cleaning up old Docker images..."
+    docker image prune -a -f --filter "until=24h" >/dev/null 2>&1
+    ok "Unused images removed."
     echo ""
     ok "Update complete! (v${NEW_VERSION})"
     echo -e "  ${Y}Backup:${NC} $BACKUP_DIR"
