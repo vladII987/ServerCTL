@@ -2,6 +2,17 @@ version: "3.9"
 
 services:
 
+  # ── Agent Builder (compiles Go agent binaries) ─────────────────
+  agent-builder:
+    build:
+      context: ./agent-go
+      args:
+        APP_VERSION: "${APP_VERSION:-dev}"
+    container_name: serverctl-agent-builder
+    volumes:
+      - agent-bins:/agent-bins
+    restart: "no"
+
   # ── Backend ───────────────────────────────────────────────────
   backend:
     build:
@@ -28,10 +39,13 @@ services:
       - ./data:/app/data
       - ./backend/servers.json:/app/servers.json:ro
       - ./backend/users.json:/app/users.json:ro
-      - ./agent-go/dist:/app/agent-bins:ro
+      - agent-bins:/app/agent-bins:ro
       - ./VERSION:/app/VERSION:ro
     depends_on:
-      - rdpbridge
+      agent-builder:
+        condition: service_completed_successfully
+      rdpbridge:
+        condition: service_started
     networks:
       - guac-net
     healthcheck:
@@ -77,6 +91,10 @@ services:
         condition: service_healthy
     networks:
       - guac-net
+
+# ── Volumes ─────────────────────────────────────────────────────
+volumes:
+  agent-bins:
 
 # ── Networks ───────────────────────────────────────────────────
 networks:

@@ -582,6 +582,8 @@ sudo bash update.sh
 
 4. **Reports version** — shows the upgrade path (e.g., `1.3.0 → 1.4.0`).
 
+> **Note:** After updating, log out and log back in to the dashboard to refresh your session token.
+
 5. **Auto-detects SSL** — if SSL certificates exist on disk but `SSL_MODE` is missing from `.env` (e.g., upgrading from an older version), the script automatically adds the correct SSL variables.
 
 6. **Rebuilds**:

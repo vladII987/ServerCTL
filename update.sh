@@ -159,6 +159,8 @@ if [[ "$MODE" == "docker" ]]; then
     echo ""
     ok "Update complete! (v${NEW_VERSION})"
     echo -e "  ${Y}Backup:${NC} $BACKUP_DIR"
+    echo ""
+    warn "Log out and log back in to the dashboard to refresh your session token."
     exit 0
 fi
 
@@ -214,6 +216,32 @@ else
     warn "npm not found — skipping frontend rebuild."
 fi
 
+# ── Build agent binaries ─────────────────────────────────────
+info "Building agent binaries (v${NEW_VERSION})..."
+AGENT_OUT="$DIR/agent-go/dist"
+mkdir -p "$AGENT_OUT"
+if command -v go >/dev/null 2>&1; then
+    cd "$DIR/agent-go"
+    GOOS=linux  GOARCH=amd64 go build -ldflags="-s -w -X main.agentVersion=${NEW_VERSION}" -o "$AGENT_OUT/serverctl-agent-linux-amd64"       .
+    GOOS=linux  GOARCH=arm64 go build -ldflags="-s -w -X main.agentVersion=${NEW_VERSION}" -o "$AGENT_OUT/serverctl-agent-linux-arm64"       .
+    GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X main.agentVersion=${NEW_VERSION}" -o "$AGENT_OUT/serverctl-agent-windows-amd64.exe" .
+    cd "$DIR"
+    ok "Agent binaries built with Go"
+elif command -v docker >/dev/null 2>&1; then
+    docker run --rm \
+        -v "$DIR/agent-go:/src" \
+        -v "$AGENT_OUT:/out" \
+        -w /src \
+        golang:1.24-alpine sh -c "
+            GOOS=linux  GOARCH=amd64 go build -ldflags='-s -w -X main.agentVersion=${NEW_VERSION}' -o /out/serverctl-agent-linux-amd64       . && \
+            GOOS=linux  GOARCH=arm64 go build -ldflags='-s -w -X main.agentVersion=${NEW_VERSION}' -o /out/serverctl-agent-linux-arm64       . && \
+            GOOS=windows GOARCH=amd64 go build -ldflags='-s -w -X main.agentVersion=${NEW_VERSION}' -o /out/serverctl-agent-windows-amd64.exe .
+        "
+    ok "Agent binaries built with Docker"
+else
+    warn "Neither Go nor Docker found — using existing agent binaries in agent-go/dist/"
+fi
+
 # Restart services
 info "Restarting backend service..."
 systemctl restart serverctl-backend 2>/dev/null
@@ -232,3 +260,5 @@ fi
 echo ""
 ok "Update complete! (v${NEW_VERSION})"
 echo -e "  ${Y}Backup:${NC} $BACKUP_DIR"
+echo ""
+warn "Log out and log back in to the dashboard to refresh your session token."

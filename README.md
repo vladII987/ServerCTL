@@ -185,6 +185,8 @@ The update script safely upgrades ServerCTL to the latest version while preservi
    - **Native mode:** updates Python dependencies, rebuilds the frontend, restarts the backend service, reloads nginx
 6. **Reports version** — shows the upgrade path (e.g., `1.3.0 → 1.4.0`)
 
+> **Note:** After updating, log out and log back in to the dashboard to refresh your session token.
+
 ---
 
 ## Uninstalling (`uninstall.sh`)
