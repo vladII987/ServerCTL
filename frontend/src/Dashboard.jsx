@@ -369,6 +369,7 @@ const Dashboard = () => {
     try { return JSON.parse(localStorage.getItem('serverctl_user')); } catch { return null; }
   });
   const [servers, setServers] = useState([]);
+  const [latestAgentVersion, setLatestAgentVersion] = useState('');
   const [hostStatus, setHostStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [manualHost, setManualHost] = useState("");
@@ -639,6 +640,12 @@ const Dashboard = () => {
       const list = data.servers || [];
       setServers(list);
       setLoading(false);
+      // Fetch latest agent version from backend
+      try {
+        const hRes = await fetch('/health');
+        const hData = await hRes.json();
+        if (hData.agent_version) setLatestAgentVersion(hData.agent_version);
+      } catch {}
       list.filter(s => s.online).forEach(async s => {
         try {
           const r = await fetch(`/api/metrics/${s.id}`, { headers: { ...authHeader } });
@@ -2725,7 +2732,7 @@ const Dashboard = () => {
                     <div onClick={() => handleServerClick(s)} style={{ fontSize: '16px', fontWeight: '700', marginBottom: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }} title="Click to manage">{String(s.name || '')}</div>
                     <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: '"JetBrains Mono", monospace' }}>
                       {String(s.host || '')}
-                      {s.agent_version && <span style={{ marginLeft: '8px', fontSize: '10px', color: s.agent_version === (import.meta.env.VITE_APP_VERSION || '') ? '#10b981' : '#f59e0b', fontWeight: '600' }}>v{s.agent_version}</span>}
+                      {s.agent_version && <span style={{ marginLeft: '8px', fontSize: '10px', color: s.agent_version === latestAgentVersion ? '#10b981' : '#f59e0b', fontWeight: '600' }}>v{s.agent_version}</span>}
                     </div>
                   </div>
                   {sm ? (
@@ -2856,7 +2863,7 @@ const Dashboard = () => {
                     {/* Agent Version */}
                     <td style={styles.td}>
                       {s.agent_version ? (
-                        <span style={{ fontSize: '11px', fontFamily: '"JetBrains Mono",monospace', color: s.agent_version === (import.meta.env.VITE_APP_VERSION || '') ? '#10b981' : '#f59e0b', fontWeight: '600' }}>v{s.agent_version}</span>
+                        <span style={{ fontSize: '11px', fontFamily: '"JetBrains Mono",monospace', color: s.agent_version === latestAgentVersion ? '#10b981' : '#f59e0b', fontWeight: '600' }}>v{s.agent_version}</span>
                       ) : <span style={{ fontSize: '11px', color: 'var(--text-muted)', opacity: 0.4 }}>—</span>}
                     </td>
                     {/* Updates */}
@@ -3392,10 +3399,10 @@ const Dashboard = () => {
 
       {/* ── AGENTS section ── */}
       {navSection === 'agents' && (() => {
-        const appVersion = import.meta.env.VITE_APP_VERSION || '1.3.0';
+        const agentVer = latestAgentVersion || import.meta.env.VITE_APP_VERSION || '1.3.0';
         const onlineAgents = servers.filter(s => s.online);
-        const outdatedAgents = onlineAgents.filter(s => s.agent_version && s.agent_version !== appVersion);
-        const upToDateAgents = onlineAgents.filter(s => s.agent_version === appVersion);
+        const outdatedAgents = onlineAgents.filter(s => s.agent_version && s.agent_version !== agentVer);
+        const upToDateAgents = onlineAgents.filter(s => s.agent_version === agentVer);
         return (
           <div>
             {/* Summary cards */}
@@ -3404,7 +3411,7 @@ const Dashboard = () => {
                 { label: 'Total Agents', value: servers.length, color: '#ffb812', icon: '◈' },
                 { label: 'Online', value: onlineAgents.length, color: '#10b981', icon: '◉' },
                 { label: 'Need Update', value: outdatedAgents.length, color: outdatedAgents.length > 0 ? '#f59e0b' : '#10b981', icon: '↑' },
-                { label: 'Latest Version', value: `v${appVersion}`, color: '#4888e8', icon: '⬡' },
+                { label: 'Latest Version', value: `v${agentVer}`, color: '#4888e8', icon: '⬡' },
               ].map(card => (
                 <div key={card.label} style={{ padding: '16px 18px', background: darkMode ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.04)', border: `1px solid ${card.color}30`, borderRadius: '12px' }}>
                   <div style={{ fontSize: '9px', letterSpacing: '0.18em', color: 'var(--text-muted)', marginBottom: '6px' }}>{card.label}</div>

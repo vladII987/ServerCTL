@@ -39,6 +39,7 @@ services:
       - ./backend/users.json:/app/users.json:ro
       - agent-bins:/app/agent-bins:ro
       - ./VERSION:/app/VERSION:ro
+      - ./agent-go/VERSION:/app/AGENT_VERSION:ro
     depends_on:
       agent-builder:
         condition: service_completed_successfully

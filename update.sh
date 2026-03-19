@@ -243,6 +243,7 @@ fi
 
 # Write VERSION for backend
 cp "$DIR/VERSION" "$DIR/backend/VERSION" 2>/dev/null || echo "$NEW_VERSION" > "$DIR/backend/VERSION"
+cp "$DIR/agent-go/VERSION" "$DIR/backend/AGENT_VERSION" 2>/dev/null
 
 # Frontend rebuild
 if command -v npm >/dev/null 2>&1; then

@@ -48,6 +48,14 @@ def _read_version():
             return open(p).read().strip()
     return "dev"
 APP_VERSION = _read_version()
+
+def _read_agent_version():
+    for p in [os.path.join(os.path.dirname(__file__), "AGENT_VERSION"), "/app/AGENT_VERSION"]:
+        if os.path.exists(p):
+            return open(p).read().strip()
+    return APP_VERSION
+AGENT_VERSION = _read_agent_version()
+
 app = FastAPI(title="ServerCTL Backend", version=APP_VERSION, lifespan=lifespan)
 
 app.add_middleware(
@@ -117,7 +125,7 @@ class CreateUserRequest(BaseModel):
 # ─── Health ───────────────────────────────────────────────────
 @app.get("/health")
 async def health():
-    return {"status": "online", "timestamp": datetime.utcnow().isoformat()}
+    return {"status": "online", "timestamp": datetime.utcnow().isoformat(), "version": APP_VERSION, "agent_version": AGENT_VERSION}
 
 
 # ─── Auth endpoints ───────────────────────────────────────────
