@@ -475,7 +475,8 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('name');
 
-  const copyToClipboard = (text) => {
+  const [copiedId, setCopiedId] = useState(null);
+  const copyToClipboard = (text, id) => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).catch(() => {});
     } else {
@@ -488,6 +489,9 @@ const Dashboard = () => {
       document.execCommand('copy');
       document.body.removeChild(el);
     }
+    const cid = id || 'default';
+    setCopiedId(cid);
+    setTimeout(() => setCopiedId(prev => prev === cid ? null : prev), 2000);
   };
   const [sortOrder, setSortOrder] = useState('asc');
   const [viewMode, setViewMode] = useState('list');
@@ -5063,10 +5067,15 @@ const Dashboard = () => {
         <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'var(--bg-card)', padding: '24px', borderRadius: '12px', border: `1px solid var(--border-color)`, zIndex: 1001, boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
           <h3 style={{ margin: '0 0 16px 0' }}>Deploy Agent on {showToken.host}</h3>
           <div style={{ fontSize: '13px', color: '#a0a0a0', marginBottom: '8px' }}>Run this on the target server as root or with sudo:</div>
-          <div style={{ background: '#1a1a1a', color: '#00ff88', padding: '12px', borderRadius: '6px', fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', wordBreak: 'break-all', marginBottom: '4px', position: 'relative' }}>
+          <div style={{ background: '#1a1a1a', color: '#00ff88', padding: '12px', borderRadius: '6px', fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', wordBreak: 'break-all', marginBottom: '8px' }}>
             {showToken.installCmd || `curl -fsSL "..." | sudo sh`}
-            {showToken.installCmd && <button onClick={() => copyToClipboard(showToken.installCmd)} style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(255,255,255,0.1)', border: 'none', color: '#a0a0a0', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer', fontSize: '11px' }}>Copy</button>}
           </div>
+          {showToken.installCmd && (
+            <button onClick={() => copyToClipboard(showToken.installCmd, 'token')}
+              style={{ width: '100%', padding: '10px 16px', marginBottom: '10px', background: copiedId === 'token' ? 'rgba(0,217,126,0.25)' : 'rgba(0,150,255,0.15)', border: `1px solid ${copiedId === 'token' ? 'rgba(0,217,126,0.5)' : 'rgba(0,150,255,0.4)'}`, color: copiedId === 'token' ? '#00ff88' : '#60a5fa', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s ease' }}>
+              {copiedId === 'token' ? '✓ Copied to Clipboard!' : '📋 Copy Command'}
+            </button>
+          )}
           <button onClick={() => setShowToken(null)} style={{ ...styles.btn, ...styles.btnPrimary, width: '100%' }}>Got it</button>
         </div>
       )}
@@ -5188,15 +5197,15 @@ const Dashboard = () => {
                           ⊞ PowerShell — Run as Administrator (right-click → Run as Administrator)
                         </div>
                       )}
-                      <div style={{ background: 'rgba(0,0,0,0.35)', borderRadius: '8px', padding: '14px 16px', fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', color: '#00ff88', wordBreak: 'break-all', position: 'relative', border: '1px solid rgba(0,217,126,0.2)', minHeight: '52px' }}>
+                      <div style={{ background: 'rgba(0,0,0,0.35)', borderRadius: '8px', padding: '14px 16px', fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', color: '#00ff88', wordBreak: 'break-all', border: '1px solid rgba(0,217,126,0.2)', minHeight: '52px' }}>
                         {wizardInstallCmdLoading ? <span style={{ color: '#60a5fa' }}>Loading...</span> : wizardInstallCmd}
-                        {wizardInstallCmd && (
-                          <button onClick={() => copyToClipboard(wizardInstallCmd)}
-                            style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(163,190,60,0.2)', border: '1px solid rgba(163,190,60,0.4)', color: '#60a5fa', borderRadius: '5px', padding: '3px 10px', fontSize: '11px', cursor: 'pointer' }}>
-                            Copy
-                          </button>
-                        )}
                       </div>
+                      {wizardInstallCmd && (
+                        <button onClick={() => copyToClipboard(wizardInstallCmd, 'wizard')}
+                          style={{ marginTop: '10px', width: '100%', padding: '10px 16px', background: copiedId === 'wizard' ? 'rgba(0,217,126,0.25)' : 'rgba(0,150,255,0.15)', border: `1px solid ${copiedId === 'wizard' ? 'rgba(0,217,126,0.5)' : 'rgba(0,150,255,0.4)'}`, color: copiedId === 'wizard' ? '#00ff88' : '#60a5fa', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s ease' }}>
+                          {copiedId === 'wizard' ? '✓ Copied to Clipboard!' : '📋 Copy Command'}
+                        </button>
+                      )}
                       <div style={{ marginTop: '12px', fontSize: '12px', color: 'var(--text-muted)' }}>
                         {wizardOS === 'windows'
                           ? 'The script will download the agent binary and register it as a Windows Service (visible in services.msc).'
