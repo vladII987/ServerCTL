@@ -189,7 +189,13 @@ async def agent_connect(websocket: WebSocket, token: str = Query(...)):
             hostname = msg.get("hostname", "")
             platform = msg.get("platform", "Linux")
 
-            # Auto-register: agent has a token but no server entry exists
+            # Auto-register: agent has a valid token but no server entry exists
+            # Only allow auto-registration if token matches a per-server token
+            # or the shared AGENT_TOKEN (for backwards compatibility)
+            if not server and token != settings.AGENT_TOKEN:
+                print(f"[Agent] Rejected: unknown token from {actual_host} ({hostname})")
+                await websocket.close(1008, "Invalid token")
+                return
             if not server:
                 # Check if server already exists by IP or hostname
                 existing = registry.get_by_host(actual_host)
