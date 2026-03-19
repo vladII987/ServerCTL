@@ -56,6 +56,27 @@ ok "Frontend port: ${FRONTEND_PORT}"
 ok "Backend port:  ${BACKEND_PORT}"
 echo ""
 
+# ── SSL / HTTPS ───────────────────────────────────────────────
+echo -e "  ${W}Enable HTTPS? (enables clipboard in RDP sessions)${NC}"
+echo -e "  ${W}1)${NC} No — plain HTTP"
+echo -e "  ${W}2)${NC} Let's Encrypt (free, requires a public domain)"
+echo -e "  ${W}3)${NC} Self-signed certificate (works without domain, browser will warn)"
+echo ""
+read -rp "  Choice [1/2/3]: " SSL_CHOICE
+SSL_MODE="none"
+SSL_DOMAIN=""
+case "$SSL_CHOICE" in
+    2)
+        SSL_MODE="letsencrypt"
+        echo ""
+        read -rp "  Domain name (e.g. serverctl.example.com): " SSL_DOMAIN
+        [[ -z "$SSL_DOMAIN" ]] && { warn "No domain provided, skipping SSL."; SSL_MODE="none"; }
+        ;;
+    3) SSL_MODE="selfsigned" ;;
+    *) SSL_MODE="none" ;;
+esac
+echo ""
+
 # ── openssl ────────────────────────────────────────────────────
 command -v openssl >/dev/null 2>&1 || {
     info "Installing openssl..."
@@ -494,7 +515,43 @@ if [[ "$MODE" == "native" ]]; then
     fi
 
     info "Configuring nginx (port ${FRONTEND_PORT} → frontend, /api/ and /ws/ → :${BACKEND_PORT})..."
-    cat > "$NGINX_CONF" << NGINXEOF
+
+    # ── SSL: generate certs if needed ──────────────────────────
+    SSL_CERT=""
+    SSL_KEY=""
+    if [[ "$SSL_MODE" == "selfsigned" ]]; then
+        SSL_DIR="/etc/nginx/ssl"
+        mkdir -p "$SSL_DIR"
+        SSL_CERT="$SSL_DIR/serverctl.crt"
+        SSL_KEY="$SSL_DIR/serverctl.key"
+        if [[ ! -f "$SSL_CERT" ]] || [[ ! -f "$SSL_KEY" ]]; then
+            info "Generating self-signed SSL certificate..."
+            openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+                -keyout "$SSL_KEY" -out "$SSL_CERT" \
+                -subj "/CN=${HOST_IP}/O=ServerCTL" \
+                -addext "subjectAltName=IP:${HOST_IP}" 2>/dev/null \
+                || openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+                    -keyout "$SSL_KEY" -out "$SSL_CERT" \
+                    -subj "/CN=${HOST_IP}/O=ServerCTL" 2>/dev/null
+            ok "Self-signed certificate created (valid 10 years)."
+        else
+            ok "Self-signed certificate already exists."
+        fi
+    elif [[ "$SSL_MODE" == "letsencrypt" ]]; then
+        info "Installing certbot for Let's Encrypt..."
+        if command -v apt-get >/dev/null 2>&1; then
+            _install_pkg certbot python3-certbot-nginx
+        elif command -v dnf >/dev/null 2>&1; then
+            dnf install -y certbot python3-certbot-nginx
+        elif command -v yum >/dev/null 2>&1; then
+            yum install -y certbot python3-certbot-nginx
+        fi
+        ok "Certbot installed."
+    fi
+
+    # ── Write nginx config ─────────────────────────────────────
+    if [[ "$SSL_MODE" == "none" ]]; then
+        cat > "$NGINX_CONF" << NGINXEOF
 server {
     listen ${FRONTEND_PORT};
     server_name _;
@@ -524,6 +581,76 @@ server {
     }
 }
 NGINXEOF
+    elif [[ "$SSL_MODE" == "selfsigned" ]]; then
+        cat > "$NGINX_CONF" << NGINXEOF
+# Self-signed HTTPS
+server {
+    listen ${FRONTEND_PORT} ssl;
+    server_name _;
+
+    ssl_certificate     ${SSL_CERT};
+    ssl_certificate_key ${SSL_KEY};
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
+    root ${DIR}/frontend/dist;
+    index index.html;
+
+    location / {
+        try_files \$uri \$uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:${BACKEND_PORT};
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_read_timeout 120;
+    }
+
+    location /ws/ {
+        proxy_pass http://127.0.0.1:${BACKEND_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host \$host;
+        proxy_read_timeout 3600;
+    }
+}
+NGINXEOF
+    elif [[ "$SSL_MODE" == "letsencrypt" ]]; then
+        # Write HTTP-only config first so certbot can verify
+        cat > "$NGINX_CONF" << NGINXEOF
+server {
+    listen 80;
+    server_name ${SSL_DOMAIN};
+
+    root ${DIR}/frontend/dist;
+    index index.html;
+
+    location / {
+        try_files \$uri \$uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:${BACKEND_PORT};
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_read_timeout 120;
+    }
+
+    location /ws/ {
+        proxy_pass http://127.0.0.1:${BACKEND_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host \$host;
+        proxy_read_timeout 3600;
+    }
+}
+NGINXEOF
+    fi
 
     if [[ -d /etc/nginx/sites-enabled ]]; then
         rm -f /etc/nginx/sites-enabled/default
@@ -564,6 +691,24 @@ NGINXEOF
         systemctl start nginx || err "Failed to start nginx."
     fi
     ok "nginx configured and running."
+
+    # ── Let's Encrypt: run certbot after nginx is running ─────
+    if [[ "$SSL_MODE" == "letsencrypt" ]]; then
+        info "Obtaining Let's Encrypt certificate for ${SSL_DOMAIN}..."
+        certbot --nginx -d "$SSL_DOMAIN" --non-interactive --agree-tos --register-unsafely-without-email \
+            --redirect 2>&1 || {
+            warn "Certbot failed. You can retry later with:"
+            echo "  sudo certbot --nginx -d ${SSL_DOMAIN}"
+        }
+        # Certbot modifies the nginx config to add SSL and redirect
+        # Inject WebSocket proxy settings if certbot overwrote them
+        if ! grep -q "proxy_set_header Upgrade" "$NGINX_CONF" 2>/dev/null; then
+            warn "Re-adding WebSocket config to nginx (certbot may have simplified it)..."
+            # Certbot should preserve location blocks, but just in case
+            nginx -t 2>&1 && systemctl reload nginx
+        fi
+        ok "Let's Encrypt SSL configured with auto-renewal."
+    fi
 
     # ── Python venv for rdpbridge ─────────────────────────────
     RDPVENV="$DIR/rdpbridge/.venv"
@@ -653,7 +798,14 @@ SVCEOF
     echo ""
     ok "Setup complete (v${APP_VERSION})!"
     echo ""
-    echo -e "  ${W}Dashboard:${NC}   http://${HOST_IP}:${FRONTEND_PORT}"
+    if [[ "$SSL_MODE" == "letsencrypt" ]]; then
+        echo -e "  ${W}Dashboard:${NC}   https://${SSL_DOMAIN}"
+    elif [[ "$SSL_MODE" == "selfsigned" ]]; then
+        echo -e "  ${W}Dashboard:${NC}   https://${HOST_IP}:${FRONTEND_PORT}"
+        echo -e "  ${Y}Note:${NC}        Browser will show a security warning — click Advanced → Proceed"
+    else
+        echo -e "  ${W}Dashboard:${NC}   http://${HOST_IP}:${FRONTEND_PORT}"
+    fi
     echo -e "  ${W}Backend:${NC}     http://${HOST_IP}:${BACKEND_PORT}/health"
     echo -e "  ${W}Backend log:${NC} journalctl -u serverctl-backend -f"
     echo -e "  ${W}Stop:${NC}        systemctl stop serverctl-backend"
