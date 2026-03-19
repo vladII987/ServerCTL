@@ -155,6 +155,7 @@ PROMETHEUS_URL=${PROMETHEUS_URL}
 FRONTEND_PORT=${FRONTEND_PORT}
 BACKEND_PORT=${BACKEND_PORT}
 PUBLIC_HOST=${HOST_IP}
+SSL_MODE=${SSL_MODE}
 EOF
     ok ".env created"
     grep -q "^\.env$" "$DIR/.gitignore" 2>/dev/null || echo ".env" >> "$DIR/.gitignore"
@@ -328,13 +329,20 @@ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
         SSL_FRONTEND_CONTAINER_PORT="443"
     fi
 
+    # Persist SSL settings in .env so rebuilds work without re-running setup
+    grep -q "^SSL_CERT_PATH=" "$ENV" 2>/dev/null && sed -i '/^SSL_CERT_PATH=/d' "$ENV"
+    grep -q "^SSL_KEY_PATH=" "$ENV" 2>/dev/null && sed -i '/^SSL_KEY_PATH=/d' "$ENV"
+    grep -q "^SSL_FRONTEND_CONTAINER_PORT=" "$ENV" 2>/dev/null && sed -i '/^SSL_FRONTEND_CONTAINER_PORT=/d' "$ENV"
+    grep -q "^SSL_MODE=" "$ENV" 2>/dev/null || echo "SSL_MODE=${SSL_MODE}" >> "$ENV"
+    sed -i "s|^SSL_MODE=.*|SSL_MODE=${SSL_MODE}|" "$ENV"
+    echo "SSL_CERT_PATH=${SSL_CERT_PATH}" >> "$ENV"
+    echo "SSL_KEY_PATH=${SSL_KEY_PATH}" >> "$ENV"
+    echo "SSL_FRONTEND_CONTAINER_PORT=${SSL_FRONTEND_CONTAINER_PORT}" >> "$ENV"
+
     info "Running: docker compose up --build -d (v${APP_VERSION})"
     echo ""
     cd "$DIR"
-    FRONTEND_PORT="$FRONTEND_PORT" BACKEND_PORT="$BACKEND_PORT" APP_VERSION="$APP_VERSION" \
-    SSL_MODE="$SSL_MODE" SSL_CERT_PATH="$SSL_CERT_PATH" SSL_KEY_PATH="$SSL_KEY_PATH" \
-    SSL_FRONTEND_CONTAINER_PORT="$SSL_FRONTEND_CONTAINER_PORT" \
-        docker compose up --build -d
+    APP_VERSION="$APP_VERSION" docker compose up --build -d
 
     echo ""
     ok "All services started!"
