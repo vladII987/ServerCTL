@@ -243,7 +243,25 @@ const NoVNCDisplay = React.forwardRef(({ server, username, password, domain, rdp
       onDisconnected?.();
     }
 
+    // Ctrl+Shift+V: read local clipboard and paste into RDP session
+    const handleKeyDown = async (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'V') {
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+          const text = await navigator.clipboard.readText();
+          if (text && rfbRef.current) {
+            rfbRef.current.clipboardPasteFrom(text);
+          }
+        } catch (err) {
+          console.warn('Clipboard read failed (need HTTPS + permission):', err);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown, true);
+
     return () => {
+      window.removeEventListener('keydown', handleKeyDown, true);
       if (rfbRef.current) {
         try { rfbRef.current.disconnect(); } catch {}
         rfbRef.current = null;
