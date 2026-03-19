@@ -207,9 +207,13 @@ const DonutChart = ({ data }) => {
 // ─── NoVNCDisplay: RDP via FreeRDP + TigerVNC + noVNC ────────────
 // noVNC is served from /novnc/ (public dir) — loaded as a runtime URL
 // import so Rollup never tries to resolve it at build time.
-const NoVNCDisplay = ({ server, username, password, domain, rdpPort, security, token, wsHost, width, height, onConnected, onDisconnected }) => {
+const NoVNCDisplay = React.forwardRef(({ server, username, password, domain, rdpPort, security, token, wsHost, width, height, onConnected, onDisconnected }, fwdRef) => {
   const displayRef = useRef(null);
   const rfbRef = useRef(null);
+
+  React.useImperativeHandle(fwdRef, () => ({
+    clipboardPaste: (text) => { if (rfbRef.current) rfbRef.current.clipboardPasteFrom(text); },
+  }));
 
   useEffect(() => {
     if (!displayRef.current) return;
@@ -248,7 +252,7 @@ const NoVNCDisplay = ({ server, username, password, domain, rdpPort, security, t
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return <div ref={displayRef} style={{ width: '100%', height: '100%', background: '#000', overflow: 'hidden' }} />;
-};
+});
 
 // ─── XTerminal: real xterm.js SSH terminal ─────────────────────
 const XTerminal = ({ server, username, authMethod, password, keyContent, token, wsHost, onConnected, onDisconnected }) => {
@@ -517,6 +521,9 @@ const Dashboard = () => {
   const [rdpConnected, setRdpConnected] = useState(false);
   const [rdpWidth, setRdpWidth] = useState(1280);
   const [rdpHeight, setRdpHeight] = useState(720);
+  const [rdpClipboard, setRdpClipboard] = useState(false);
+  const [rdpClipText, setRdpClipText] = useState('');
+  const rdpDisplayRef = useRef(null);
   // Logs section state
   const [logsServer, setLogsServer] = useState(null);
   const [logsTab, setLogsTab] = useState('files'); // 'files' | 'services'
@@ -3870,12 +3877,13 @@ const Dashboard = () => {
                     {!rdpConnected
                       ? <button onClick={connectRDP} style={{ ...styles.btn, ...styles.btnPrimary, padding: '4px 14px', fontSize: '12px' }}>Connect</button>
                       : <>
+                          <button onClick={() => setRdpClipboard(v => !v)}
+                            style={{ ...styles.btn, background: rdpClipboard ? 'rgba(96,165,250,0.25)' : 'rgba(96,165,250,0.12)', color: '#60a5fa', border: 'none', padding: '4px 12px', fontSize: '12px' }}>📋 Clipboard</button>
                           <button onClick={async () => {
                             const el = document.querySelector('[data-rdp-container]');
                             if (!el) return;
                             if (!document.fullscreenElement) {
                               await el.requestFullscreen().catch(() => {});
-                              // Reconnect with screen resolution for native fullscreen RDP
                               setRdpWidth(screen.width);
                               setRdpHeight(screen.height);
                               setRdpConnected(false);
@@ -3894,6 +3902,15 @@ const Dashboard = () => {
                   </div>
                 </div>
                 {/* RDP Display */}
+                {rdpClipboard && rdpConnected && (
+                  <div style={{ padding: '8px 14px', borderBottom: `1px solid var(--border-color)`, background: darkMode ? 'rgba(15,23,42,0.9)' : 'rgba(248,250,252,0.95)', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <textarea value={rdpClipText} onChange={e => setRdpClipText(e.target.value)}
+                      placeholder="Paste text here, then click Send to RDP..."
+                      style={{ ...styles.input, flex: 1, fontSize: '12px', padding: '6px 8px', minHeight: '32px', maxHeight: '80px', resize: 'vertical', fontFamily: 'monospace' }} />
+                    <button onClick={() => { if (rdpDisplayRef.current && rdpClipText) { rdpDisplayRef.current.clipboardPaste(rdpClipText); setRdpClipText(''); setRdpClipboard(false); } }}
+                      style={{ ...styles.btn, ...styles.btnPrimary, padding: '6px 14px', fontSize: '12px', whiteSpace: 'nowrap' }}>Send to RDP</button>
+                  </div>
+                )}
                 <div data-rdp-container style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex', flexDirection: 'column', background: '#000' }}>
                   {rdpSessionKey === 0 && (
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: darkMode ? '#232634' : '#e6e9ef', color: 'var(--text-muted)', flexDirection: 'column', gap: '8px' }}>
@@ -3903,6 +3920,7 @@ const Dashboard = () => {
                   )}
                   {rdpSessionKey > 0 && (
                     <NoVNCDisplay
+                      ref={rdpDisplayRef}
                       key={`rdp-${shellServer.id}-${rdpSessionKey}`}
                       server={shellServer}
                       username={shellUsername.includes('\\') ? shellUsername.split('\\').slice(1).join('\\') : shellUsername.includes('/') ? shellUsername.split('/').slice(1).join('/') : shellUsername}
