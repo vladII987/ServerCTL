@@ -6,8 +6,6 @@ services:
   agent-builder:
     build:
       context: ./agent-go
-      args:
-        APP_VERSION: "${APP_VERSION:-dev}"
     container_name: serverctl-agent-builder
     volumes:
       - agent-bins:/agent-bins

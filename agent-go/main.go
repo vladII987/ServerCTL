@@ -28,7 +28,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var agentVersion = "1.5.0"
+var agentVersion = "1.4.1"
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 

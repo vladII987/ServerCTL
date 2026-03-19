@@ -554,14 +554,15 @@ if [[ "$MODE" == "native" ]]; then
     cd "$DIR"
 
     # ── Build agent binaries ─────────────────────────────────────
-    info "Building agent binaries (v${APP_VERSION})..."
+    AGENT_VERSION=$(cat "$DIR/agent-go/VERSION" 2>/dev/null || echo "dev")
+    info "Building agent binaries (v${AGENT_VERSION})..."
     AGENT_OUT="$DIR/agent-go/dist"
     mkdir -p "$AGENT_OUT"
     if command -v go >/dev/null 2>&1; then
         cd "$DIR/agent-go"
-        GOOS=linux  GOARCH=amd64 go build -ldflags="-s -w -X main.agentVersion=${APP_VERSION}" -o "$AGENT_OUT/serverctl-agent-linux-amd64"       .
-        GOOS=linux  GOARCH=arm64 go build -ldflags="-s -w -X main.agentVersion=${APP_VERSION}" -o "$AGENT_OUT/serverctl-agent-linux-arm64"       .
-        GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X main.agentVersion=${APP_VERSION}" -o "$AGENT_OUT/serverctl-agent-windows-amd64.exe" .
+        GOOS=linux  GOARCH=amd64 go build -ldflags="-s -w -X main.agentVersion=${AGENT_VERSION}" -o "$AGENT_OUT/serverctl-agent-linux-amd64"       .
+        GOOS=linux  GOARCH=arm64 go build -ldflags="-s -w -X main.agentVersion=${AGENT_VERSION}" -o "$AGENT_OUT/serverctl-agent-linux-arm64"       .
+        GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X main.agentVersion=${AGENT_VERSION}" -o "$AGENT_OUT/serverctl-agent-windows-amd64.exe" .
         cd "$DIR"
         ok "Agent binaries built with Go"
     elif command -v docker >/dev/null 2>&1; then
@@ -570,9 +571,10 @@ if [[ "$MODE" == "native" ]]; then
             -v "$AGENT_OUT:/out" \
             -w /src \
             golang:1.24-alpine sh -c "
-                GOOS=linux  GOARCH=amd64 go build -ldflags='-s -w -X main.agentVersion=${APP_VERSION}' -o /out/serverctl-agent-linux-amd64       . && \
-                GOOS=linux  GOARCH=arm64 go build -ldflags='-s -w -X main.agentVersion=${APP_VERSION}' -o /out/serverctl-agent-linux-arm64       . && \
-                GOOS=windows GOARCH=amd64 go build -ldflags='-s -w -X main.agentVersion=${APP_VERSION}' -o /out/serverctl-agent-windows-amd64.exe .
+                AGENT_VERSION=\$(cat VERSION 2>/dev/null || echo dev) && \
+                GOOS=linux  GOARCH=amd64 go build -ldflags=\"-s -w -X main.agentVersion=\${AGENT_VERSION}\" -o /out/serverctl-agent-linux-amd64       . && \
+                GOOS=linux  GOARCH=arm64 go build -ldflags=\"-s -w -X main.agentVersion=\${AGENT_VERSION}\" -o /out/serverctl-agent-linux-arm64       . && \
+                GOOS=windows GOARCH=amd64 go build -ldflags=\"-s -w -X main.agentVersion=\${AGENT_VERSION}\" -o /out/serverctl-agent-windows-amd64.exe .
             "
         ok "Agent binaries built with Docker"
     else

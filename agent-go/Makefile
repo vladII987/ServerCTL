@@ -1,4 +1,4 @@
-VERSION    := $(shell cat ../VERSION 2>/dev/null || echo "dev")
+VERSION    := $(shell cat VERSION 2>/dev/null || echo "dev")
 BINARY     := serverctl-agent
 GO         := go
 LDFLAGS    := -ldflags="-s -w -X main.agentVersion=$(VERSION)"
