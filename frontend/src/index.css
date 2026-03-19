@@ -43,11 +43,11 @@
   --transition-slow: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Accent palette — cyan-forward */
-  --color-primary:       #22d3ee;
-  --color-primary-hover: #45daf1;
-  --color-primary-muted: rgba(34, 211, 238, 0.10);
-  --color-primary-ring:  rgba(34, 211, 238, 0.25);
-  --color-primary-glow:  rgba(34, 211, 238, 0.06);
+  --color-primary:       #ffb812;
+  --color-primary-hover: #ffc940;
+  --color-primary-muted: rgba(6, 93, 107, 0.10);
+  --color-primary-ring:  rgba(6, 93, 107, 0.25);
+  --color-primary-glow:  rgba(6, 93, 107, 0.06);
 
   /* Shadows — genuine depth */
   --shadow-sm:  0 1px 2px rgba(0,0,0,0.2);
@@ -55,14 +55,14 @@
   --shadow-lg:  0 12px 32px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2);
   --shadow-xl:  0 20px 50px rgba(0,0,0,0.4), 0 4px 14px rgba(0,0,0,0.2);
   --shadow-2xl: 0 32px 64px rgba(0,0,0,0.5);
-  --shadow-glow:        0 0 20px rgba(34,211,238,0.15);
-  --shadow-glow-strong: 0 0 40px rgba(34,211,238,0.28);
+  --shadow-glow:        0 0 20px rgba(6,93,107,0.15);
+  --shadow-glow-strong: 0 0 40px rgba(6,93,107,0.28);
 
   /* Status */
   --color-success: #10b981;
   --color-danger:  #ef4444;
   --color-warning: #f59e0b;
-  --color-info:    #22d3ee;
+  --color-info:    #ffb812;
 }
 
 /* ─── Dark mode ─── */
@@ -79,7 +79,7 @@
   --text-muted:       #6b6050;
   --border-color:       rgba(255, 255, 255, 0.08);
   --border-color-hover: rgba(255, 255, 255, 0.14);
-  --border-accent:      rgba(34, 211, 238, 0.22);
+  --border-accent:      rgba(6, 93, 107, 0.22);
   --input-bg:           rgba(18, 30, 40, 0.9);
   --input-border:       rgba(255, 255, 255, 0.10);
   --overlay-bg:         rgba(0, 0, 0, 0.6);
@@ -109,7 +109,7 @@
   --text-muted:       #64748b;
   --border-color:       rgba(0, 0, 0, 0.06);
   --border-color-hover: rgba(0, 0, 0, 0.12);
-  --border-accent:      rgba(34, 211, 238, 0.25);
+  --border-accent:      rgba(6, 93, 107, 0.25);
   --input-bg:           #ffffff;
   --input-border:       rgba(0, 0, 0, 0.08);
   --overlay-bg:         rgba(0, 0, 0, 0.4);
@@ -207,14 +207,14 @@ a, [role="button"] { cursor: pointer; }
 /* ─── Background — atmospheric gradient ─── */
 .grid-bg-dark {
   background:
-    radial-gradient(ellipse 80% 60% at 10% 10%,  rgba(34,211,238,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 10% 10%,  rgba(6,93,107,0.05) 0%, transparent 60%),
     radial-gradient(ellipse 60% 80% at 90% 90%,  rgba(16,185,129,0.04) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 50% at 50% 50%,  rgba(34,211,238,0.02) 0%, transparent 70%);
+    radial-gradient(ellipse 50% 50% at 50% 50%,  rgba(6,93,107,0.02) 0%, transparent 70%);
 }
 
 .grid-bg-light {
   background:
-    radial-gradient(ellipse 80% 60% at 10% 10%,  rgba(34,211,238,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 60% at 10% 10%,  rgba(6,93,107,0.04) 0%, transparent 50%),
     radial-gradient(ellipse 60% 80% at 90% 90%,  rgba(16,185,129,0.03) 0%, transparent 50%);
 }
 
@@ -278,12 +278,12 @@ div, span, p, pre, td, th { overflow-wrap: break-word; word-wrap: break-word; }
 @keyframes progressIndeterminate { 0% { transform:translateX(-100%); } 100% { transform:translateX(350%); } }
 
 @keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 12px rgba(34,211,238,0.15); }
-  50%       { box-shadow: 0 0 28px rgba(34,211,238,0.35); }
+  0%, 100% { box-shadow: 0 0 12px rgba(6,93,107,0.15); }
+  50%       { box-shadow: 0 0 28px rgba(6,93,107,0.35); }
 }
 @keyframes borderGlow {
-  0%, 100% { border-color: rgba(34,211,238,0.1); }
-  50%       { border-color: rgba(34,211,238,0.3); }
+  0%, 100% { border-color: rgba(6,93,107,0.1); }
+  50%       { border-color: rgba(6,93,107,0.3); }
 }
 @keyframes dotBlink {
   0%, 100% { opacity: 1; }
@@ -295,7 +295,7 @@ div, span, p, pre, td, th { overflow-wrap: break-word; word-wrap: break-word; }
 }
 
 /* ─── Selection ─── */
-::selection { background: rgba(34,211,238,0.2); color: inherit; }
+::selection { background: rgba(6,93,107,0.2); color: inherit; }
 
 /* ─── Stagger delays ─── */
 .stagger-1 { animation-delay: 0.05s; }
@@ -324,7 +324,7 @@ div, span, p, pre, td, th { overflow-wrap: break-word; word-wrap: break-word; }
   font-weight: 600;
   letter-spacing: 0.02em;
 }
-.badge-blue   { background: rgba(34,211,238,0.12); color: #22d3ee; }
+.badge-blue   { background: rgba(6,93,107,0.12); color: #ffb812; }
 .badge-green  { background: rgba(16,185,129,0.12); color: #10b981; }
 .badge-red    { background: rgba(239,68,68,0.12);  color: #ef4444; }
 .badge-amber  { background: rgba(245,158,11,0.12); color: #f59e0b; }

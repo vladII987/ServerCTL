@@ -103,25 +103,25 @@ const LoginPage = ({ onLogin, darkMode, toggleDark }) => {
       <style>{`
         .login-input { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "DM Sans", sans-serif !important; font-size: 14px !important; }
         .login-input:focus { border-color: var(--color-primary) !important; box-shadow: 0 0 0 3px var(--color-primary-ring) !important; outline: none; }
-        .login-btn:hover:not(:disabled) { background: #22d3ee !important; box-shadow: 0 8px 24px rgba(34,211,238,0.35) !important; transform: translateY(-1px); }
+        .login-btn:hover:not(:disabled) { background: #ffb812 !important; box-shadow: 0 8px 24px rgba(6,93,107,0.35) !important; transform: translateY(-1px); }
         .login-btn:active:not(:disabled) { transform: translateY(0) !important; }
         .login-btn { transition: all 0.2s cubic-bezier(0.4,0,0.2,1) !important; }
       `}</style>
 
       {/* Ambient background blobs */}
       <div className={darkMode ? 'grid-bg-dark' : 'grid-bg-light'} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(34,211,238,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(6,93,107,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', bottom: '-15%', left: '-10%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(167,139,250,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
       <div style={{ width: '100%', maxWidth: '420px', padding: '0 24px', position: 'relative', zIndex: 1, animation: 'fadeIn 0.4s ease-out' }}>
 
         {/* Brand */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '52px', height: '52px', background: 'linear-gradient(135deg, #22d3ee, #06b6d4)', borderRadius: '14px', marginBottom: '16px', boxShadow: '0 8px 24px rgba(34,211,238,0.3)' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '52px', height: '52px', background: 'linear-gradient(135deg, #ffb812, #065d6b)', borderRadius: '14px', marginBottom: '16px', boxShadow: '0 8px 24px rgba(6,93,107,0.3)' }}>
             <span style={{ fontSize: '22px', color: '#fff' }}>◈</span>
           </div>
           <div style={{ fontSize: '24px', fontWeight: '800', letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
-            Server<span style={{ color: '#22d3ee' }}>CTL</span>
+            Server<span style={{ color: '#ffb812' }}>CTL</span>
           </div>
           <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '5px', fontWeight: '400' }}>
             Infrastructure management platform
@@ -151,7 +151,7 @@ const LoginPage = ({ onLogin, darkMode, toggleDark }) => {
               </div>
             )}
             <button type="submit" disabled={loading} className="login-btn"
-              style={{ width: '100%', padding: '12px', border: 'none', background: 'linear-gradient(135deg, #22d3ee, #06b6d4)', color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer', borderRadius: '10px', boxShadow: '0 4px 16px rgba(34,211,238,0.25)', letterSpacing: '-0.01em' }}>
+              style={{ width: '100%', padding: '12px', border: 'none', background: 'linear-gradient(135deg, #ffb812, #065d6b)', color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer', borderRadius: '10px', boxShadow: '0 4px 16px rgba(6,93,107,0.25)', letterSpacing: '-0.01em' }}>
               {loading ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
@@ -593,7 +593,7 @@ const Dashboard = () => {
   };
 
   const osDistribution = useMemo(() => {
-    const palette = ['#22d3ee','#c084fc','#10b981','#f59e0b','#ef4444','#99d1db','#ef9f76'];
+    const palette = ['#ffb812','#c084fc','#10b981','#f59e0b','#ef4444','#99d1db','#ef9f76'];
     const groups = {};
     servers.forEach(s => { const os = s.platform || 'Unknown'; groups[os] = (groups[os] || 0) + 1; });
     return Object.entries(groups).map(([label, value], i) => ({ label, value, color: palette[i % palette.length] }));
@@ -1946,10 +1946,10 @@ const Dashboard = () => {
       fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "DM Sans", sans-serif',
     },
     btnPrimary: {
-      background: 'linear-gradient(135deg, #22d3ee, #06b6d4)',
+      background: 'linear-gradient(135deg, #ffb812, #065d6b)',
       color: '#fff',
       border: 'none',
-      boxShadow: '0 2px 12px rgba(34,211,238,0.25)',
+      boxShadow: '0 2px 12px rgba(6,93,107,0.25)',
     },
     btnSecondary: {
       background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
@@ -2136,10 +2136,10 @@ const Dashboard = () => {
     tab: (active, hover) => ({
       padding: '10px 20px',
       border: 'none',
-      borderBottom: active ? '2px solid #22d3ee' : '2px solid transparent',
+      borderBottom: active ? '2px solid #ffb812' : '2px solid transparent',
       marginBottom: '-2px',
       background: hover && !active ? (darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)') : 'transparent',
-      color: active ? '#22d3ee' : hover ? 'var(--text-primary)' : 'var(--text-muted)',
+      color: active ? '#ffb812' : hover ? 'var(--text-primary)' : 'var(--text-muted)',
       cursor: 'pointer',
       fontSize: '13px',
       fontWeight: active ? '600' : '400',
@@ -2310,7 +2310,7 @@ const Dashboard = () => {
   // ── Output renderers ──────────────────────────────────────────
   const barTrack = { height: '6px', borderRadius: '3px', background: 'var(--bg-card-hover)', overflow: 'hidden' };
   const barFill = (pct, color) => ({ height: '100%', width: `${pct}%`, background: color, borderRadius: '3px', transition: 'width 0.4s ease' });
-  const pctColor = (pct) => pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#22d3ee';
+  const pctColor = (pct) => pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#ffb812';
   const badge = (text, color) => ({ display: 'inline-block', background: color + '20', color, padding: '1px 8px', borderRadius: '8px', fontWeight: '700', fontSize: '11px' });
 
   const parseMemVal = (str = '') => {
@@ -2476,18 +2476,18 @@ const Dashboard = () => {
           {sidebarCollapsed ? (
             customLogo
               ? <img src={customLogo} alt="logo" style={{ maxHeight: '30px', maxWidth: '30px', objectFit: 'contain', borderRadius: '8px' }} />
-              : <div style={{ width: '34px', height: '34px', background: 'linear-gradient(135deg, #22d3ee, #06b6d4)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(34,211,238,0.25)' }}>
+              : <div style={{ width: '34px', height: '34px', background: 'linear-gradient(135deg, #ffb812, #065d6b)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(6,93,107,0.25)' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="3"/><line x1="9" y1="2" x2="9" y2="22"/></svg>
                 </div>
           ) : (
             <>
               {customLogo
                 ? <img src={customLogo} alt="logo" style={{ maxHeight: '28px', maxWidth: '120px', objectFit: 'contain', borderRadius: '6px' }} />
-                : <div style={{ width: '34px', height: '34px', background: 'linear-gradient(135deg, #22d3ee, #06b6d4)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(34,211,238,0.25)' }}>
+                : <div style={{ width: '34px', height: '34px', background: 'linear-gradient(135deg, #ffb812, #065d6b)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(6,93,107,0.25)' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="3"/><line x1="9" y1="2" x2="9" y2="22"/></svg>
                   </div>
               }
-              {!customLogo && <span style={{ fontWeight: '700', fontSize: '16px', letterSpacing: '-0.03em', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{customTabTitle || (<>Server<span style={{ color: '#22d3ee' }}>CTL</span></>)}</span>}
+              {!customLogo && <span style={{ fontWeight: '700', fontSize: '16px', letterSpacing: '-0.03em', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{customTabTitle || (<>Server<span style={{ color: '#ffb812' }}>CTL</span></>)}</span>}
             </>
           )}
           {!sidebarCollapsed && (
@@ -2504,13 +2504,13 @@ const Dashboard = () => {
             const active = navSection === item.key || (navSection === 'manage' && item.key === 'servers');
             const updatesBadge = item.key === 'updates' && servers.some(s => s.pending_updates?.count > 0)
               ? servers.reduce((sum, s) => sum + (s.pending_updates?.count || 0), 0) : 0;
-            const iconColors = { dashboard: '#22d3ee', servers: '#10b981', networks: '#a78bfa', logs: '#f59e0b', shell: '#ef4444', agents: '#fb923c', updates: '#38bdf8', activity: '#34d399', schedules: '#f472b6', settings: '#64748b' };
-            const iconBg = iconColors[item.key] || '#22d3ee';
+            const iconColors = { dashboard: '#ffb812', servers: '#10b981', networks: '#a78bfa', logs: '#f59e0b', shell: '#ef4444', agents: '#fb923c', updates: '#38bdf8', activity: '#34d399', schedules: '#f472b6', settings: '#64748b' };
+            const iconBg = iconColors[item.key] || '#ffb812';
             return (
               <button key={item.key} className={active ? '' : 'nav-item'}
                 onClick={() => { setNavSection(item.key); if (item.key === 'servers') setServerQuickFilter('all'); if (item.key === 'settings' && isAdmin) fetchUsers(); if (item.key === 'agents') fetchAgentsPageInfo(); }}
                 title={sidebarCollapsed ? item.label : undefined}
-                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: sidebarCollapsed ? '9px 0' : '8px 12px', border: 'none', borderRadius: '10px', background: active ? (darkMode ? 'rgba(34,211,238,0.08)' : 'rgba(34,211,238,0.08)') : 'transparent', color: active ? 'var(--text-primary)' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '13.5px', fontWeight: active ? '600' : '400', width: '100%', textAlign: 'left', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', marginBottom: '2px', transition: 'all 0.15s ease', borderLeft: active ? '2px solid #22d3ee' : '2px solid transparent' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: sidebarCollapsed ? '9px 0' : '8px 12px', border: 'none', borderRadius: '10px', background: active ? (darkMode ? 'rgba(6,93,107,0.08)' : 'rgba(6,93,107,0.08)') : 'transparent', color: active ? 'var(--text-primary)' : 'var(--text-secondary)', cursor: 'pointer', fontSize: '13.5px', fontWeight: active ? '600' : '400', width: '100%', textAlign: 'left', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', marginBottom: '2px', transition: 'all 0.15s ease', borderLeft: active ? '2px solid #ffb812' : '2px solid transparent' }}>
                 <div style={{ width: '30px', height: '30px', borderRadius: '9px', background: active ? `${iconBg}18` : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '13px', transition: 'all 0.15s ease', color: active ? iconBg : 'var(--text-muted)' }}>
                   {item.icon}
                 </div>
@@ -2528,7 +2528,7 @@ const Dashboard = () => {
           {!sidebarCollapsed ? (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', padding: '8px', borderRadius: '10px', background: darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }}>
-                <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'linear-gradient(135deg, #22d3ee, #06b6d4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '700', fontSize: '12px', flexShrink: 0 }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'linear-gradient(135deg, #ffb812, #065d6b)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '700', fontSize: '12px', flexShrink: 0 }}>
                   {(user?.username || 'A').slice(0, 2).toUpperCase()}
                 </div>
                 <div style={{ minWidth: 0 }}>
@@ -2543,7 +2543,7 @@ const Dashboard = () => {
             </>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
-              <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'linear-gradient(135deg, #22d3ee, #06b6d4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '700', fontSize: '12px' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'linear-gradient(135deg, #ffb812, #065d6b)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '700', fontSize: '12px' }}>
                 {(user?.username || 'A').slice(0, 2).toUpperCase()}
               </div>
               <button onClick={() => setDarkMode(!darkMode)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '14px', padding: '4px' }}>{darkMode ? '☀' : '🌙'}</button>
@@ -2571,7 +2571,7 @@ const Dashboard = () => {
               <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>{user?.username}</div>
               <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{isAdmin ? 'Administrator' : 'User'}</div>
             </div>
-            <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg, #22d3ee, #06b6d4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '700', fontSize: '12px', flexShrink: 0, boxShadow: '0 2px 10px rgba(34,211,238,0.2)' }}>
+            <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'linear-gradient(135deg, #ffb812, #065d6b)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '700', fontSize: '12px', flexShrink: 0, boxShadow: '0 2px 10px rgba(6,93,107,0.2)' }}>
               {(user?.username || 'A').slice(0, 2).toUpperCase()}
             </div>
           </div>
@@ -2603,7 +2603,7 @@ const Dashboard = () => {
       {/* Stats bar */}
       <div className="stats-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '28px' }}>
         {[
-          { label: 'Total Servers', value: servers.length, color: '#22d3ee', icon: '▦', sub: 'registered' },
+          { label: 'Total Servers', value: servers.length, color: '#ffb812', icon: '▦', sub: 'registered' },
           { label: 'Online', value: onlineCount, color: '#10b981', icon: '●', sub: 'reachable' },
           { label: 'Offline', value: offlineCount, color: '#ef4444', icon: '○', sub: 'unreachable' },
           { label: 'Backend', value: hostStatus === null ? '…' : hostStatus.online ? 'OK' : 'DOWN', color: hostStatus?.online !== false ? '#10b981' : '#ef4444', icon: '⬡', sub: 'host status' },
@@ -2701,10 +2701,10 @@ const Dashboard = () => {
             const pu = s.pending_updates;
             return (
               <div key={String(s.id || '')}
-                style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: `1px solid ${isSelected ? '#22d3ee' : 'var(--border-color)'}`, overflow: 'hidden', transition: 'var(--transition-base)', boxShadow: hoveredRow === s.id ? 'var(--shadow-lg)' : 'var(--shadow-sm)', transform: hoveredRow === s.id ? 'translateY(-2px)' : 'none', position: 'relative', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+                style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', border: `1px solid ${isSelected ? '#ffb812' : 'var(--border-color)'}`, overflow: 'hidden', transition: 'var(--transition-base)', boxShadow: hoveredRow === s.id ? 'var(--shadow-lg)' : 'var(--shadow-sm)', transform: hoveredRow === s.id ? 'translateY(-2px)' : 'none', position: 'relative', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
                 onMouseEnter={() => setHoveredRow(s.id)} onMouseLeave={() => setHoveredRow(null)}
               >
-                <div style={{ height: '2px', background: s.online ? 'linear-gradient(90deg,#22d3ee,#22d3ee,#22d3ee)' : 'linear-gradient(90deg,#2a3040,#3a4050)' }} />
+                <div style={{ height: '2px', background: s.online ? 'linear-gradient(90deg,#ffb812,#ffb812,#ffb812)' : 'linear-gradient(90deg,#2a3040,#3a4050)' }} />
                 <div style={{ padding: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -2728,7 +2728,7 @@ const Dashboard = () => {
                   </div>
                   {sm ? (
                     <div style={{ marginBottom: '12px' }}>
-                      {[['CPU', sm.cpu_percent, '#22d3ee'],['RAM', sm.ram_percent, '#c084fc'],['Disk', sm.disk_percent, '#f59e0b']].map(([lbl, val, col]) => (
+                      {[['CPU', sm.cpu_percent, '#ffb812'],['RAM', sm.ram_percent, '#c084fc'],['Disk', sm.disk_percent, '#f59e0b']].map(([lbl, val, col]) => (
                         <div key={lbl} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                           <span style={{ fontSize: '10px', color: 'var(--text-muted)', width: '28px', fontWeight: '600' }}>{lbl}</span>
                           <div style={{ flex: 1, height: '5px', borderRadius: '3px', background: 'var(--bg-card-hover)', overflow: 'hidden' }}>
@@ -2740,7 +2740,7 @@ const Dashboard = () => {
                     </div>
                   ) : <div style={{ marginBottom: '12px', fontSize: '11px', color: 'var(--text-muted)' }}>{s.online ? 'Loading metrics...' : 'No metrics available'}</div>}
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => handleServerClick(s)} style={{ flex: 1, ...styles.btn, background: 'var(--color-primary-muted)', color: '#22d3ee', fontSize: '13px', justifyContent: 'center', padding: '8px 12px', border: '1px solid rgba(0,212,255,0.15)', borderRadius: 'var(--radius-md)', fontWeight: '600' }}>Manage</button>
+                    <button onClick={() => handleServerClick(s)} style={{ flex: 1, ...styles.btn, background: 'var(--color-primary-muted)', color: '#ffb812', fontSize: '13px', justifyContent: 'center', padding: '8px 12px', border: '1px solid rgba(0,212,255,0.15)', borderRadius: 'var(--radius-md)', fontWeight: '600' }}>Manage</button>
                     {isAdmin && <button onClick={() => handleDelete(s.id)} style={{ ...styles.btn, ...styles.btnSecondary, padding: '8px 12px', fontSize: '13px' }}>✕</button>}
                   </div>
                 </div>
@@ -2829,7 +2829,7 @@ const Dashboard = () => {
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                             <div style={{ flex: 1, height: '4px', borderRadius: '2px', background: 'var(--bg-card-hover)', overflow: 'hidden', minWidth: '48px' }}>
-                              <div style={{ height: '100%', width: `${sm.cpu_percent || 0}%`, background: sm.cpu_percent > 80 ? '#ef4444' : sm.cpu_percent > 50 ? '#f59e0b' : '#22d3ee', transition: 'width 0.4s' }} />
+                              <div style={{ height: '100%', width: `${sm.cpu_percent || 0}%`, background: sm.cpu_percent > 80 ? '#ef4444' : sm.cpu_percent > 50 ? '#f59e0b' : '#ffb812', transition: 'width 0.4s' }} />
                             </div>
                             <span style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{sm.cpu_percent}%</span>
                           </div>
@@ -2883,7 +2883,7 @@ const Dashboard = () => {
                     <td style={{ ...styles.td, textAlign: 'center' }}>
                       <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
                         <button title="Manage" onClick={() => handleServerClick(s)}
-                          style={{ ...styles.iconBtn, background: '#22d3ee18', color: '#22d3ee', border: '1px solid #22d3ee30' }}>
+                          style={{ ...styles.iconBtn, background: '#ffb81218', color: '#ffb812', border: '1px solid #ffb81230' }}>
                           ⚙
                         </button>
                         <button title="SSH Terminal" onClick={() => { setShellServer(s); setShellConnected(false); setShellSessionKey(0); setNavSection('shell'); }}
@@ -2928,7 +2928,7 @@ const Dashboard = () => {
           const pl = (s.platform || 'Unknown').split(' ')[0];
           osCounts[pl] = (osCounts[pl] || 0) + 1;
         });
-        const osColors = ['#22d3ee','#10b981','#f59e0b','#c084fc','#ef4444','#99d1db','#ef9f76'];
+        const osColors = ['#ffb812','#10b981','#f59e0b','#c084fc','#ef4444','#99d1db','#ef9f76'];
         const osEntries = Object.entries(osCounts).sort((a,b) => b[1]-a[1]);
         // Donut SVG helper
         const DonutChart = ({ segments, size = 110, sw = 20 }) => {
@@ -2966,9 +2966,9 @@ const Dashboard = () => {
             {/* Top stat strip */}
             <div className="stats-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '12px' }}>
               {[
-                { label: 'Total Hosts',    value: totalHosts,    color: '#22d3ee', sub: 'registered', icon: '⬡' },
+                { label: 'Total Hosts',    value: totalHosts,    color: '#ffb812', sub: 'registered', icon: '⬡' },
                 { label: 'Online',         value: `${onlineHosts}/${totalHosts}`, color: '#10b981', sub: `${onlinePct}% reachable`, icon: '◉' },
-                { label: 'Up to Date',     value: upToDate,      color: '#22d3ee', sub: `${upToDatePct}% compliant`, icon: '✓' },
+                { label: 'Up to Date',     value: upToDate,      color: '#ffb812', sub: `${upToDatePct}% compliant`, icon: '✓' },
                 { label: 'Need Updates',   value: needsUpdate,   color: needsUpdate > 0 ? '#f59e0b' : '#10b981', sub: `${100 - upToDatePct}% outdated`, icon: '↑', filter: 'needs_update' },
                 { label: 'Needs Reboot',   value: needsReboot,   color: needsReboot > 0 ? '#ef4444' : '#10b981', sub: 'after upgrade', icon: '⚠', filter: 'needs_reboot' },
               ].map(s => (
@@ -3102,7 +3102,7 @@ const Dashboard = () => {
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                         {s.pending_updates.reboot_required && <span style={{ background: '#ef444418', color: '#ef4444', fontSize: '10px', padding: '1px 7px', borderRadius: '8px', fontWeight: '700', border: '1px solid #ef444440' }}>⚠ Reboot</span>}
                         <span style={{ background: '#f59e0b18', color: '#f59e0b', fontSize: '11px', padding: '2px 8px', borderRadius: '8px', fontWeight: '700', border: '1px solid #f59e0b40' }}>↑ {s.pending_updates.count} pkg</span>
-                        <button onClick={() => { handleServerClick(s); }} style={{ ...styles.iconBtn, background: '#22d3ee18', color: '#22d3ee', border: '1px solid #22d3ee30', fontSize: '11px' }}>Manage</button>
+                        <button onClick={() => { handleServerClick(s); }} style={{ ...styles.iconBtn, background: '#ffb81218', color: '#ffb812', border: '1px solid #ffb81230', fontSize: '11px' }}>Manage</button>
                       </div>
                     </div>
                   ))}
@@ -3115,7 +3115,7 @@ const Dashboard = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{ fontWeight: '700', fontSize: '13px', color: 'var(--text-primary)' }}>Ping Monitor</div>
-                  {icmpLoading && <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22d3ee', animation: 'pulse 1s ease-in-out infinite' }} />}
+                  {icmpLoading && <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#ffb812', animation: 'pulse 1s ease-in-out infinite' }} />}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   {icmpLastUpdate && <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Updated {icmpLastUpdate.toLocaleTimeString()}</span>}
@@ -3399,7 +3399,7 @@ const Dashboard = () => {
             {/* Summary cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '24px' }}>
               {[
-                { label: 'Total Agents', value: servers.length, color: '#22d3ee', icon: '◈' },
+                { label: 'Total Agents', value: servers.length, color: '#ffb812', icon: '◈' },
                 { label: 'Online', value: onlineAgents.length, color: '#10b981', icon: '◉' },
                 { label: 'Need Update', value: outdatedAgents.length, color: outdatedAgents.length > 0 ? '#f59e0b' : '#10b981', icon: '↑' },
                 { label: 'Latest Version', value: `v${appVersion}`, color: '#4888e8', icon: '⬡' },
@@ -3488,7 +3488,7 @@ const Dashboard = () => {
                       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                         {isAdmin && isOnline && (
                           <button onClick={() => handleUpdateAgentById(s)} title="Update Agent"
-                            style={{ ...styles.iconBtn, background: isOutdated ? '#f59e0b18' : '#22d3ee18', color: isOutdated ? '#f59e0b' : '#22d3ee', border: `1px solid ${isOutdated ? '#f59e0b30' : '#22d3ee30'}`, fontSize: '12px', padding: '4px 10px' }}>
+                            style={{ ...styles.iconBtn, background: isOutdated ? '#f59e0b18' : '#ffb81218', color: isOutdated ? '#f59e0b' : '#ffb812', border: `1px solid ${isOutdated ? '#f59e0b30' : '#ffb81230'}`, fontSize: '12px', padding: '4px 10px' }}>
                             ⬆ Update
                           </button>
                         )}
@@ -3497,7 +3497,7 @@ const Dashboard = () => {
                           ℹ Info
                         </button>
                         <button onClick={() => handleServerClick(s)} title="Manage Server"
-                          style={{ ...styles.iconBtn, background: '#22d3ee18', color: '#22d3ee', border: '1px solid #22d3ee30' }}>
+                          style={{ ...styles.iconBtn, background: '#ffb81218', color: '#ffb812', border: '1px solid #ffb81230' }}>
                           ⚙
                         </button>
                       </div>
@@ -3907,7 +3907,7 @@ const Dashboard = () => {
                       ? <button onClick={connectRDP} style={{ ...styles.btn, ...styles.btnPrimary, padding: '4px 14px', fontSize: '12px' }}>Connect</button>
                       : <>
                           <button onClick={() => setRdpClipboard(v => !v)}
-                            style={{ ...styles.btn, background: rdpClipboard ? 'rgba(34,211,238,0.25)' : 'rgba(34,211,238,0.12)', color: '#22d3ee', border: 'none', padding: '4px 12px', fontSize: '12px' }}>📋 Clipboard</button>
+                            style={{ ...styles.btn, background: rdpClipboard ? 'rgba(6,93,107,0.25)' : 'rgba(6,93,107,0.12)', color: '#ffb812', border: 'none', padding: '4px 12px', fontSize: '12px' }}>📋 Clipboard</button>
                           <button onClick={async () => {
                             const el = document.querySelector('[data-rdp-container]');
                             if (!el) return;
@@ -3924,7 +3924,7 @@ const Dashboard = () => {
                               setRdpConnected(false);
                               setRdpSessionKey(k => k + 1);
                             }
-                          }} style={{ ...styles.btn, background: 'rgba(34,211,238,0.12)', color: '#22d3ee', border: 'none', padding: '4px 12px', fontSize: '12px' }}>⛶ Fullscreen</button>
+                          }} style={{ ...styles.btn, background: 'rgba(6,93,107,0.12)', color: '#ffb812', border: 'none', padding: '4px 12px', fontSize: '12px' }}>⛶ Fullscreen</button>
                           <button onClick={disconnectRDP} style={{ ...styles.btn, background: 'rgba(231,130,132,0.12)', color: '#e78284', border: 'none', padding: '4px 12px', fontSize: '12px' }}>Disconnect</button>
                         </>
                     }
@@ -4066,9 +4066,9 @@ const Dashboard = () => {
                 <tbody>
                   {usersList.map(u => (
                     <tr key={u.username} style={{ borderBottom: `1px solid var(--border-color)20` }}>
-                      <td style={styles.td}><strong>{u.username}</strong> {u.username === user?.username && <span style={{ fontSize: '11px', color: '#22d3ee' }}>(you)</span>}</td>
+                      <td style={styles.td}><strong>{u.username}</strong> {u.username === user?.username && <span style={{ fontSize: '11px', color: '#ffb812' }}>(you)</span>}</td>
                       <td style={styles.td}>
-                        <span style={{ background: u.role === 'admin' ? '#22d3ee20' : '#10b98120', color: u.role === 'admin' ? '#22d3ee' : '#10b981', padding: '2px 8px', borderRadius: '8px', fontSize: '12px', fontWeight: '600' }}>{u.role}</span>
+                        <span style={{ background: u.role === 'admin' ? '#ffb81220' : '#10b98120', color: u.role === 'admin' ? '#ffb812' : '#10b981', padding: '2px 8px', borderRadius: '8px', fontSize: '12px', fontWeight: '600' }}>{u.role}</span>
                       </td>
                       <td style={styles.td}>
                         {u.username !== user?.username && (
@@ -4084,7 +4084,7 @@ const Dashboard = () => {
           <div style={{ background: 'var(--bg-card)', borderRadius: '12px', border: `1px solid var(--border-color)`, padding: '20px' }}>
             <h3 style={{ ...styles.cardTitle, marginBottom: '12px' }}>Account</h3>
             <div style={{ fontSize: '13px', marginBottom: '8px' }}><span style={{ color: 'var(--text-muted)' }}>Logged in as:</span> <strong>{user?.username}</strong></div>
-            <div style={{ fontSize: '13px', marginBottom: '16px' }}><span style={{ color: 'var(--text-muted)' }}>Role:</span> <span style={{ background: isAdmin ? '#22d3ee20' : '#10b98120', color: isAdmin ? '#22d3ee' : '#10b981', padding: '1px 8px', borderRadius: '8px', fontWeight: '600' }}>{user?.role}</span></div>
+            <div style={{ fontSize: '13px', marginBottom: '16px' }}><span style={{ color: 'var(--text-muted)' }}>Role:</span> <span style={{ background: isAdmin ? '#ffb81220' : '#10b98120', color: isAdmin ? '#ffb812' : '#10b981', padding: '1px 8px', borderRadius: '8px', fontWeight: '600' }}>{user?.role}</span></div>
             <button onClick={handleLogout} style={{ ...styles.btn, background: '#ef444420', color: '#ef4444', border: 'none' }}>Sign Out</button>
           </div>
         </div>
@@ -4127,7 +4127,7 @@ const Dashboard = () => {
               return (
                 <div className="grid-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '16px' }}>
                   {[
-                    { label: 'CPU', val: sm.cpu_percent, unit: '%', color: '#22d3ee' },
+                    { label: 'CPU', val: sm.cpu_percent, unit: '%', color: '#ffb812' },
                     { label: 'RAM', val: sm.ram_percent, unit: '%', sub: `${sm.ram_used_gb}/${sm.ram_total_gb} GB`, color: '#c084fc' },
                     { label: 'Disk', val: sm.disk_percent, unit: '%', sub: `${sm.disk_used_gb}/${sm.disk_total_gb} GB`, color: '#f59e0b' },
                   ].map(m => (
@@ -4238,7 +4238,7 @@ const Dashboard = () => {
                                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '500', marginBottom: '4px' }}>IP Addresses</div>
                                 {iface.addresses.map((addr, j) => (
                                   <div key={j} style={{ display: 'grid', gridTemplateColumns: '40px 1fr', gap: '6px', padding: '3px 0', fontSize: '12px' }}>
-                                    <span style={{ color: addr.family === 'inet' ? '#22d3ee' : '#c084fc', fontFamily: '"JetBrains Mono", monospace', fontWeight: '600' }}>{addr.family}</span>
+                                    <span style={{ color: addr.family === 'inet' ? '#ffb812' : '#c084fc', fontFamily: '"JetBrains Mono", monospace', fontWeight: '600' }}>{addr.family}</span>
                                     <span style={{ fontFamily: '"JetBrains Mono", monospace', color: 'var(--text-primary)' }}>{addr.address}{iface.gateway && addr.family === 'inet' ? ` — Gateway: ${iface.gateway}` : ''}</span>
                                   </div>
                                 ))}
@@ -4600,7 +4600,7 @@ const Dashboard = () => {
                             {gateway && (
                               <div style={{ padding: '14px 16px', background: darkMode ? '#1a1a1a' : '#fff', border: `1px solid var(--border-color)`, borderRadius: '12px' }}>
                                 <div style={{ fontSize: '9px', letterSpacing: '0.15em', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: '600' }}>DEFAULT GATEWAY</div>
-                                <div style={{ fontSize: '15px', fontWeight: '700', fontFamily: '"JetBrains Mono",monospace', color: '#22d3ee' }}>{gateway}</div>
+                                <div style={{ fontSize: '15px', fontWeight: '700', fontFamily: '"JetBrains Mono",monospace', color: '#ffb812' }}>{gateway}</div>
                               </div>
                             )}
                             {dnsServers.length > 0 && (
@@ -4661,7 +4661,7 @@ const Dashboard = () => {
                                 {ports.map((p, i) => (
                                   <tr key={i} style={{ borderBottom: `1px solid var(--border-color)20`, background: i % 2 === 0 ? 'transparent' : (darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)') }}>
                                     <td style={{ padding: '8px 14px', fontFamily: '"JetBrains Mono",monospace' }}>
-                                      <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '6px', fontWeight: '700', background: p.proto.startsWith('tcp') ? '#22d3ee20' : '#f59e0b20', color: p.proto.startsWith('tcp') ? '#22d3ee' : '#f59e0b' }}>{p.proto.toUpperCase()}</span>
+                                      <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '6px', fontWeight: '700', background: p.proto.startsWith('tcp') ? '#ffb81220' : '#f59e0b20', color: p.proto.startsWith('tcp') ? '#ffb812' : '#f59e0b' }}>{p.proto.toUpperCase()}</span>
                                     </td>
                                     <td style={{ padding: '8px 14px', fontFamily: '"JetBrains Mono",monospace', fontSize: '12px', color: 'var(--text-muted)' }}>{p.addr}</td>
                                     <td style={{ padding: '8px 14px', fontFamily: '"JetBrains Mono",monospace', fontSize: '13px', fontWeight: '700', color: 'var(--color-primary)' }}>{p.port}</td>
@@ -4737,7 +4737,7 @@ const Dashboard = () => {
                             {isAdmin && (
                               <div style={{ padding: '16px 20px', background: darkMode ? '#1a1a1a' : '#fff', border: `1px solid var(--border-color)`, borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <button onClick={() => fwRunAction('firewall:enable')} disabled={fwLoading}
-                                  style={{ ...styles.btn, padding: '8px 16px', fontSize: '12px', fontWeight: '700', background: '#22d3ee', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', opacity: fwLoading ? 0.5 : 1 }}>
+                                  style={{ ...styles.btn, padding: '8px 16px', fontSize: '12px', fontWeight: '700', background: '#ffb812', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', opacity: fwLoading ? 0.5 : 1 }}>
                                   Enable
                                 </button>
                                 <button onClick={() => fwRunAction('firewall:disable')} disabled={fwLoading}
@@ -4925,7 +4925,7 @@ const Dashboard = () => {
                     {/* Agent Info Cards */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '24px' }}>
                       {[
-                        { label: 'VERSION', value: agentInfo.version || '?', color: '#22d3ee' },
+                        { label: 'VERSION', value: agentInfo.version || '?', color: '#ffb812' },
                         { label: 'UPTIME', value: agentInfo.uptime || '?', color: '#10b981' },
                         { label: 'PLATFORM', value: `${(agentInfo.os || '').toUpperCase()} / ${agentInfo.arch || ''}`, color: '#71717A' },
                         { label: 'GO VERSION', value: agentInfo.go_version || '?', color: '#4888e8' },
@@ -4939,7 +4939,7 @@ const Dashboard = () => {
 
                     {/* Agent Details Table */}
                     <div style={{ border: `1px solid var(--border-color)`, borderRadius: '12px', overflow: 'hidden', marginBottom: '24px' }}>
-                      <div style={{ padding: '10px 16px', borderBottom: `1px solid var(--border-color)`, fontSize: '10px', letterSpacing: '0.15em', color: '#22d3ee', background: darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.04)', fontWeight: '700' }}>
+                      <div style={{ padding: '10px 16px', borderBottom: `1px solid var(--border-color)`, fontSize: '10px', letterSpacing: '0.15em', color: '#ffb812', background: darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.04)', fontWeight: '700' }}>
                         AGENT DETAILS
                       </div>
                       {[
@@ -5079,7 +5079,7 @@ const Dashboard = () => {
           </div>
           {showToken.installCmd && (
             <button onClick={() => copyToClipboard(showToken.installCmd, 'token')}
-              style={{ width: '100%', padding: '10px 16px', marginBottom: '10px', background: copiedId === 'token' ? 'rgba(16,185,129,0.25)' : 'rgba(34,211,238,0.15)', border: `1px solid ${copiedId === 'token' ? 'rgba(16,185,129,0.5)' : 'rgba(34,211,238,0.4)'}`, color: copiedId === 'token' ? '#10b981' : '#22d3ee', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s ease' }}>
+              style={{ width: '100%', padding: '10px 16px', marginBottom: '10px', background: copiedId === 'token' ? 'rgba(16,185,129,0.25)' : 'rgba(6,93,107,0.15)', border: `1px solid ${copiedId === 'token' ? 'rgba(16,185,129,0.5)' : 'rgba(6,93,107,0.4)'}`, color: copiedId === 'token' ? '#10b981' : '#ffb812', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s ease' }}>
               {copiedId === 'token' ? '✓ Copied to Clipboard!' : '📋 Copy Command'}
             </button>
           )}
@@ -5108,7 +5108,7 @@ const Dashboard = () => {
               {/* Progress bar */}
               <div style={{ display: 'flex', background: 'rgba(15,23,42,0.6)', borderBottom: `1px solid var(--border-color)` }}>
                 {steps.map((s, i) => (
-                  <div key={i} style={{ flex: 1, textAlign: 'center', padding: '8px 4px', fontSize: '11px', fontWeight: i + 1 <= wizardStep ? '700' : '400', color: i + 1 < wizardStep ? 'var(--color-success)' : i + 1 === wizardStep ? '#22d3ee' : 'var(--text-muted)', borderBottom: i + 1 === wizardStep ? '2px solid #22d3ee' : i + 1 < wizardStep ? `2px solid var(--color-success)` : '2px solid transparent', transition: 'all 0.2s' }}>
+                  <div key={i} style={{ flex: 1, textAlign: 'center', padding: '8px 4px', fontSize: '11px', fontWeight: i + 1 <= wizardStep ? '700' : '400', color: i + 1 < wizardStep ? 'var(--color-success)' : i + 1 === wizardStep ? '#ffb812' : 'var(--text-muted)', borderBottom: i + 1 === wizardStep ? '2px solid #ffb812' : i + 1 < wizardStep ? `2px solid var(--color-success)` : '2px solid transparent', transition: 'all 0.2s' }}>
                     <div style={{ fontSize: '15px', marginBottom: '1px' }}>{i + 1 < wizardStep ? '✓' : i + 1}</div>
                     {s}
                   </div>
@@ -5123,14 +5123,14 @@ const Dashboard = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       {osOptions.map(os => (
                         <div key={os.id} onClick={() => !os.disabled && setWizardOS(os.id)}
-                          style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 18px', borderRadius: '8px', border: `2px solid ${wizardOS === os.id ? '#22d3ee' : 'var(--border-color)'}`, background: wizardOS === os.id ? 'rgba(0,212,255,0.08)' : 'rgba(37,81,94,0.4)', cursor: os.disabled ? 'not-allowed' : 'pointer', opacity: os.disabled ? 0.45 : 1, transition: 'all 0.15s' }}>
+                          style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 18px', borderRadius: '8px', border: `2px solid ${wizardOS === os.id ? '#ffb812' : 'var(--border-color)'}`, background: wizardOS === os.id ? 'rgba(0,212,255,0.08)' : 'rgba(37,81,94,0.4)', cursor: os.disabled ? 'not-allowed' : 'pointer', opacity: os.disabled ? 0.45 : 1, transition: 'all 0.15s' }}>
                           <div style={{ fontSize: '32px' }}>{os.icon}</div>
                           <div>
                             <div style={{ fontWeight: '600', fontSize: '15px', color: 'var(--text-primary)' }}>{os.label}</div>
                             <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{os.desc}</div>
                           </div>
                           <div style={{ marginLeft: 'auto' }}>
-                            <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${wizardOS === os.id ? '#22d3ee' : 'var(--border-color)'}`, background: wizardOS === os.id ? '#22d3ee' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: `2px solid ${wizardOS === os.id ? '#ffb812' : 'var(--border-color)'}`, background: wizardOS === os.id ? '#ffb812' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               {wizardOS === os.id && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#fff' }} />}
                             </div>
                           </div>
@@ -5196,20 +5196,20 @@ const Dashboard = () => {
                     <div>
                       <div style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '16px' }}>
                         {wizardOS === 'windows'
-                          ? <>Run this command on <strong style={{ color: 'var(--text-primary)' }}>{wizardName || 'your server'}</strong> in <strong style={{ color: '#22d3ee' }}>PowerShell as Administrator</strong>:</>
+                          ? <>Run this command on <strong style={{ color: 'var(--text-primary)' }}>{wizardName || 'your server'}</strong> in <strong style={{ color: '#ffb812' }}>PowerShell as Administrator</strong>:</>
                           : <>Run this command on <strong style={{ color: 'var(--text-primary)' }}>{wizardName || 'your server'}</strong> as root or with sudo:</>}
                       </div>
                       {wizardOS === 'windows' && (
-                        <div style={{ marginBottom: '10px', padding: '8px 12px', borderRadius: '6px', background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.3)', fontSize: '12px', color: '#22d3ee' }}>
+                        <div style={{ marginBottom: '10px', padding: '8px 12px', borderRadius: '6px', background: 'rgba(6,93,107,0.1)', border: '1px solid rgba(6,93,107,0.3)', fontSize: '12px', color: '#ffb812' }}>
                           ⊞ PowerShell — Run as Administrator (right-click → Run as Administrator)
                         </div>
                       )}
                       <div style={{ background: 'rgba(0,0,0,0.35)', borderRadius: '8px', padding: '14px 16px', fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', color: '#10b981', wordBreak: 'break-all', border: '1px solid rgba(16,185,129,0.2)', minHeight: '52px' }}>
-                        {wizardInstallCmdLoading ? <span style={{ color: '#22d3ee' }}>Loading...</span> : wizardInstallCmd}
+                        {wizardInstallCmdLoading ? <span style={{ color: '#ffb812' }}>Loading...</span> : wizardInstallCmd}
                       </div>
                       {wizardInstallCmd && (
                         <button onClick={() => copyToClipboard(wizardInstallCmd, 'wizard')}
-                          style={{ marginTop: '10px', width: '100%', padding: '10px 16px', background: copiedId === 'wizard' ? 'rgba(16,185,129,0.25)' : 'rgba(34,211,238,0.15)', border: `1px solid ${copiedId === 'wizard' ? 'rgba(16,185,129,0.5)' : 'rgba(34,211,238,0.4)'}`, color: copiedId === 'wizard' ? '#10b981' : '#22d3ee', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s ease' }}>
+                          style={{ marginTop: '10px', width: '100%', padding: '10px 16px', background: copiedId === 'wizard' ? 'rgba(16,185,129,0.25)' : 'rgba(6,93,107,0.15)', border: `1px solid ${copiedId === 'wizard' ? 'rgba(16,185,129,0.5)' : 'rgba(6,93,107,0.4)'}`, color: copiedId === 'wizard' ? '#10b981' : '#ffb812', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s ease' }}>
                           {copiedId === 'wizard' ? '✓ Copied to Clipboard!' : '📋 Copy Command'}
                         </button>
                       )}
@@ -5235,7 +5235,7 @@ const Dashboard = () => {
                         <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '20px' }}>Run the command from the previous step on <strong style={{ color: 'var(--text-primary)' }}>{wizardName || 'your server'}</strong>. The dashboard will update automatically.</div>
                         <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '24px' }}>
                           {[0,1,2].map(i => (
-                            <div key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22d3ee', animation: `pulse 1.4s ease-in-out ${i * 0.2}s infinite` }} />
+                            <div key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ffb812', animation: `pulse 1.4s ease-in-out ${i * 0.2}s infinite` }} />
                           ))}
                         </div>
                         <button onClick={() => setWizardStep(3)} style={{ ...styles.btn, ...styles.btnSecondary, fontSize: '12px' }}>← Back to command</button>
@@ -5397,7 +5397,7 @@ const Dashboard = () => {
               {globalTasks.some(t => t.status === 'running') && (
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', animation: 'pulse 1s infinite', flexShrink: 0 }} />
               )}
-              <span style={{ fontSize: '11px', fontWeight: '700', color: '#22d3ee', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: '#ffb812', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                 Tasks {globalTasks.filter(t => t.status === 'running').length > 0 && `(${globalTasks.filter(t => t.status === 'running').length} running)`}
               </span>
             </div>
@@ -5428,7 +5428,7 @@ const Dashboard = () => {
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: task.status === 'running' ? '6px' : '0' }}>{task.server}</div>
                     {task.status === 'running' && (
                       <div style={{ height: '3px', background: darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', background: '#22d3ee', borderRadius: '2px', animation: 'progressIndeterminate 1.5s ease-in-out infinite', width: '40%' }} />
+                        <div style={{ height: '100%', background: '#ffb812', borderRadius: '2px', animation: 'progressIndeterminate 1.5s ease-in-out infinite', width: '40%' }} />
                       </div>
                     )}
                     {task.output && task.status !== 'running' && (
