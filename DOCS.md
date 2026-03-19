@@ -1,6 +1,6 @@
 # ServerCTL — Official Documentation
 
-> **Version:** 1.4.0 | **Agent:** Go (cross-platform)
+> **Version:** 1.5.0 | **Agent:** Go (cross-platform)
 
 ---
 
@@ -580,7 +580,7 @@ sudo bash update.sh
    - **HTTPS with credentials** — GitHub username + personal access token
    - **SSH** — uses the current user's SSH keys
 
-4. **Reports version** — shows the upgrade path (e.g., `1.3.0 → 1.4.0`).
+4. **Reports version** — shows the upgrade path (e.g., `1.3.0 → 1.5.0`).
 
 > **Note:** After updating, log out and log back in to the dashboard to refresh your session token.
 
@@ -937,4 +937,4 @@ To bump the version:
 
 ---
 
-*ServerCTL v1.4.0 — Infrastructure Control Interface*
+*ServerCTL v1.5.0 — Infrastructure Control Interface*

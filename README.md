@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.4.0-green" alt="Version"/>
+  <img src="https://img.shields.io/badge/version-1.5.0-green" alt="Version"/>
   <img src="https://img.shields.io/badge/License-CC%20BY--ND%204.0-lightgrey.svg" alt="License"/>
   <img src="https://img.shields.io/badge/backend-FastAPI-009688" alt="FastAPI"/>
   <img src="https://img.shields.io/badge/frontend-React%20%2B%20Vite-61DAFB" alt="React"/>
@@ -183,7 +183,7 @@ The update script safely upgrades ServerCTL to the latest version while preservi
 5. **Rebuilds**:
    - **Docker mode:** runs `docker compose up --build -d` and prunes old Docker images to free disk space
    - **Native mode:** updates Python dependencies, rebuilds the frontend, restarts the backend service, reloads nginx
-6. **Reports version** — shows the upgrade path (e.g., `1.3.0 → 1.4.0`)
+6. **Reports version** — shows the upgrade path (e.g., `1.3.0 → 1.5.0`)
 
 > **Note:** After updating, log out and log back in to the dashboard to refresh your session token.
 
