@@ -374,8 +374,17 @@ const Dashboard = () => {
   const [manualHost, setManualHost] = useState("");
   const [manualName, setManualName] = useState("");
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') !== 'false');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('sidebarCollapsed') === 'true');
-  const toggleSidebar = () => setSidebarCollapsed(v => { localStorage.setItem('sidebarCollapsed', !v); return !v; });
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('sidebarCollapsed') === 'true' || window.innerWidth <= 1100);
+  const sidebarManualRef = useRef(null);
+  const toggleSidebar = () => setSidebarCollapsed(v => { const next = !v; localStorage.setItem('sidebarCollapsed', next); sidebarManualRef.current = next; return next; });
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth <= 1100) setSidebarCollapsed(true);
+      else if (sidebarManualRef.current === null || sidebarManualRef.current === false) setSidebarCollapsed(false);
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
   React.useEffect(() => {
     localStorage.setItem('darkMode', darkMode);
     const bg = darkMode ? '#0f1117' : '#f0f2f8';
