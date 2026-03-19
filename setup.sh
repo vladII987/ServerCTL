@@ -570,6 +570,9 @@ NGINXEOF
     "$RDPVENV/bin/pip" install -q -r "$DIR/rdpbridge/requirements.txt"
     ok "RDP bridge dependencies installed."
 
+    # Ensure FreeRDP config dirs exist (xfreerdp needs these when running as root)
+    mkdir -p /root/.config/freerdp/certs /root/.config/freerdp/server
+
     # ── systemd service for rdpbridge ─────────────────────────
     RDPSVC="/etc/systemd/system/serverctl-rdpbridge.service"
     info "Creating systemd service for rdpbridge..."
@@ -581,6 +584,7 @@ After=network.target
 [Service]
 WorkingDirectory=${DIR}/rdpbridge
 Environment="MANAGER_PORT=8080"
+Environment="HOME=/root"
 ExecStart=${RDPVENV}/bin/python manager.py
 Restart=always
 RestartSec=5
