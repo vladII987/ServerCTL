@@ -3867,12 +3867,18 @@ const Dashboard = () => {
                     </label>
                     {!rdpConnected
                       ? <button onClick={connectRDP} style={{ ...styles.btn, ...styles.btnPrimary, padding: '4px 14px', fontSize: '12px' }}>Connect</button>
-                      : <button onClick={disconnectRDP} style={{ ...styles.btn, background: 'rgba(231,130,132,0.12)', color: '#e78284', border: 'none', padding: '4px 12px', fontSize: '12px' }}>Disconnect</button>
+                      : <>
+                          <button onClick={() => {
+                            const el = document.querySelector('[data-rdp-container]');
+                            if (el) { if (!document.fullscreenElement) el.requestFullscreen().catch(() => {}); else document.exitFullscreen(); }
+                          }} style={{ ...styles.btn, background: 'rgba(96,165,250,0.12)', color: '#60a5fa', border: 'none', padding: '4px 12px', fontSize: '12px' }}>⛶ Fullscreen</button>
+                          <button onClick={disconnectRDP} style={{ ...styles.btn, background: 'rgba(231,130,132,0.12)', color: '#e78284', border: 'none', padding: '4px 12px', fontSize: '12px' }}>Disconnect</button>
+                        </>
                     }
                   </div>
                 </div>
                 {/* RDP Display */}
-                <div style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex', flexDirection: 'column' }}>
+                <div data-rdp-container style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex', flexDirection: 'column', background: '#000' }}>
                   {rdpSessionKey === 0 && (
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: darkMode ? '#232634' : '#e6e9ef', color: 'var(--text-muted)', flexDirection: 'column', gap: '8px' }}>
                       <div style={{ fontSize: '28px', opacity: 0.3 }}>🖥</div>
