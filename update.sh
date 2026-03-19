@@ -124,7 +124,7 @@ ok "Updated: ${OLD_VERSION} → ${NEW_VERSION}"
 echo ""
 
 # ── Ensure SSL vars are in .env ───────────────────────────────
-# Older installs may be missing these — auto-detect and add
+# Never overwrite existing SSL settings — only add if missing
 if ! grep -q "^SSL_MODE=" "$DIR/.env" 2>/dev/null; then
     if [[ -f "$DIR/ssl/serverctl.crt" && -f "$DIR/ssl/serverctl.key" ]]; then
         info "Detected SSL certs but missing SSL_MODE in .env — adding..."
@@ -141,6 +141,66 @@ EOF
         ok "SSL_MODE added to .env"
     else
         echo "SSL_MODE=none" >> "$DIR/.env"
+    fi
+fi
+
+# Ensure Docker SSL path vars exist when SSL is enabled
+SSL_MODE_VAL=$(grep "^SSL_MODE=" "$DIR/.env" | cut -d'=' -f2)
+if [[ "$SSL_MODE_VAL" == "selfsigned" ]]; then
+    if ! grep -q "^SSL_CERT_PATH=" "$DIR/.env" 2>/dev/null; then
+        info "Adding missing SSL path vars to .env..."
+        cat >> "$DIR/.env" << EOF
+SSL_CERT_PATH=./ssl/serverctl.crt
+SSL_KEY_PATH=./ssl/serverctl.key
+SSL_FRONTEND_CONTAINER_PORT=443
+EOF
+        ok "SSL path vars added to .env"
+    fi
+    # Regenerate self-signed cert if missing
+    if [[ ! -f "$DIR/ssl/serverctl.crt" ]] || [[ ! -f "$DIR/ssl/serverctl.key" ]]; then
+        HOST_IP=$(grep "^PUBLIC_HOST=" "$DIR/.env" | cut -d'=' -f2)
+        [[ -z "$HOST_IP" ]] && HOST_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+        [[ -z "$HOST_IP" ]] && HOST_IP="localhost"
+        mkdir -p "$DIR/ssl"
+        info "Regenerating self-signed SSL certificate..."
+        openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+            -keyout "$DIR/ssl/serverctl.key" -out "$DIR/ssl/serverctl.crt" \
+            -subj "/CN=${HOST_IP}/O=ServerCTL" \
+            -addext "subjectAltName=IP:${HOST_IP}" 2>/dev/null \
+            || openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+                -keyout "$DIR/ssl/serverctl.key" -out "$DIR/ssl/serverctl.crt" \
+                -subj "/CN=${HOST_IP}/O=ServerCTL" 2>/dev/null
+        ok "Self-signed certificate regenerated."
+    fi
+fi
+
+# Ensure Docker SSL path vars exist when SSL is enabled
+SSL_MODE_VAL=$(grep "^SSL_MODE=" "$DIR/.env" | cut -d'=' -f2)
+if [[ "$SSL_MODE_VAL" == "selfsigned" ]]; then
+    if ! grep -q "^SSL_CERT_PATH=" "$DIR/.env" 2>/dev/null; then
+        info "Adding missing SSL path vars to .env..."
+        cat >> "$DIR/.env" << EOF
+SSL_CERT_PATH=./ssl/serverctl.crt
+SSL_KEY_PATH=./ssl/serverctl.key
+SSL_FRONTEND_CONTAINER_PORT=443
+EOF
+        ok "SSL path vars added to .env"
+    fi
+    # Regenerate self-signed cert if missing
+    if [[ ! -f "$DIR/ssl/serverctl.crt" ]] || [[ ! -f "$DIR/ssl/serverctl.key" ]]; then
+        HOST_IP=$(grep "^PUBLIC_HOST=" "$DIR/.env" | cut -d'=' -f2)
+        [[ -z "$HOST_IP" ]] && HOST_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+        [[ -z "$HOST_IP" ]] && HOST_IP="localhost"
+        mkdir -p "$DIR/ssl"
+        info "Regenerating self-signed SSL certificate..."
+        openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+            -keyout "$DIR/ssl/serverctl.key" -out "$DIR/ssl/serverctl.crt" \
+            -subj "/CN=${HOST_IP}/O=ServerCTL" \
+            -addext "subjectAltName=IP:${HOST_IP}" 2>/dev/null \
+            || openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+                -keyout "$DIR/ssl/serverctl.key" -out "$DIR/ssl/serverctl.crt" \
+                -subj "/CN=${HOST_IP}/O=ServerCTL" 2>/dev/null
+        ok "Self-signed certificate regenerated."
     fi
 fi
 
@@ -248,17 +308,4 @@ systemctl restart serverctl-backend 2>/dev/null
 if systemctl is-active --quiet serverctl-backend 2>/dev/null; then
     ok "Backend restarted."
 else
-    warn "Backend may not have started. Check: journalctl -u serverctl-backend -n 30"
-fi
-
-# Reload nginx
-if systemctl is-active --quiet nginx 2>/dev/null; then
-    nginx -t 2>/dev/null && systemctl reload nginx 2>/dev/null
-    ok "Nginx reloaded."
-fi
-
-echo ""
-ok "Update complete! (v${NEW_VERSION})"
-echo -e "  ${Y}Backup:${NC} $BACKUP_DIR"
-echo ""
-warn "Log out and log back in to the dashboard to refresh your session token."
+    warn "Backend may not have started. Check: journalctl -u serverctl
