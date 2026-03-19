@@ -187,6 +187,15 @@ set -a; source "$ENV"; set +a
 FRONTEND_PORT="${FRONTEND_PORT}"
 BACKEND_PORT="${BACKEND_PORT}"
 
+# ── Always persist SSL settings in .env ────────────────────────
+# This ensures rebuilds/restarts work without re-running setup
+for _var in SSL_MODE SSL_CERT_PATH SSL_KEY_PATH SSL_FRONTEND_CONTAINER_PORT; do
+    sed -i "/^${_var}=/d" "$ENV" 2>/dev/null
+done
+cat >> "$ENV" << EOF
+SSL_MODE=${SSL_MODE}
+EOF
+
 # Ensure HOST_IP is always set (even when reusing existing .env)
 HOST_IP="${PUBLIC_HOST:-}"
 [ -z "$HOST_IP" ] && HOST_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
@@ -329,15 +338,15 @@ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
         SSL_FRONTEND_CONTAINER_PORT="443"
     fi
 
-    # Persist SSL settings in .env so rebuilds work without re-running setup
-    grep -q "^SSL_CERT_PATH=" "$ENV" 2>/dev/null && sed -i '/^SSL_CERT_PATH=/d' "$ENV"
-    grep -q "^SSL_KEY_PATH=" "$ENV" 2>/dev/null && sed -i '/^SSL_KEY_PATH=/d' "$ENV"
-    grep -q "^SSL_FRONTEND_CONTAINER_PORT=" "$ENV" 2>/dev/null && sed -i '/^SSL_FRONTEND_CONTAINER_PORT=/d' "$ENV"
-    grep -q "^SSL_MODE=" "$ENV" 2>/dev/null || echo "SSL_MODE=${SSL_MODE}" >> "$ENV"
-    sed -i "s|^SSL_MODE=.*|SSL_MODE=${SSL_MODE}|" "$ENV"
-    echo "SSL_CERT_PATH=${SSL_CERT_PATH}" >> "$ENV"
-    echo "SSL_KEY_PATH=${SSL_KEY_PATH}" >> "$ENV"
-    echo "SSL_FRONTEND_CONTAINER_PORT=${SSL_FRONTEND_CONTAINER_PORT}" >> "$ENV"
+    # Persist Docker SSL paths in .env so rebuilds work
+    for _var in SSL_CERT_PATH SSL_KEY_PATH SSL_FRONTEND_CONTAINER_PORT; do
+        sed -i "/^${_var}=/d" "$ENV" 2>/dev/null
+    done
+    cat >> "$ENV" << EOF
+SSL_CERT_PATH=${SSL_CERT_PATH}
+SSL_KEY_PATH=${SSL_KEY_PATH}
+SSL_FRONTEND_CONTAINER_PORT=${SSL_FRONTEND_CONTAINER_PORT}
+EOF
 
     info "Running: docker compose up --build -d (v${APP_VERSION})"
     echo ""
