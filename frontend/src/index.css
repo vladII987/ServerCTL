@@ -66,26 +66,26 @@
 
 /* ─── Dark mode ─── */
 [data-theme="dark"], .theme-dark {
-  --bg-primary:       #0a0c10;
-  --bg-secondary:     #0f1218;
-  --bg-card:          rgba(16, 20, 30, 0.85);
-  --bg-card-solid:    #10141e;
-  --bg-card-hover:    #161c2a;
-  --bg-elevated:      #161c2a;
-  --bg-glass:         rgba(16, 20, 30, 0.75);
+  --bg-primary:       #16232e;
+  --bg-secondary:     #1b2a37;
+  --bg-card:          rgba(26, 40, 54, 0.85);
+  --bg-card-solid:    #1a2836;
+  --bg-card-hover:    #1f3040;
+  --bg-elevated:      #1f3040;
+  --bg-glass:         rgba(22, 35, 46, 0.75);
   --text-primary:     #f0f2f5;
   --text-secondary:   #94a3b8;
-  --text-muted:       #475569;
-  --border-color:       rgba(255, 255, 255, 0.06);
-  --border-color-hover: rgba(255, 255, 255, 0.12);
-  --border-accent:      rgba(34, 211, 238, 0.20);
-  --input-bg:           rgba(10, 12, 16, 0.9);
-  --input-border:       rgba(255, 255, 255, 0.08);
-  --overlay-bg:         rgba(0, 0, 0, 0.7);
+  --text-muted:       #5a7086;
+  --border-color:       rgba(255, 255, 255, 0.08);
+  --border-color-hover: rgba(255, 255, 255, 0.14);
+  --border-accent:      rgba(34, 211, 238, 0.22);
+  --input-bg:           rgba(18, 30, 40, 0.9);
+  --input-border:       rgba(255, 255, 255, 0.10);
+  --overlay-bg:         rgba(0, 0, 0, 0.6);
   --scrollbar-track:    transparent;
-  --scrollbar-thumb:    rgba(255, 255, 255, 0.06);
-  --sidebar-bg:         rgba(10, 13, 18, 0.95);
-  --header-bg:          rgba(10, 12, 16, 0.85);
+  --scrollbar-thumb:    rgba(255, 255, 255, 0.08);
+  --sidebar-bg:         rgba(18, 30, 40, 0.95);
+  --header-bg:          rgba(22, 35, 46, 0.88);
   color-scheme: dark;
 }
 
@@ -201,9 +201,9 @@ a, [role="button"] { cursor: pointer; }
 /* ─── Background — atmospheric gradient ─── */
 .grid-bg-dark {
   background:
-    radial-gradient(ellipse 80% 60% at 10% 10%,  rgba(34,211,238,0.04) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 80% at 90% 90%,  rgba(16,185,129,0.03) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 50% at 50% 50%,  rgba(34,211,238,0.015) 0%, transparent 70%);
+    radial-gradient(ellipse 80% 60% at 10% 10%,  rgba(34,211,238,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 90% 90%,  rgba(16,185,129,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 50% 50%,  rgba(34,211,238,0.02) 0%, transparent 70%);
 }
 
 .grid-bg-light {
