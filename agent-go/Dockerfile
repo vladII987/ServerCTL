@@ -9,5 +9,5 @@ RUN AGENT_VERSION=$(cat VERSION 2>/dev/null || echo "dev") && \
     GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X main.agentVersion=${AGENT_VERSION}" -o /out/serverctl-agent-windows-amd64.exe .
 
 FROM alpine:3.20
-COPY --from=builder /out/ /agent-bins/
-CMD ["echo", "Agent binaries built"]
+COPY --from=builder /out/ /built/
+CMD cp -f /built/* /agent-bins/
