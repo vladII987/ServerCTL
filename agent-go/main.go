@@ -1418,6 +1418,10 @@ func serviceCmd(action, name string) string {
 			return fmt.Sprintf("net stop %s & net start %s", name, name)
 		case "status":
 			return fmt.Sprintf("sc query %s", name)
+		case "enable":
+			return fmt.Sprintf("sc config %s start= auto", name)
+		case "disable":
+			return fmt.Sprintf("sc config %s start= disabled", name)
 		}
 	}
 	return fmt.Sprintf("systemctl %s %s", action, name)

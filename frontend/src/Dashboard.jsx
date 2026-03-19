@@ -4317,6 +4317,27 @@ const Dashboard = () => {
                         <button onClick={() => setServiceFloatingOpen(false)} style={{ ...styles.btn, padding: '3px 8px', fontSize: '10px', ...styles.btnSecondary }}>✕</button>
                       </div>
                     </div>
+                    {/* Service action buttons */}
+                    {isAdmin && (
+                      <div style={{ display: 'flex', gap: '4px', padding: '8px 14px', borderBottom: `1px solid var(--border-color)`, flexWrap: 'wrap', flexShrink: 0 }}>
+                        {['start', 'stop', 'restart', 'enable', 'disable'].map(action => (
+                          <button key={action} onClick={async () => {
+                            setServiceDetail(`Running ${action}...`);
+                            try {
+                              const data = await agentAction(`service:${action}:${selectedService}`);
+                              setServiceDetail(data.output || `${action} completed.`);
+                              setTimeout(() => fetchServiceDetail(selectedService), 1000);
+                            } catch (err) { setServiceDetail('Error: ' + err.message); }
+                          }} style={{
+                            ...styles.btn, padding: '5px 12px', fontSize: '11px', fontWeight: '600', border: 'none', borderRadius: '6px', cursor: 'pointer',
+                            background: action === 'start' || action === 'enable' ? '#10b981' : action === 'stop' || action === 'disable' ? '#ef4444' : '#f59e0b',
+                            color: '#fff'
+                          }}>
+                            {action.charAt(0).toUpperCase() + action.slice(1)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     {/* Content */}
                     <pre style={{ margin: 0, padding: '12px 14px', flex: 1, overflowY: 'auto', fontSize: '11px', lineHeight: '1.6', fontFamily: '"JetBrains Mono", monospace', color: 'var(--text-primary)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', background: darkMode ? '#1a1a1a' : '#f5f5f0' }}>
                       {serviceDetail || 'Click a service to view details...'}
