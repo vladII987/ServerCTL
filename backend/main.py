@@ -189,27 +189,25 @@ async def agent_connect(websocket: WebSocket, token: str = Query(...)):
             hostname = msg.get("hostname", "")
             platform = msg.get("platform", "Linux")
 
-            # Auto-register: agent has a valid token but no server entry exists
-            # Only allow auto-registration if token matches a per-server token
-            # or the shared AGENT_TOKEN (for backwards compatibility)
-            if not server and token != settings.AGENT_TOKEN:
-                print(f"[Agent] Rejected: unknown token from {actual_host} ({hostname})")
-                await websocket.close(1008, "Invalid token")
-                return
+            # Auto-register: agent has a token but no server entry exists
             if not server:
                 # Check if server already exists by IP or hostname
+                # (handles delete + re-add — agent keeps old token, re-links automatically)
                 existing = registry.get_by_host(actual_host)
                 if not existing and hostname:
                     existing = registry.get_by_hostname(hostname)
 
                 if existing:
                     # Server exists — just update its token to match the agent
+                    # (handles delete + re-add without re-running install command)
                     existing["agent_token"] = token
                     registry.save()
                     server = existing
                     host = existing["host"]
                     print(f"[Agent] Re-linked: {hostname or actual_host} ({actual_host}) — token updated")
-                else:
+                elif token == settings.AGENT_TOKEN:
+                    # Only allow brand new auto-registration with the shared AGENT_TOKEN
+                    # This prevents old agents from previous installs auto-registering
                     s_id = actual_host.replace(".", "-")
                     server = {
                         "id": s_id,
@@ -226,6 +224,10 @@ async def agent_connect(websocket: WebSocket, token: str = Query(...)):
                     registry.add(server)
                     host = actual_host
                     print(f"[Agent] Auto-registered: {hostname or actual_host} ({actual_host}) [{platform}]")
+                else:
+                    print(f"[Agent] Rejected: unknown token from {actual_host} ({hostname}) — not from this installation")
+                    await websocket.close(1008, "Invalid token")
+                    return
             else:
                 # Update host IP if it changed (e.g. DHCP)
                 if actual_host and actual_host != host:
