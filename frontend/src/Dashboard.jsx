@@ -3685,7 +3685,7 @@ const Dashboard = () => {
       {navSection === 'logs' && (
         <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '16px', height: 'calc(100vh - 120px)' }}>
           {/* Server list */}
-          <div style={{ background: darkMode ? 'rgba(22,22,42,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid var(--border-color)`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: darkMode ? 'rgba(37,81,94,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid var(--border-color)`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <div style={{ padding: '12px 14px', borderBottom: `1px solid var(--border-color)`, fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Online Servers</div>
             <div style={{ overflowY: 'auto', flex: 1 }}>
               {servers.filter(s => s.online).length === 0 && <div style={{ padding: '20px', fontSize: '13px', color: 'var(--text-muted)' }}>No servers online</div>}
@@ -3705,7 +3705,7 @@ const Dashboard = () => {
           </div>
 
           {/* Log viewer panel */}
-          <div style={{ background: darkMode ? 'rgba(22,22,42,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid var(--border-color)`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ background: darkMode ? 'rgba(37,81,94,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid var(--border-color)`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {!logsServer ? (
               <div style={styles.empty}>
                 <div style={{ fontSize: '36px', opacity: 0.3, marginBottom: '12px' }}>📋</div>
@@ -3775,7 +3775,7 @@ const Dashboard = () => {
       {navSection === 'shell' && (
         <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '16px', margin: '-24px', height: 'calc(100vh - 68px)' }}>
           {/* Server list */}
-          <div style={{ background: darkMode ? 'rgba(22,22,42,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid var(--border-color)`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: darkMode ? 'rgba(37,81,94,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid var(--border-color)`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             {/* Mode toggle */}
             <div style={{ display: 'flex', borderBottom: `1px solid var(--border-color)` }}>
               {['ssh', 'rdp'].map(mode => (
@@ -3810,7 +3810,7 @@ const Dashboard = () => {
           </div>
 
           {/* Terminal / RDP panel */}
-          <div style={{ background: darkMode ? 'rgba(22,22,42,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid var(--border-color)`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ background: darkMode ? 'rgba(37,81,94,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid var(--border-color)`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {!shellServer ? (
               <div style={styles.empty}>
                 <div style={{ fontSize: '36px', opacity: 0.3, marginBottom: '12px' }}>{shellMode === 'ssh' ? '⌨' : '🖥'}</div>
@@ -4107,7 +4107,7 @@ const Dashboard = () => {
         return (
           <div>
             {/* Server header bar */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', padding: '12px 16px', background: darkMode ? 'rgba(22,22,42,0.7)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', borderRadius: '12px', border: `1px solid var(--border-color)` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', padding: '12px 16px', background: darkMode ? 'rgba(37,81,94,0.7)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', borderRadius: '12px', border: `1px solid var(--border-color)` }}>
               <button onClick={() => { setSelectedServer(null); setNavSection('servers'); }} style={{ ...styles.btn, ...styles.btnSecondary, padding: '5px 12px', fontSize: '12px', flexShrink: 0 }}>← Back</button>
               <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: selectedServer.online ? '#10b981' : '#ef4444', boxShadow: selectedServer.online ? '0 0 8px #10b98180' : 'none', flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -4131,7 +4131,7 @@ const Dashboard = () => {
                     { label: 'RAM', val: sm.ram_percent, unit: '%', sub: `${sm.ram_used_gb}/${sm.ram_total_gb} GB`, color: '#c084fc' },
                     { label: 'Disk', val: sm.disk_percent, unit: '%', sub: `${sm.disk_used_gb}/${sm.disk_total_gb} GB`, color: '#f59e0b' },
                   ].map(m => (
-                    <div key={m.label} style={{ background: darkMode ? 'rgba(22,22,42,0.7)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', borderRadius: '8px', padding: '10px 14px', border: `1px solid var(--border-color)` }}>
+                    <div key={m.label} style={{ background: darkMode ? 'rgba(37,81,94,0.7)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', borderRadius: '8px', padding: '10px 14px', border: `1px solid var(--border-color)` }}>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '6px' }}>{m.label}</div>
                       <div style={{ height: '4px', borderRadius: '2px', background: 'var(--border-color)', marginBottom: '6px', overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${m.val || 0}%`, background: m.color, transition: 'width 0.4s' }} />
@@ -5123,7 +5123,7 @@ const Dashboard = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       {osOptions.map(os => (
                         <div key={os.id} onClick={() => !os.disabled && setWizardOS(os.id)}
-                          style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 18px', borderRadius: '8px', border: `2px solid ${wizardOS === os.id ? '#22d3ee' : 'var(--border-color)'}`, background: wizardOS === os.id ? 'rgba(0,212,255,0.08)' : 'rgba(22,22,42,0.4)', cursor: os.disabled ? 'not-allowed' : 'pointer', opacity: os.disabled ? 0.45 : 1, transition: 'all 0.15s' }}>
+                          style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 18px', borderRadius: '8px', border: `2px solid ${wizardOS === os.id ? '#22d3ee' : 'var(--border-color)'}`, background: wizardOS === os.id ? 'rgba(0,212,255,0.08)' : 'rgba(37,81,94,0.4)', cursor: os.disabled ? 'not-allowed' : 'pointer', opacity: os.disabled ? 0.45 : 1, transition: 'all 0.15s' }}>
                           <div style={{ fontSize: '32px' }}>{os.icon}</div>
                           <div>
                             <div style={{ fontWeight: '600', fontSize: '15px', color: 'var(--text-primary)' }}>{os.label}</div>
