@@ -2456,8 +2456,9 @@ const Dashboard = () => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', color: 'var(--text-primary)', fontFamily: '"DM Sans", -apple-system, sans-serif', background: 'var(--bg-primary)', position: 'relative' }}>
       <style dangerouslySetInnerHTML={{ __html: `
-        * { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif !important; }
+        *:not(.xterm *):not(.xterm) { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif !important; }
         code, pre, .mono, .terminal-output { font-family: 'JetBrains Mono', monospace !important; }
+        .xterm, .xterm * { font-family: 'JetBrains Mono', monospace !important; }
         .probe-info-wrap:hover .probe-info-icon { background: var(--color-primary) !important; color: #fff !important; }
         .probe-info-wrap:hover .probe-tooltip { display: block !important; }
         input, select, textarea { color-scheme: ${darkMode ? 'dark' : 'light'}; }
