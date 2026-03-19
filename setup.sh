@@ -567,7 +567,7 @@ NGINXEOF
         python3 -m venv "$RDPVENV" || err "Failed to create rdpbridge venv."
     fi
     "$RDPVENV/bin/pip" install -q --upgrade pip
-    "$RDPVENV/bin/pip" install -q "websockets>=13.0"
+    "$RDPVENV/bin/pip" install -q -r "$DIR/rdpbridge/requirements.txt"
     ok "RDP bridge dependencies installed."
 
     # ── systemd service for rdpbridge ─────────────────────────
