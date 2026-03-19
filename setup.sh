@@ -307,7 +307,7 @@ if [[ "$MODE" == "native" ]]; then
 
     _install_pkg() {
         if command -v apt-get >/dev/null 2>&1; then
-            wait_for_apt && apt-get update -qq && wait_for_apt && apt-get install -y "$@" -qq
+            wait_for_apt; apt-get update -qq 2>/dev/null || true; wait_for_apt && apt-get install -y "$@" -qq
         elif command -v dnf >/dev/null 2>&1; then
             dnf install -y "$@"
         elif command -v yum >/dev/null 2>&1; then
@@ -475,6 +475,12 @@ if [[ "$MODE" == "native" ]]; then
     VITE_APP_VERSION="${APP_VERSION}" \
         npm run build -- --logLevel silent
     ok "Frontend built → frontend/dist/"
+
+    # Fix ownership so non-root users can rebuild later
+    REAL_USER="${SUDO_USER:-$USER}"
+    if [[ -n "$REAL_USER" ]] && [[ "$REAL_USER" != "root" ]]; then
+        chown -R "$REAL_USER":"$REAL_USER" "$DIR/frontend/node_modules" "$DIR/frontend/dist" 2>/dev/null || true
+    fi
     cd "$DIR"
 
     # ── nginx config ──────────────────────────────────────────
