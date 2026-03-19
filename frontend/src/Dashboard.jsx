@@ -2850,7 +2850,7 @@ const Dashboard = () => {
                       ) : <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>—</span>}
                     </td>
                     {/* IP */}
-                    <td style={{ ...styles.td, fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', color: 'var(--text-muted)' }}>{s.host}</td>
+                    <td style={{ ...styles.td, fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', color: 'var(--text-secondary)' }}>{s.host}</td>
                     {/* Agent Version */}
                     <td style={styles.td}>
                       {s.agent_version ? (
@@ -3096,7 +3096,7 @@ const Dashboard = () => {
                         <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: s.online ? '#10b981' : '#ef4444', boxShadow: s.online ? '0 0 4px #10b98180' : 'none' }} />
                         <div>
                           <div style={{ fontWeight: '600', fontSize: '13px' }}>{String(s.name||'')}</div>
-                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: '"JetBrains Mono", monospace' }}>{s.host}</div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontFamily: '"JetBrains Mono", monospace' }}>{s.host}</div>
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -3637,7 +3637,7 @@ const Dashboard = () => {
                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: s.online ? '#10b981' : '#ef4444', boxShadow: s.online ? '0 0 5px #10b98180' : 'none' }} />
                         <div>
                           <span style={{ fontWeight: '700', fontSize: '14px' }}>{String(s.name||'')}</span>
-                          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: '"JetBrains Mono", monospace', marginLeft: '8px' }}>{s.host}</span>
+                          <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontFamily: '"JetBrains Mono", monospace', marginLeft: '8px' }}>{s.host}</span>
                         </div>
                         {!s.online && <span style={{ background: '#ef444418', color: '#ef4444', fontSize: '10px', padding: '1px 7px', borderRadius: '8px', fontWeight: '700', border: '1px solid #ef444440' }}>Offline</span>}
                         {s.pending_updates?.reboot_required && <span style={{ background: '#ef444418', color: '#ef4444', fontSize: '10px', padding: '1px 7px', borderRadius: '8px', fontWeight: '700', border: '1px solid #ef444440' }}>⚠ Reboot required</span>}
@@ -3685,18 +3685,18 @@ const Dashboard = () => {
       {navSection === 'logs' && (
         <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '16px', height: 'calc(100vh - 120px)' }}>
           {/* Server list */}
-          <div style={{ background: darkMode ? 'rgba(37,81,94,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid var(--border-color)`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: darkMode ? 'var(--bg-primary)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid var(--border-color)`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <div style={{ padding: '12px 14px', borderBottom: `1px solid var(--border-color)`, fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Online Servers</div>
             <div style={{ overflowY: 'auto', flex: 1 }}>
               {servers.filter(s => s.online).length === 0 && <div style={{ padding: '20px', fontSize: '13px', color: 'var(--text-muted)' }}>No servers online</div>}
               {servers.filter(s => s.online).map(s => (
                 <div key={s.id} onClick={() => selectLogsServer(s)}
-                  style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: `1px solid var(--border-color)20`, background: logsServer?.id === s.id ? (darkMode ? '#181835' : '#f5f5f0') : 'transparent', borderLeft: `3px solid ${logsServer?.id === s.id ? 'var(--color-primary)' : 'transparent'}`, transition: 'all 0.1s' }}>
+                  style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: `1px solid var(--border-color)20`, background: logsServer?.id === s.id ? (darkMode ? 'var(--bg-card-hover)' : '#f5f5f0') : 'transparent', borderLeft: `3px solid ${logsServer?.id === s.id ? 'var(--color-primary)' : 'transparent'}`, transition: 'all 0.1s' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                     <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 5px #10b98180', flexShrink: 0 }} />
                     <div>
                       <div style={{ fontSize: '13px', fontWeight: '600' }}>{String(s.name || '')}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: '"JetBrains Mono", monospace' }}>{s.host}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontFamily: '"JetBrains Mono", monospace' }}>{s.host}</div>
                     </div>
                   </div>
                 </div>
@@ -3705,7 +3705,7 @@ const Dashboard = () => {
           </div>
 
           {/* Log viewer panel */}
-          <div style={{ background: darkMode ? 'rgba(37,81,94,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid var(--border-color)`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ background: darkMode ? 'var(--bg-primary)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid var(--border-color)`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {!logsServer ? (
               <div style={styles.empty}>
                 <div style={{ fontSize: '36px', opacity: 0.3, marginBottom: '12px' }}>📋</div>
@@ -3738,7 +3738,7 @@ const Dashboard = () => {
                         ? <div style={{ padding: '16px', fontSize: '12px', color: 'var(--text-muted)' }}>{logsListLoading ? 'Loading...' : 'No log files found'}</div>
                         : logsFiles.map((f, i) => (
                           <div key={i} onClick={() => loadLogFile(logsServer, f.path)}
-                            style={{ padding: '9px 12px', cursor: 'pointer', borderBottom: `1px solid var(--border-color)15`, background: logsSelectedItem === f.path ? (darkMode ? '#181835' : '#f5f5f0') : 'transparent', borderLeft: `3px solid ${logsSelectedItem === f.path ? 'var(--color-primary)' : 'transparent'}`, transition: 'all 0.1s' }}>
+                            style={{ padding: '9px 12px', cursor: 'pointer', borderBottom: `1px solid var(--border-color)15`, background: logsSelectedItem === f.path ? (darkMode ? 'var(--bg-card-hover)' : '#f5f5f0') : 'transparent', borderLeft: `3px solid ${logsSelectedItem === f.path ? 'var(--color-primary)' : 'transparent'}`, transition: 'all 0.1s' }}>
                             <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</div>
                             <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{(f.size / 1024).toFixed(1)} KB</div>
                           </div>
@@ -3775,7 +3775,7 @@ const Dashboard = () => {
       {navSection === 'shell' && (
         <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '16px', margin: '-24px', height: 'calc(100vh - 68px)' }}>
           {/* Server list */}
-          <div style={{ background: darkMode ? 'rgba(37,81,94,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid var(--border-color)`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: darkMode ? 'var(--bg-primary)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid var(--border-color)`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             {/* Mode toggle */}
             <div style={{ display: 'flex', borderBottom: `1px solid var(--border-color)` }}>
               {['ssh', 'rdp'].map(mode => (
@@ -3801,7 +3801,7 @@ const Dashboard = () => {
                     <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: s.online ? '#a6d189' : '#e78284', boxShadow: s.online ? '0 0 5px rgba(166,209,137,0.5)' : 'none', flexShrink: 0 }} />
                     <div>
                       <div style={{ fontSize: '13px', fontWeight: '600' }}>{String(s.name || '')}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: '"JetBrains Mono", monospace' }}>{s.host}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontFamily: '"JetBrains Mono", monospace' }}>{s.host}</div>
                     </div>
                   </div>
                 </div>
@@ -3810,7 +3810,7 @@ const Dashboard = () => {
           </div>
 
           {/* Terminal / RDP panel */}
-          <div style={{ background: darkMode ? 'rgba(37,81,94,0.80)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid var(--border-color)`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ background: darkMode ? 'var(--bg-primary)' : 'rgba(255,255,255,0.80)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: `1px solid var(--border-color)`, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {!shellServer ? (
               <div style={styles.empty}>
                 <div style={{ fontSize: '36px', opacity: 0.3, marginBottom: '12px' }}>{shellMode === 'ssh' ? '⌨' : '🖥'}</div>
@@ -3980,7 +3980,7 @@ const Dashboard = () => {
                 <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 5px #10b98180' }} />
                 <span style={{ fontWeight: '600' }}>{String(s.name||'')}</span>
               </div>
-              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', color: 'var(--text-muted)' }}>{s.host}</span>
+              <span style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '12px', color: 'var(--text-secondary)' }}>{s.host}</span>
             </div>
           ))}
           {servers.filter(s=>s.online).length === 0 && <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No agents currently connected.</div>}
@@ -4107,7 +4107,7 @@ const Dashboard = () => {
         return (
           <div>
             {/* Server header bar */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', padding: '12px 16px', background: darkMode ? 'rgba(37,81,94,0.7)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', borderRadius: '12px', border: `1px solid var(--border-color)` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', padding: '12px 16px', background: darkMode ? 'var(--bg-card)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', borderRadius: '12px', border: `1px solid var(--border-color)` }}>
               <button onClick={() => { setSelectedServer(null); setNavSection('servers'); }} style={{ ...styles.btn, ...styles.btnSecondary, padding: '5px 12px', fontSize: '12px', flexShrink: 0 }}>← Back</button>
               <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: selectedServer.online ? '#10b981' : '#ef4444', boxShadow: selectedServer.online ? '0 0 8px #10b98180' : 'none', flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -4131,7 +4131,7 @@ const Dashboard = () => {
                     { label: 'RAM', val: sm.ram_percent, unit: '%', sub: `${sm.ram_used_gb}/${sm.ram_total_gb} GB`, color: '#c084fc' },
                     { label: 'Disk', val: sm.disk_percent, unit: '%', sub: `${sm.disk_used_gb}/${sm.disk_total_gb} GB`, color: '#f59e0b' },
                   ].map(m => (
-                    <div key={m.label} style={{ background: darkMode ? 'rgba(37,81,94,0.7)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', borderRadius: '8px', padding: '10px 14px', border: `1px solid var(--border-color)` }}>
+                    <div key={m.label} style={{ background: darkMode ? 'var(--bg-card)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', borderRadius: '8px', padding: '10px 14px', border: `1px solid var(--border-color)` }}>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '600', marginBottom: '6px' }}>{m.label}</div>
                       <div style={{ height: '4px', borderRadius: '2px', background: 'var(--border-color)', marginBottom: '6px', overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${m.val || 0}%`, background: m.color, transition: 'width 0.4s' }} />
@@ -5123,7 +5123,7 @@ const Dashboard = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       {osOptions.map(os => (
                         <div key={os.id} onClick={() => !os.disabled && setWizardOS(os.id)}
-                          style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 18px', borderRadius: '8px', border: `2px solid ${wizardOS === os.id ? '#ffb812' : 'var(--border-color)'}`, background: wizardOS === os.id ? 'rgba(0,212,255,0.08)' : 'rgba(37,81,94,0.4)', cursor: os.disabled ? 'not-allowed' : 'pointer', opacity: os.disabled ? 0.45 : 1, transition: 'all 0.15s' }}>
+                          style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 18px', borderRadius: '8px', border: `2px solid ${wizardOS === os.id ? '#ffb812' : 'var(--border-color)'}`, background: wizardOS === os.id ? 'rgba(0,212,255,0.08)' : 'var(--bg-card)', cursor: os.disabled ? 'not-allowed' : 'pointer', opacity: os.disabled ? 0.45 : 1, transition: 'all 0.15s' }}>
                           <div style={{ fontSize: '32px' }}>{os.icon}</div>
                           <div>
                             <div style={{ fontWeight: '600', fontSize: '15px', color: 'var(--text-primary)' }}>{os.label}</div>
@@ -5289,7 +5289,7 @@ const Dashboard = () => {
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'var(--bg-card-hover)', borderRadius: '6px', marginBottom: '8px' }}>
                       <div>
                         <div style={{ fontWeight: '500' }}>{String(s.host || '')}</div>
-                        {s.hostname && <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{String(s.hostname)}</div>}
+                        {s.hostname && <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{String(s.hostname)}</div>}
                       </div>
                       <button onClick={() => addScannedServer(s)} style={{ ...styles.btn, ...styles.btnPrimary, padding: '6px 12px', fontSize: '12px' }}>Add</button>
                     </div>
@@ -5337,7 +5337,7 @@ const Dashboard = () => {
                       style={{ width: '16px', height: '16px', accentColor: '#ef4444', flexShrink: 0 }} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '13px', fontWeight: '600', color: checked ? 'var(--text-primary)' : 'var(--text-muted)' }}>{s.name}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: '"JetBrains Mono", monospace' }}>{s.host}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontFamily: '"JetBrains Mono", monospace' }}>{s.host}</div>
                     </div>
                     <span style={{ fontSize: '11px', background: checked ? '#ef444420' : 'var(--bg-card-hover)', color: checked ? '#ef4444' : 'var(--text-muted)', padding: '2px 8px', borderRadius: '8px', fontWeight: '600' }}>
                       {checked ? 'reboot' : 'preskoči'}
