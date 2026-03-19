@@ -1,6 +1,7 @@
 /* ─── Design System v7.0 — "Obsidian Control" ─── */
 /* Industrial-refined · Deep charcoal · Cyan accent · DM Sans */
 
+/* SF Pro via system stack; DM Sans as web fallback */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap');
 
 /* ─── CSS Custom Properties ─── */
@@ -152,13 +153,13 @@
 html { font-size: 16px; line-height: var(--leading-normal); }
 
 body {
-  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
   line-height: var(--leading-normal);
   letter-spacing: -0.01em;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: "DM Sans", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "DM Sans", sans-serif;
   font-weight: 700;
   line-height: var(--leading-tight);
   letter-spacing: -0.025em;
@@ -166,7 +167,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ─── Form Elements ─── */
 button, input, select, textarea {
-  font-family: "DM Sans", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "DM Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 

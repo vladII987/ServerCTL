@@ -99,9 +99,9 @@ const LoginPage = ({ onLogin, darkMode, toggleDark }) => {
   };
 
   return (
-    <div data-theme={darkMode ? 'dark' : 'light'} style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"DM Sans", sans-serif', color: 'var(--text-primary)', position: 'relative', overflow: 'hidden' }}>
+    <div data-theme={darkMode ? 'dark' : 'light'} style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "DM Sans", sans-serif', color: 'var(--text-primary)', position: 'relative', overflow: 'hidden' }}>
       <style>{`
-        .login-input { font-family: "DM Sans", sans-serif !important; font-size: 14px !important; }
+        .login-input { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "DM Sans", sans-serif !important; font-size: 14px !important; }
         .login-input:focus { border-color: var(--color-primary) !important; box-shadow: 0 0 0 3px var(--color-primary-ring) !important; outline: none; }
         .login-btn:hover:not(:disabled) { background: #22d3ee !important; box-shadow: 0 8px 24px rgba(34,211,238,0.35) !important; transform: translateY(-1px); }
         .login-btn:active:not(:disabled) { transform: translateY(0) !important; }
@@ -1901,7 +1901,7 @@ const Dashboard = () => {
       minHeight: '100vh',
       background: 'var(--bg-primary)',
       padding: 'var(--space-3)',
-      fontFamily: '"DM Sans", -apple-system, BlinkMacSystemFont, sans-serif',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif',
       color: 'var(--text-primary)',
       transition: 'background 0.3s, color 0.3s',
     },
@@ -1943,7 +1943,7 @@ const Dashboard = () => {
       gap: '6px',
       letterSpacing: '-0.01em',
       borderRadius: 'var(--radius-md)',
-      fontFamily: '"DM Sans", sans-serif',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "DM Sans", sans-serif',
     },
     btnPrimary: {
       background: 'linear-gradient(135deg, #22d3ee, #06b6d4)',
@@ -2454,9 +2454,9 @@ const Dashboard = () => {
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', color: 'var(--text-primary)', fontFamily: '"DM Sans", -apple-system, sans-serif', background: 'var(--bg-primary)', position: 'relative' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', color: 'var(--text-primary)', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "DM Sans", -apple-system, sans-serif', background: 'var(--bg-primary)', position: 'relative' }}>
       <style dangerouslySetInnerHTML={{ __html: `
-        *:not(.xterm *):not(.xterm) { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif !important; }
+        *:not(.xterm *):not(.xterm) { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif !important; }
         code, pre, .mono, .terminal-output { font-family: 'JetBrains Mono', monospace !important; }
         .xterm, .xterm * { font-family: 'JetBrains Mono', monospace !important; }
         .probe-info-wrap:hover .probe-info-icon { background: var(--color-primary) !important; color: #fff !important; }
