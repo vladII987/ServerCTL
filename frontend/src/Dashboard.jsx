@@ -642,7 +642,7 @@ const Dashboard = () => {
       setLoading(false);
       // Fetch latest agent version from backend
       try {
-        const hRes = await fetch('/health');
+        const hRes = await fetch('/api/health');
         const hData = await hRes.json();
         if (hData.agent_version) setLatestAgentVersion(hData.agent_version);
       } catch {}

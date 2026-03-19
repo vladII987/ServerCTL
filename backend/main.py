@@ -124,6 +124,7 @@ class CreateUserRequest(BaseModel):
 
 # ─── Health ───────────────────────────────────────────────────
 @app.get("/health")
+@app.get("/api/health")
 async def health():
     return {"status": "online", "timestamp": datetime.utcnow().isoformat(), "version": APP_VERSION, "agent_version": AGENT_VERSION}
 
