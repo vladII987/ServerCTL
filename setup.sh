@@ -44,9 +44,9 @@ esac
 echo ""
 
 # ── Select ports ───────────────────────────────────────────────
-ask "Frontend port [8090]: "
+ask "Frontend port [8443]: "
 read -rp "  → " FRONTEND_PORT_IN
-FRONTEND_PORT="${FRONTEND_PORT_IN:-8090}"
+FRONTEND_PORT="${FRONTEND_PORT_IN:-8443}"
 
 ask "Backend port [8765]: "
 read -rp "  → " BACKEND_PORT_IN

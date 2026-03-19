@@ -107,7 +107,7 @@ Dashboard will be available at:
 ```
 http://<your-host>:<FRONTEND_PORT>
 ```
-Default frontend port: **8090**. Default backend port: **8765**.
+Default frontend port: **8443**. Default backend port: **8765**.
 
 **Default credentials:** `admin` / `admin` — change immediately after first login.
 
@@ -123,7 +123,7 @@ The interactive setup script handles first-time installation and configuration. 
 Choose between **Docker** (recommended) or **Native** (direct install on Linux).
 
 **Step 2 — Port configuration**
-- **Frontend port** (default `8090`) — the port you open in your browser
+- **Frontend port** (default `8443`) — the port you open in your browser
 - **Backend port** (default `8765`) — the API and WebSocket port that agents connect to
 
 **Step 3 — Token generation**
@@ -157,7 +157,7 @@ All configuration is written to `.env` in the project root (never committed to g
 | `DASHBOARD_TOKEN` | Yes | Legacy token-based login fallback |
 | `SECRET_KEY` | Yes | JWT signing secret for user sessions |
 | `BACKEND_PORT` | No | Backend API port (default: `8765`) |
-| `FRONTEND_PORT` | No | Frontend web port (default: `8090`) |
+| `FRONTEND_PORT` | No | Frontend web port (default: `8443`) |
 | `PROMETHEUS_URL` | No | Prometheus endpoint for metrics (falls back to agent metrics if empty) |
 | `PUBLIC_HOST` | No | Public IP/hostname for agent install URLs (auto-detected) |
 | `SSL_MODE` | No | `none`, `selfsigned`, or `letsencrypt` (default: `none`) |
@@ -221,7 +221,7 @@ docker compose up --build -d
 |---------|-----------|--------------|---------|
 | `backend` | serverctl-backend | `8765` | FastAPI API server + WebSocket hub |
 | `rdpbridge` | serverctl-rdpbridge | `8080` (internal) | FreeRDP + TigerVNC remote desktop proxy |
-| `frontend` | serverctl-frontend | `8090` | nginx serving the React SPA |
+| `frontend` | serverctl-frontend | `8443` | nginx serving the React SPA |
 
 All containers communicate on the `guac-net` bridge network. Agent binaries in `agent-go/dist/` are mounted read-only into the backend container.
 
@@ -266,9 +266,9 @@ ansible-playbook -i inventory/hosts.yml deploy-agent.yml --ask-pass --limit serv
 ```
 
 Edit the variables at the top of the playbook:
-- `backend_url` — backend HTTP URL (e.g., `http://192.168.1.100:9090`)
+- `backend_url` — backend HTTP URL (e.g., `http://192.168.1.100:8765`)
 - `backend_token` — admin dashboard token for the registration API
-- `serverctl_ws_url` — WebSocket endpoint for agents (e.g., `ws://192.168.1.100:9090/ws/agent`)
+- `serverctl_ws_url` — WebSocket endpoint for agents (e.g., `ws://192.168.1.100:8765/ws/agent`)
 
 ### `update-token.yml`
 

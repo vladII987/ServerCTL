@@ -529,7 +529,7 @@ bash setup.sh
 Choose between **Docker** (recommended) or **Native** (direct install on Linux — Ubuntu, Debian, Fedora, CentOS, RHEL).
 
 **2. Port configuration**
-- **Frontend port** (default `8090`) — the port you open in your browser to access the dashboard
+- **Frontend port** (default `8443`) — the port you open in your browser to access the dashboard
 - **Backend port** (default `8765`) — the API and WebSocket port. Agents connect to this port. Also used internally by the frontend's nginx reverse proxy to reach the API.
 
 **3. Token generation**
@@ -700,9 +700,9 @@ Deploys and auto-registers agents across multiple servers using Ansible. Useful 
 
 | Variable | Description |
 |----------|-------------|
-| `backend_url` | Backend HTTP URL (e.g., `http://192.168.1.100:9090`) |
+| `backend_url` | Backend HTTP URL (e.g., `http://192.168.1.100:8765`) |
 | `backend_token` | Admin dashboard token for the server registration API |
-| `serverctl_ws_url` | WebSocket endpoint for agents (e.g., `ws://192.168.1.100:9090/ws/agent`) |
+| `serverctl_ws_url` | WebSocket endpoint for agents (e.g., `ws://192.168.1.100:8765/ws/agent`) |
 
 #### What it does
 
@@ -839,7 +839,7 @@ The script is interactive — it scans, shows results, lets you select which hos
 |---------|-----------|--------------|---------|
 | `backend` | serverctl-backend | `8765` | FastAPI API server + WebSocket hub |
 | `rdpbridge` | serverctl-rdpbridge | `8080` (internal) | FreeRDP + TigerVNC remote desktop proxy |
-| `frontend` | serverctl-frontend | `8090` | nginx serving the React SPA |
+| `frontend` | serverctl-frontend | `8443` | nginx serving the React SPA |
 
 All containers communicate on the `guac-net` bridge network.
 
@@ -860,7 +860,7 @@ All configuration is stored in `.env` (never committed to git).
 | `DASHBOARD_TOKEN` | Yes | Legacy token-based login fallback |
 | `SECRET_KEY` | Yes | JWT signing secret for user sessions |
 | `BACKEND_PORT` | No | Backend API port (default: `8765`) |
-| `FRONTEND_PORT` | No | Frontend web port (default: `8090`) |
+| `FRONTEND_PORT` | No | Frontend web port (default: `8443`) |
 | `PROMETHEUS_URL` | No | Prometheus endpoint for metrics (falls back to agent if empty) |
 | `PUBLIC_HOST` | No | Public IP/hostname for agent install URLs (auto-detected) |
 | `SSL_MODE` | No | `none`, `selfsigned`, or `letsencrypt` (default: `none`) |

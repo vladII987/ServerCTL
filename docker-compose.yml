@@ -82,7 +82,7 @@ services:
     container_name: serverctl-frontend
     restart: unless-stopped
     ports:
-      - "${FRONTEND_PORT:-8090}:${SSL_FRONTEND_CONTAINER_PORT:-80}"
+      - "${FRONTEND_PORT:-8443}:${SSL_FRONTEND_CONTAINER_PORT:-80}"
     volumes:
       - ${SSL_CERT_PATH:-/dev/null}:/etc/nginx/ssl/serverctl.crt:ro
       - ${SSL_KEY_PATH:-/dev/null}:/etc/nginx/ssl/serverctl.key:ro
