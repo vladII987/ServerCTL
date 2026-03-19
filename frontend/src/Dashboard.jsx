@@ -821,14 +821,7 @@ const Dashboard = () => {
   const closeWizard = async () => {
     setShowWizard(false);
     if (wizardPollRef.current) { clearInterval(wizardPollRef.current); wizardPollRef.current = null; }
-    // Delete the server if it was created but agent never connected
-    const sid = wizardServerId || wizardServerIdRef.current;
-    if (sid && !wizardConnected) {
-      try {
-        await fetch(`/api/servers/${encodeURIComponent(sid)}`, { method: 'DELETE', headers: authHeader });
-        fetchServers();
-      } catch {}
-    }
+    fetchServers();
   };
 
   const fetchWizardInstallCmd = async (server_id, os) => {
