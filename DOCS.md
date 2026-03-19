@@ -1,6 +1,6 @@
 # ServerCTL — Official Documentation
 
-> **Version:** 1.3.3 | **Agent:** Go (cross-platform)
+> **Version:** 1.4.0 | **Agent:** Go (cross-platform)
 
 ---
 
@@ -23,15 +23,31 @@
    - [Probe Monitor](#probe-monitor)
 6. [Logs](#logs)
 7. [Shell](#shell)
-8. [Updates](#updates)
-9. [Agents](#agents)
-10. [Activity](#activity)
-11. [Schedules](#schedules)
-12. [Settings](#settings)
-13. [Agent Installation](#agent-installation)
+8. [RDP](#rdp)
+9. [Updates](#updates)
+10. [Agents](#agents)
+11. [Activity](#activity)
+12. [Schedules](#schedules)
+13. [Settings](#settings)
+14. [Installation & Configuration](#installation--configuration)
+    - [setup.sh — First-Time Setup](#setupsh--first-time-setup)
+    - [update.sh — Update & Rebuild](#updatesh--update--rebuild)
+    - [uninstall.sh — Complete Removal](#uninstallsh--complete-removal)
+    - [SSL/HTTPS Configuration](#sslhttps-configuration)
+15. [Agent Installation](#agent-installation)
     - [Linux](#linux-agent)
     - [Windows](#windows-agent)
-14. [Versioning](#versioning)
+16. [Ansible Playbooks](#ansible-playbooks)
+    - [deploy-agent.yml — Bulk Agent Deployment](#deploy-agentyml--bulk-agent-deployment)
+    - [update-token.yml — Token Rotation](#update-tokenyml--token-rotation)
+17. [Inventory & Discovery Tools](#inventory--discovery-tools)
+    - [gen-inventory.py — Ansible Inventory Generator](#gen-inventorypy--ansible-inventory-generator)
+    - [scan.py — Network Scanner & Host Discovery](#scanpy--network-scanner--host-discovery)
+18. [Docker Compose Services](#docker-compose-services)
+19. [Environment Variables](#environment-variables)
+20. [API Endpoints](#api-endpoints)
+21. [Versioning](#versioning)
+22. [Security Notes](#security-notes)
 
 ---
 
@@ -44,21 +60,21 @@ ServerCTL is a self-hosted infrastructure management dashboard. It lets you moni
 Browser
   └── Frontend (React + Vite, served by nginx)
         └── Backend API (FastAPI, Python)
-              └── Agent WebSocket connections
-                    └── Agent (Go binary, runs on each managed server)
+              ├── WebSocket hub ← Agent connections
+              └── RDP Bridge (FreeRDP + TigerVNC + noVNC)
 ```
 
-Agents connect **outbound** to the backend over WebSocket. The backend never initiates a connection to a managed server — this means managed servers only need outbound internet access.
+Agents connect **outbound** to the backend over WebSocket. The backend never initiates a connection to a managed server — managed servers only need outbound access to the ServerCTL host.
 
 **Deployment modes:**
-- **Docker mode** — backend and frontend run as Docker containers (recommended)
-- **Native mode** — Python venv + nginx, no Docker required
+- **Docker mode** — backend, rdpbridge, and frontend run as Docker containers (recommended)
+- **Native mode** — Python venvs + nginx, no Docker required
 
 ---
 
 ## Navigation
 
-The left sidebar contains the main navigation. The sidebar can be collapsed to icon-only mode using the toggle button.
+The left sidebar contains the main navigation. It can be collapsed to icon-only mode using the toggle button. The sidebar auto-collapses when the browser window is resized below 1100px.
 
 | Icon | Section | Purpose |
 |------|---------|---------|
@@ -67,6 +83,7 @@ The left sidebar contains the main navigation. The sidebar can be collapsed to i
 | ⬡ | **Networks** | Network scan, speed test, probe monitor |
 | ≡ | **Logs** | Browse and view log files on any server |
 | >_ | **Shell** | Browser-based SSH terminal (Linux servers only) |
+| 🖥 | **RDP** | Browser-based remote desktop (Windows + Linux) |
 | ↑ | **Updates** | Servers with pending OS/package updates — apply in bulk |
 | ◈ | **Agents** | Agent version tracking, selective updates, status overview |
 | ◷ | **Activity** | Log of all actions performed through the dashboard |
@@ -110,6 +127,10 @@ Displays a **compliance rate** percentage (how many servers are fully up to date
 
 A compact list of all registered servers with their online/offline status indicator, reboot warning, and pending package count badge.
 
+### Ping Monitor
+
+ICMP ping sweep of all registered servers from the backend. Shows latency in ms or timeout status for each server.
+
 ### Servers Needing Updates
 
 If any servers have pending updates, a full list appears with:
@@ -132,6 +153,7 @@ The main Servers section shows all registered servers in a table.
 | Button | Description |
 |--------|-------------|
 | **+ Add Server** | Opens the Add Server wizard to register a new server |
+| **Import CSV** | Bulk import servers from a CSV file |
 | **Search** | Filter the server list by name or IP |
 | **Status filter** | Dropdown to filter by: All / Online / Offline / Needs Reboot / Needs Updates |
 | **Group filter** | Filter servers by group |
@@ -143,7 +165,7 @@ The main Servers section shows all registered servers in a table.
 | Button | Description |
 |--------|-------------|
 | **Checkbox** | Select this server for bulk actions |
-| **Status dot** | Green = online, Red = offline, animated glow when online |
+| **Status dot** | Green = online, Red = offline |
 | **Manage** (or click row) | Opens full per-server management view |
 | **SSH** button (>_) | Jumps directly to the Shell tab with this server selected |
 | **Reboot** | Appears only for servers with `reboot_required` flag — initiates a reboot with confirmation |
@@ -361,6 +383,26 @@ The terminal emulator supports full color output, resize, scrollback, and copy/p
 
 ---
 
+## RDP
+
+Browser-based remote desktop using FreeRDP + TigerVNC + noVNC. Works with both Windows and Linux servers that have RDP/VNC enabled.
+
+| Control | Description |
+|---------|-------------|
+| **Server list** (left panel) | Click a server to select it for connection |
+| **Username** | RDP username |
+| **Password** | RDP password |
+| **Domain** | Windows domain (optional) |
+| **Port** | RDP port (default: `3389`) |
+| **Resolution** | Screen width x height |
+| **Security** | RDP security mode (rdp, tls, nla) |
+| **Connect** | Establishes the RDP session via WebSocket |
+| **Disconnect** | Closes the active RDP session |
+
+**Clipboard support:** requires HTTPS (self-signed or Let's Encrypt). The browser clipboard API is only available in secure contexts.
+
+---
+
 ## Updates
 
 The Updates section shows all servers that have pending **OS/package updates**. This is for operating system updates only — agent updates are managed in the [Agents](#agents) tab.
@@ -383,7 +425,7 @@ The Updates section shows all servers that have pending **OS/package updates**. 
 | Element | Description |
 |---------|-------------|
 | **Checkbox** | Select this server for bulk upgrade |
-| **Package count badge** | Number of packages with available updates (e.g. `↑ 14 pkg`) |
+| **Package count badge** | Number of packages with available updates |
 | **Reboot badge** | Indicates the server requires a reboot after previous upgrades |
 | **Upgrade** button | Install updates on this single server only |
 | **Package list** | Expandable list showing individual package names |
@@ -465,11 +507,123 @@ Roles:
 | **Change Logo** | Replace the current custom logo |
 | **App Name** | Set a custom title shown in the browser tab and sidebar |
 
-If no custom logo is uploaded, a default emerald icon is displayed.
-
 ### Tokens
 
 Displays the current `AGENT_TOKEN` and `DASHBOARD_TOKEN` values. These are read from the backend environment at runtime.
+
+---
+
+## Installation & Configuration
+
+### `setup.sh` — First-Time Setup
+
+The interactive setup script handles first-time installation. Run it once after cloning the repository:
+
+```bash
+bash setup.sh
+```
+
+#### Step-by-step walkthrough
+
+**1. Deployment mode**
+Choose between **Docker** (recommended) or **Native** (direct install on Linux — Ubuntu, Debian, Fedora, CentOS, RHEL).
+
+**2. Port configuration**
+- **Frontend port** (default `8090`) — the port you open in your browser to access the dashboard
+- **Backend port** (default `8765`) — the API and WebSocket port. Agents connect to this port. Also used internally by the frontend's nginx reverse proxy to reach the API.
+
+**3. Token generation**
+Three secrets are generated automatically using `openssl rand -hex 32`:
+| Token | Purpose |
+|-------|---------|
+| `AGENT_TOKEN` | Shared secret for agent authentication. Each server also receives a unique per-server token on registration. The shared token is used as a fallback for auto-registration of new agents. |
+| `DASHBOARD_TOKEN` | Legacy admin login token. Superseded by user accounts but kept as a fallback if no users exist. |
+| `SECRET_KEY` | JWT signing key for user session tokens. Used to sign and verify login sessions. |
+
+**4. Prometheus (optional)**
+Prometheus URL (default: `http://localhost:9090`). Prometheus is an **optional metrics source** — if configured with `node_exporter` running on your servers, the backend can query Prometheus for CPU, RAM, and disk metrics. This provides historical data and richer metrics than agent-reported snapshots. If Prometheus is not configured or unreachable, the backend falls back to real-time agent metrics automatically.
+
+**5. SSL/HTTPS**
+| Mode | Description |
+|------|-------------|
+| **None** | Plain HTTP only. Default option. |
+| **Self-signed** | Generates a 10-year self-signed certificate using OpenSSL. Good for internal/lab environments. Browsers will show a security warning on first visit. Enables clipboard support in RDP sessions. |
+| **Let's Encrypt** | Free trusted certificate from Let's Encrypt with automatic renewal via certbot. Requires a public domain name with DNS pointing to the server. No browser warnings. |
+
+SSL settings (`SSL_MODE`, `SSL_CERT_PATH`, `SSL_KEY_PATH`) are persisted in `.env` so they survive rebuilds and updates.
+
+**6. Database initialization**
+Creates an SQLite database at `./data/serverctl.db`. Stores servers, users, settings, and activity logs. A default admin user (`admin` / `admin`) is created on first run — change this immediately.
+
+**7. Build and start**
+- **Docker mode:** installs Docker and Docker Compose if not present, handles SELinux on Fedora/RHEL, syncs system clock, then runs `docker compose up --build -d` to start three containers (backend, rdpbridge, frontend).
+- **Native mode:** installs Python 3, Node.js, npm, nginx, FreeRDP, TigerVNC. Creates Python venvs, builds the frontend with Vite, downloads noVNC source, configures nginx as reverse proxy (API at `/api/`, WebSockets at `/ws/`), creates systemd services (`serverctl-backend`, `serverctl-rdpbridge`).
+
+---
+
+### `update.sh` — Update & Rebuild
+
+Safely updates ServerCTL to the latest version while preserving all configuration and data.
+
+```bash
+sudo bash update.sh
+```
+
+#### What it does
+
+1. **Validates environment** — checks that `.env` exists and contains required tokens (`SECRET_KEY`, `DASHBOARD_TOKEN`, `AGENT_TOKEN`). Refuses to proceed if tokens are missing to prevent data loss.
+
+2. **Creates timestamped backup** — copies `.env`, database, and config files to `.backup/<YYYYMMDD_HHMMSS>/`.
+
+3. **Pulls latest code** — offers three methods:
+   - **HTTPS (public)** — no authentication needed
+   - **HTTPS with credentials** — GitHub username + personal access token
+   - **SSH** — uses the current user's SSH keys
+
+4. **Reports version** — shows the upgrade path (e.g., `1.3.0 → 1.4.0`).
+
+5. **Auto-detects SSL** — if SSL certificates exist on disk but `SSL_MODE` is missing from `.env` (e.g., upgrading from an older version), the script automatically adds the correct SSL variables.
+
+6. **Rebuilds**:
+   - **Docker mode:** loads `.env`, runs `docker compose up --build -d`, then prunes old Docker images (`docker image prune -a -f --filter "until=24h"`) to free disk space.
+   - **Native mode:** updates Python dependencies (`pip install -r requirements.txt`), rebuilds the frontend (`npm run build` with `VITE_API_URL`, `VITE_DASHBOARD_TOKEN`, `VITE_APP_VERSION`), fixes file permissions for nginx, restarts the backend service, reloads nginx.
+
+---
+
+### `uninstall.sh` — Complete Removal
+
+Completely removes ServerCTL from the system.
+
+```bash
+sudo bash uninstall.sh
+```
+
+**Docker mode:**
+- Stops and removes all containers, images, and volumes
+- Deletes `.env`
+- Optionally deletes the entire project directory
+
+**Native mode:**
+- Stops and disables `serverctl-backend` and `serverctl-rdpbridge` systemd services
+- Removes service files from `/etc/systemd/system/`
+- Removes nginx config (`/etc/nginx/sites-available/serverctl` or `/etc/nginx/conf.d/serverctl.conf`)
+- Deletes Python venvs, frontend build, and `node_modules`
+- Removes `.env`
+- Optionally deletes the entire project directory
+
+---
+
+### SSL/HTTPS Configuration
+
+SSL is configured during `setup.sh` and persisted in `.env`. It works the same way for both Docker and native installs.
+
+**Docker mode:** The frontend nginx container reads SSL cert/key paths from environment variables and mounts them as read-only volumes. The container listens on port 443 internally (mapped to your frontend port).
+
+**Native mode:** The nginx config is swapped to include SSL directives pointing to the certificate files. For self-signed certs, they are stored in `./ssl/`. For Let's Encrypt, they are at `/etc/letsencrypt/live/<domain>/`.
+
+**Why HTTPS matters:**
+- **RDP clipboard:** The browser clipboard API (`navigator.clipboard`) only works in secure contexts (HTTPS). Without it, copy/paste in RDP sessions is disabled.
+- **Security:** Tokens and credentials are transmitted in the clear over HTTP.
 
 ---
 
@@ -482,8 +636,10 @@ Displays the current `AGENT_TOKEN` and `DASHBOARD_TOKEN` values. These are read 
 The wizard generates a one-line install command that:
 1. Detects system architecture (amd64 / arm64)
 2. Downloads the pre-compiled Go agent binary from the backend
-3. Writes config to `/etc/serverctl/config.yml`
-4. Creates and enables a `serverctl-agent` **systemd service** (auto-starts on boot, restarts on failure)
+3. Verifies checksum integrity
+4. Installs to `/usr/local/bin/serverctl-agent`
+5. Writes config to `/etc/serverctl/config.yml`
+6. Creates and enables a `serverctl-agent` **systemd service** (auto-starts on boot, restarts on failure)
 
 **No dependencies required** — the agent is a single static binary.
 
@@ -530,9 +686,223 @@ The agent will appear online in the dashboard within seconds.
 - Service is visible in `services.msc` as `ServerCtl Agent`
 - Logs are written to `C:\ServerCTL\logs\agent.log`
 
-**Update agent:**
-- **Agents tab** → select agent → **Update Selected** (recommended)
-- Per-server: **Manage → Actions → Update Agent**
+---
+
+## Ansible Playbooks
+
+### `deploy-agent.yml` — Bulk Agent Deployment
+
+Deploys and auto-registers agents across multiple servers using Ansible. Useful for large-scale rollouts.
+
+#### Variables (edit at the top of the playbook)
+
+| Variable | Description |
+|----------|-------------|
+| `backend_url` | Backend HTTP URL (e.g., `http://192.168.1.100:9090`) |
+| `backend_token` | Admin dashboard token for the server registration API |
+| `serverctl_ws_url` | WebSocket endpoint for agents (e.g., `ws://192.168.1.100:9090/ws/agent`) |
+
+#### What it does
+
+1. **Registers each server** — POST to `/api/servers` to create the server entry and receive a unique per-server agent token
+2. **Installs dependencies** — Python 3, pip, curl on the target
+3. **Creates directories** — `/opt/serverctl-agent`, `/etc/serverctl`, `/etc/serverctl/logs`
+4. **Downloads the agent** — fetches the Python agent script from the backend
+5. **Installs Python packages** — `websockets`, `pyyaml`, `psutil`
+6. **Writes config** — `/etc/serverctl/config.yml` with the unique per-server token
+7. **Creates systemd service** — `/etc/systemd/system/serverctl-agent.service` with auto-restart
+8. **Verifies connection** — waits 3 seconds and reports per-server status
+
+#### Usage
+
+```bash
+# Deploy to all hosts in inventory
+ansible-playbook -i inventory/hosts.yml deploy-agent.yml --ask-pass
+
+# Deploy to a specific host only
+ansible-playbook -i inventory/hosts.yml deploy-agent.yml --ask-pass --limit server-05
+```
+
+---
+
+### `update-token.yml` — Token Rotation
+
+Updates agent tokens on existing installations without reinstalling. Use this after rotating tokens on the backend.
+
+#### What it does
+
+1. **Checks for existing agent** — skips servers that don't have the agent installed
+2. **Backs up config** — creates `config.yml.backup` before modifying
+3. **Updates config** — writes new `api_token` and `server_url` to `/etc/serverctl/config.yml`
+4. **Restarts agent** — restarts the `serverctl-agent` service
+5. **Verifies** — waits 3 seconds and checks `systemctl is-active serverctl-agent`
+
+#### Usage
+
+```bash
+# Update all hosts
+ansible-playbook -i inventory update-token.yml
+
+# Update a specific host
+ansible-playbook -i inventory update-token.yml --limit 192.168.1.201
+
+# Dry run (check mode)
+ansible-playbook -i inventory update-token.yml --check
+```
+
+---
+
+## Inventory & Discovery Tools
+
+### `gen-inventory.py` — Ansible Inventory Generator
+
+Generates an Ansible-compatible inventory file from the ServerCTL server registry (SQLite database).
+
+#### Features
+
+- Reads servers from the backend database
+- Filters out gateway/infrastructure IPs (default: `192.168.1.1`, `192.168.1.2`, `192.168.1.5`)
+- Includes only servers with valid agent tokens
+- Outputs `[agents]` group with per-server tokens as host variables
+- Auto-detects the backend host IP
+
+#### Usage
+
+```bash
+# Print inventory to stdout
+python3 gen-inventory.py
+
+# Write to file
+python3 gen-inventory.py -o inventory/hosts
+
+# Specify SSH user
+python3 gen-inventory.py --user root
+
+# Manually set backend host
+python3 gen-inventory.py --backend-host 10.0.0.5
+
+# Skip additional IPs
+python3 gen-inventory.py --skip-ips 192.168.1.1,192.168.1.254
+```
+
+#### Output format
+
+```ini
+[agents]
+192.168.1.100  ansible_user=administrator  agent_token=abc123...  # Production DB
+192.168.1.101  ansible_user=administrator  agent_token=def456...  # Web Server
+
+[agents:vars]
+serverctl_url=ws://192.168.1.50:8765/ws/agent
+ansible_ssh_common_args=-o StrictHostKeyChecking=no -o ConnectTimeout=10
+```
+
+---
+
+### `scan.py` — Network Scanner & Host Discovery
+
+Scans local subnets for active hosts and optionally imports them as managed servers.
+
+#### Features
+
+- Async ICMP ping sweep with parallel workers (64 for /24, 512 for /16)
+- Checks each host for an existing ServerCTL agent health endpoint (port 8080)
+- Reverse DNS lookup for hostname detection
+- Live progress bar during scan
+- Interactive host selection: `all`, `agent` (only those with agent), or specific numbers `1,3,5` or ranges `1-5`
+- Auto-assigns group based on subnet
+- Creates backup of existing server registry before saving
+
+#### Configuration (edit at the top of the script)
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `SUBNETS` | `192.168.0.0/24`, `192.168.1.0/24`, `172.16.0.0/16` | Subnets to scan |
+| `AGENT_PORT` | `8080` | Port to check for agent health endpoint |
+| `OUTPUT_FILE` | `backend/servers.json` | Where to save discovered servers |
+
+#### Usage
+
+```bash
+python3 scan.py
+```
+
+The script is interactive — it scans, shows results, lets you select which hosts to import, previews the JSON, and asks for confirmation before saving.
+
+---
+
+## Docker Compose Services
+
+| Service | Container | Default Port | Purpose |
+|---------|-----------|--------------|---------|
+| `backend` | serverctl-backend | `8765` | FastAPI API server + WebSocket hub |
+| `rdpbridge` | serverctl-rdpbridge | `8080` (internal) | FreeRDP + TigerVNC remote desktop proxy |
+| `frontend` | serverctl-frontend | `8090` | nginx serving the React SPA |
+
+All containers communicate on the `guac-net` bridge network.
+
+**Persistent data volumes:**
+- `./data/` → SQLite database (servers, users, settings, activity)
+- `./agent-go/dist/` → Agent binaries (mounted read-only)
+- `./VERSION` → App version file (mounted read-only)
+
+---
+
+## Environment Variables
+
+All configuration is stored in `.env` (never committed to git).
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `AGENT_TOKEN` | Yes | Shared agent authentication secret |
+| `DASHBOARD_TOKEN` | Yes | Legacy token-based login fallback |
+| `SECRET_KEY` | Yes | JWT signing secret for user sessions |
+| `BACKEND_PORT` | No | Backend API port (default: `8765`) |
+| `FRONTEND_PORT` | No | Frontend web port (default: `8090`) |
+| `PROMETHEUS_URL` | No | Prometheus endpoint for metrics (falls back to agent if empty) |
+| `PUBLIC_HOST` | No | Public IP/hostname for agent install URLs (auto-detected) |
+| `SSL_MODE` | No | `none`, `selfsigned`, or `letsencrypt` (default: `none`) |
+| `SSL_CERT_PATH` | No | Path to SSL certificate (auto-set by setup) |
+| `SSL_KEY_PATH` | No | Path to SSL private key (auto-set by setup) |
+| `CORS_ORIGINS` | No | Comma-separated allowed origins (default: `*`) |
+
+---
+
+## API Endpoints
+
+### REST APIs
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/login` | User authentication, returns JWT token |
+| `GET` | `/api/me` | Current user info |
+| `GET` | `/api/servers` | List all servers with status |
+| `POST` | `/api/servers` | Add a new server |
+| `DELETE` | `/api/servers/{id}` | Remove a server (admin only) |
+| `GET` | `/api/servers/{id}/status` | Single server status |
+| `GET` | `/api/ping-all` | ICMP ping all servers |
+| `POST` | `/api/action` | Execute a command on a server |
+| `GET` | `/api/metrics/{id}` | Fetch metrics (Prometheus or agent) |
+| `POST` | `/api/probe` | Connectivity test (ping/TCP/UDP/HTTP/DB) |
+| `POST` | `/api/speedtest` | Backend download speed test |
+| `POST` | `/api/servers/csv` | Bulk import from CSV |
+| `GET` | `/api/users` | List users (admin only) |
+| `POST` | `/api/users` | Create user (admin only) |
+| `DELETE` | `/api/users/{username}` | Delete user (admin only) |
+| `PUT` | `/api/users/{username}/password` | Change password |
+| `GET` | `/api/agent/install-command` | Get agent install one-liners |
+| `GET` | `/api/agent/download/{platform}` | Download agent binary |
+| `GET` | `/api/agent/checksum/{platform}` | Agent binary SHA256 checksum |
+
+### WebSocket Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `/ws/agent?token=<TOKEN>` | Agent connection hub |
+| `/ws/logs/{server_id}` | Log file streaming |
+| `/ws/ssh/{server_id}` | SSH terminal proxy |
+| `/ws/rdp/{server_id}` | RDP remote desktop proxy |
+| `/ws/scan` | Network scanner |
 
 ---
 
@@ -552,24 +922,17 @@ To bump the version:
 
 ---
 
-## Keyboard Shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| `Enter` | Submit login form / connect SSH |
-| `Esc` | Close modal / dialog |
-
----
-
 ## Security Notes
 
-- Agent tokens are per-server and stored only in the backend registry
-- All agent commands go through an explicit allowlist — no arbitrary shell execution is possible
+- Agent tokens are per-server and stored in the backend database
+- All agent commands go through an explicit allowlist — no arbitrary shell execution possible
 - The Go agent is a compiled binary — no script injection possible
-- HTTPS is not handled by ServerCTL — put it behind a reverse proxy (nginx, Caddy, Traefik) for production use
+- Agents connect outbound only — no inbound ports needed on managed servers
+- HTTPS supported via `setup.sh` (self-signed or Let's Encrypt) or external reverse proxy
 - The backend port should not be directly exposed to the internet — only the frontend port needs to be reachable
-- Change the default `admin` / `admin` credentials immediately after first login
+- Default credentials are `admin` / `admin` — change immediately after first login
+- `.env` contains all secrets — never commit it to version control
 
 ---
 
-*ServerCTL v1.3.3 — Infrastructure Control Interface*
+*ServerCTL v1.4.0 — Infrastructure Control Interface*

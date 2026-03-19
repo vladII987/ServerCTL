@@ -37,8 +37,8 @@
 - **Agent management** — dedicated Agents tab with selective update checkboxes, version tracking, and one-click updates
 - **User management** — role-based access control (admin / user)
 - **Custom branding** — upload your own logo and set a custom dashboard title
-- **Theme system** — modern dark SaaS dashboard with multiple accent color themes
-- **Collapsible sidebar** — toggle sidebar between expanded and icon-only mode
+- **Theme system** — dark and light themes with multiple accent colors
+- **Collapsible sidebar** — toggle sidebar between expanded and icon-only mode, auto-collapses on narrow viewports
 - **Windows support** — native Go agent with automatic PSWindowsUpdate module installation for Windows Update detection
 - **No inbound ports** — agents connect outbound to the backend over WebSocket
 
@@ -71,9 +71,9 @@ Browser
 | Frontend | React + Vite | React 18.3, Vite 6.0 |
 | Backend | FastAPI + Uvicorn | Python 3.13 |
 | Agent | Go (cross-compiled) | Go 1.24 |
+| Database | SQLite | 3.x |
 | Terminal | xterm.js | 6.0 |
 | RDP | FreeRDP + TigerVNC + noVNC | noVNC 1.5.0 |
-| Font | Ubuntu | Bundled TTF |
 | Deployment | Docker Compose | - |
 
 ---
@@ -85,7 +85,7 @@ Browser
 
 ### Native Mode (no Docker)
 - **Python 3.8+** and **Node.js 18+** — on the host running ServerCTL
-- **nginx** — for serving the frontend
+- **nginx** — for serving the frontend and reverse proxying the backend
 - **FreeRDP + TigerVNC** — for browser-based RDP (installed automatically by `setup.sh`)
 
 ### Managed Servers
@@ -103,14 +103,6 @@ cd ServerCTL
 bash setup.sh
 ```
 
-`setup.sh` will:
-1. Ask you to choose deployment mode: **Docker** or **Native**
-2. Generate `AGENT_TOKEN`, `DASHBOARD_TOKEN`, and `SECRET_KEY` automatically
-3. Ask for frontend port (default: 8090) and backend port (default: 8765)
-4. Write `.env`
-5. Docker mode: run `docker compose up --build -d`
-6. Native mode: set up Python venv, build frontend, configure nginx + systemd
-
 Dashboard will be available at:
 ```
 http://<your-host>:<FRONTEND_PORT>
@@ -121,43 +113,119 @@ Default frontend port: **8090**. Default backend port: **8765**.
 
 ---
 
+## Setup (`setup.sh`)
+
+The interactive setup script handles first-time installation and configuration. It supports both Docker and native Linux deployment modes.
+
+### What It Does
+
+**Step 1 — Deployment mode**
+Choose between **Docker** (recommended) or **Native** (direct install on Linux).
+
+**Step 2 — Port configuration**
+- **Frontend port** (default `8090`) — the port you open in your browser
+- **Backend port** (default `8765`) — the API and WebSocket port that agents connect to
+
+**Step 3 — Token generation**
+Three secrets are generated automatically using `openssl rand -hex 32`:
+- **AGENT_TOKEN** — shared secret for agent authentication (each server also gets a unique per-server token)
+- **DASHBOARD_TOKEN** — legacy admin fallback token (superseded by user accounts)
+- **SECRET_KEY** — JWT signing key for user session tokens
+
+**Step 4 — Prometheus (optional)**
+You can optionally provide a Prometheus URL (default: `http://localhost:9090`). Prometheus is used as an **alternative metrics source** — if configured, the backend queries Prometheus for CPU, RAM, and disk metrics instead of relying solely on agent-reported data. This is useful if you already run Prometheus with `node_exporter` on your servers. If Prometheus is not configured or unreachable, the backend falls back to agent metrics automatically.
+
+**Step 5 — SSL/HTTPS**
+Three options:
+- **None** — plain HTTP only (default)
+- **Self-signed** — generates a 10-year self-signed certificate, good for internal/lab environments. Enables clipboard support in browser-based RDP sessions (clipboard API requires HTTPS).
+- **Let's Encrypt** — free trusted certificate with automatic renewal, requires a public domain name pointing to the server
+
+SSL settings are persisted in `.env` so they survive rebuilds and updates.
+
+**Step 6 — Build and start**
+- **Docker mode:** installs Docker if needed, runs `docker compose up --build -d` (three containers: backend, rdpbridge, frontend)
+- **Native mode:** creates Python venvs, builds the frontend with Vite, configures nginx as reverse proxy, creates systemd services (`serverctl-backend`, `serverctl-rdpbridge`)
+
+### Environment File
+
+All configuration is written to `.env` in the project root (never committed to git):
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `AGENT_TOKEN` | Yes | Shared agent authentication secret |
+| `DASHBOARD_TOKEN` | Yes | Legacy token-based login fallback |
+| `SECRET_KEY` | Yes | JWT signing secret for user sessions |
+| `BACKEND_PORT` | No | Backend API port (default: `8765`) |
+| `FRONTEND_PORT` | No | Frontend web port (default: `8090`) |
+| `PROMETHEUS_URL` | No | Prometheus endpoint for metrics (falls back to agent metrics if empty) |
+| `PUBLIC_HOST` | No | Public IP/hostname for agent install URLs (auto-detected) |
+| `SSL_MODE` | No | `none`, `selfsigned`, or `letsencrypt` (default: `none`) |
+| `SSL_CERT_PATH` | No | Path to SSL certificate (set automatically) |
+| `SSL_KEY_PATH` | No | Path to SSL private key (set automatically) |
+
+---
+
+## Updating (`update.sh`)
+
+```bash
+sudo bash update.sh
+```
+
+The update script safely upgrades ServerCTL to the latest version while preserving your configuration and data.
+
+### What It Does
+
+1. **Validates environment** — checks that `.env` exists and contains required tokens (`SECRET_KEY`, `DASHBOARD_TOKEN`, `AGENT_TOKEN`)
+2. **Creates backup** — copies `.env`, database, and config files to `.backup/<timestamp>/`
+3. **Pulls latest code** — offers three methods: HTTPS (public), HTTPS with credentials, or SSH
+4. **Auto-detects SSL** — if SSL certificates exist but `SSL_MODE` is missing from `.env`, adds it automatically
+5. **Rebuilds**:
+   - **Docker mode:** runs `docker compose up --build -d` and prunes old Docker images to free disk space
+   - **Native mode:** updates Python dependencies, rebuilds the frontend, restarts the backend service, reloads nginx
+6. **Reports version** — shows the upgrade path (e.g., `1.3.0 → 1.4.0`)
+
+---
+
+## Uninstalling (`uninstall.sh`)
+
+```bash
+sudo bash uninstall.sh
+```
+
+Completely removes ServerCTL from the system.
+
+- **Docker mode:** stops and removes all containers, images, volumes, and the `.env` file
+- **Native mode:** stops and removes systemd services, removes nginx config, deletes Python venvs and frontend build, removes `.env`
+
+Optionally deletes the entire project directory.
+
+---
+
 ## Manual Setup
 
 ```bash
 cp .env.example .env
-# Fill in the values
+# Edit .env and fill in token values
 export APP_VERSION=$(cat VERSION)
 docker compose up --build -d
 ```
 
-### Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `AGENT_TOKEN` | ✅ | Shared secret used by agents to authenticate with the backend |
-| `DASHBOARD_TOKEN` | ✅ | Legacy token-based login (fallback if no users exist) |
-| `SECRET_KEY` | ✅ | JWT signing secret for session tokens |
-| `APP_VERSION` | ❌ | Read from `VERSION` file — passed to Docker build args |
-| `BACKEND_PORT` | ❌ | Backend port (default: `8765`) |
-| `FRONTEND_PORT` | ❌ | Frontend port (default: `8090`) |
-| `PROMETHEUS_URL` | ❌ | Prometheus endpoint for metrics (optional) |
-| `PUBLIC_HOST` | ❌ | Public hostname/IP for agent install scripts (auto-detected if empty) |
-| `FRONTEND_URL` | ❌ | Public URL of the frontend (for CORS, optional) |
-
-> **Never commit `.env` to version control.** It is in `.gitignore`.
-
 ---
 
-## Versioning
+## Docker Compose Services
 
-The app version is defined in a single file: **`VERSION`**
+| Service | Container | Default Port | Purpose |
+|---------|-----------|--------------|---------|
+| `backend` | serverctl-backend | `8765` | FastAPI API server + WebSocket hub |
+| `rdpbridge` | serverctl-rdpbridge | `8080` (internal) | FreeRDP + TigerVNC remote desktop proxy |
+| `frontend` | serverctl-frontend | `8090` | nginx serving the React SPA |
 
-All components read from it:
-- `docker-compose.yml` — via `${APP_VERSION}` env var
-- `backend/main.py` — reads `/app/VERSION` at runtime
-- `agent-go/Makefile` — reads `../VERSION` and injects via `-ldflags`
+All containers communicate on the `guac-net` bridge network. Agent binaries in `agent-go/dist/` are mounted read-only into the backend container.
 
-To bump the version, edit `VERSION` and rebuild.
+**Persistent data:**
+- `./data/` — SQLite database (servers, users, settings)
+- `.env` — all secrets and configuration
 
 ---
 
@@ -168,42 +236,86 @@ To bump the version, edit `VERSION` and rebuild.
 3. Copy the generated install command
 4. Run it on the target server
 
-**Linux** (bash, run as root):
+**Linux** (run as root):
 ```bash
 curl -fsSL "http://<serverctl-host>:<BACKEND_PORT>/api/agent/install?token=<TOKEN>&server_id=<ID>" | sudo sh
 ```
 
-The installer will:
-- Download the pre-compiled Go agent binary for your architecture (amd64 / arm64)
-- Write config to `/etc/serverctl/config.yml`
-- Create and enable a `serverctl-agent` **systemd service**
-
-**Windows** (PowerShell, run as Administrator):
+**Windows** (PowerShell as Administrator):
 ```powershell
 iex (iwr -UseBasicParsing "http://<serverctl-host>:<BACKEND_PORT>/api/agent/install-windows?token=<TOKEN>&server_id=<ID>").Content
 ```
 
-The installer will:
-- Download the pre-compiled Go agent binary (`serverctl-agent.exe`)
-- Write config to `C:\ServerCTL\config.yml`
-- Install agent as a **Windows Service** (`ServerCtl Agent`) via `sc.exe`
-- Create a scheduled task (`ServerCtlUpdater`) for remote agent updates
-- Service auto-starts on boot and restarts on failure — visible in `services.msc`
+The installer downloads a single static Go binary, writes config, and creates a system service. The agent appears online in the dashboard within seconds.
 
-The agent appears online in the dashboard within seconds of installation.
+---
+
+## Bulk Deployment with Ansible
+
+For deploying agents across many servers at once, use the included Ansible playbooks.
+
+### `deploy-agent.yml`
+
+Registers servers with the backend API and installs the agent on each host.
+
+```bash
+ansible-playbook -i inventory/hosts.yml deploy-agent.yml --ask-pass
+ansible-playbook -i inventory/hosts.yml deploy-agent.yml --ask-pass --limit server-05
+```
+
+Edit the variables at the top of the playbook:
+- `backend_url` — backend HTTP URL (e.g., `http://192.168.1.100:9090`)
+- `backend_token` — admin dashboard token for the registration API
+- `serverctl_ws_url` — WebSocket endpoint for agents (e.g., `ws://192.168.1.100:9090/ws/agent`)
+
+### `update-token.yml`
+
+Rotates agent tokens on existing installations without reinstalling.
+
+```bash
+ansible-playbook -i inventory update-token.yml
+ansible-playbook -i inventory update-token.yml --limit 192.168.1.201
+ansible-playbook -i inventory update-token.yml --check   # dry run
+```
+
+Updates `/etc/serverctl/config.yml` on each server, creates a backup of the old config, and restarts the agent service.
+
+### Inventory Generation (`gen-inventory.py`)
+
+Generates an Ansible-compatible inventory file from the ServerCTL server registry.
+
+```bash
+python3 gen-inventory.py                          # print to stdout
+python3 gen-inventory.py -o inventory/hosts       # write to file
+python3 gen-inventory.py --user root              # specify SSH user
+python3 gen-inventory.py --skip-ips 192.168.1.1   # exclude gateway IPs
+```
+
+Reads servers from the database, filters out gateway IPs, and outputs an `[agents]` group with per-server tokens.
+
+### Network Scanner (`scan.py`)
+
+Discovers active hosts on local subnets and optionally imports them as managed servers.
+
+```bash
+python3 scan.py
+```
+
+- Scans configurable subnets using async ICMP ping (default: `192.168.0.0/24`, `192.168.1.0/24`, `172.16.0.0/16`)
+- Checks each host for an existing agent health endpoint
+- Interactive selection: import all, only those with agents, or specific hosts
+- Saves results to the server registry with auto-generated IDs and groups
 
 ---
 
 ## Updating Agents
 
 **Agents tab** (recommended):
-- View all connected agents with their version, platform, and online status
+- View all connected agents with version, platform, and status
 - Select specific agents using checkboxes → **Update Selected**
 - Or use **Select All / Deselect All** for bulk operations
 
 **Per-server:** Manage a server → **Actions** tab → **Update Agent**
-
-When the agent is updated, it downloads the latest binary from the backend and restarts itself.
 
 ---
 
@@ -240,10 +352,6 @@ The Go agent executes only an explicit allowlist of commands. No arbitrary shell
 | `nslookup` | DNS lookup |
 | `kill_process` | Terminate a process by PID |
 | `repo_speedtest` | Test download speed to package repos / CDN |
-| `df` | Disk free (raw output) |
-| `free` | Memory free (raw output) |
-| `uptime` | System uptime |
-| `who` | Logged-in users |
 
 **Linux package managers:** `apt`, `dnf`, `yum`, `zypper` (auto-detected)
 **Windows updates:** Uses `PSWindowsUpdate` PowerShell module (auto-installed by the agent if missing)
@@ -261,62 +369,16 @@ Manage users via **Settings → User Management** (admin only).
 
 ---
 
-## Project Structure
+## Versioning
 
-```
-ServerCTL/
-├── frontend/                 # React app (Vite)
-│   ├── public/
-│   │   ├── logo.png          # Default logo
-│   │   └── fonts/            # Ubuntu font family (bundled TTF)
-│   └── src/
-│       ├── Dashboard.jsx     # Main UI component
-│       ├── main.jsx          # App entry point
-│       ├── index.css         # Font-face declarations, base styles
-│       ├── themes/           # Accent color theme definitions
-│       └── novnc/            # noVNC ESM source (downloaded at build time)
-├── backend/                  # FastAPI backend
-│   ├── main.py               # API routes, WebSocket hub, agent installer scripts
-│   ├── config.py             # Settings (pydantic-settings)
-│   ├── users.py              # User management, JWT auth
-│   ├── rdp_handler.py        # RDP WebSocket proxy (FreeRDP bridge)
-│   ├── scanner.py            # Network scanner
-│   ├── ssh_handler.py        # SSH WebSocket proxy
-│   ├── server_registry.py    # Server registry class
-│   ├── zabbix.py             # Zabbix integration
-│   ├── servers.json          # Server registry (persisted)
-│   ├── users.json            # User database (persisted)
-│   └── requirements.txt
-├── rdpbridge/                # FreeRDP + TigerVNC RDP bridge
-│   ├── Dockerfile
-│   └── manager.py            # WebSocket → VNC session manager
-├── agent-go/                 # Go agent (cross-platform)
-│   ├── main.go               # Agent source code
-│   ├── go.mod
-│   ├── Makefile              # Build targets: linux, windows, deb, rpm
-│   └── dist/                 # Pre-compiled binaries
-│       ├── serverctl-agent-linux-amd64
-│       ├── serverctl-agent-linux-arm64
-│       └── serverctl-agent-windows-amd64.exe
-├── setup.sh                  # First-time setup (Docker or Native mode)
-├── docker-compose.yml
-├── VERSION                   # Single source of truth for app version
-├── .env.example
-├── DOCS.md                   # Full feature documentation
-└── LICENSE                   # CC BY-ND 4.0
-```
+The app version is defined in a single file: **`VERSION`**
 
----
+All components read from it:
+- `docker-compose.yml` — via `${APP_VERSION}` env var
+- `backend/main.py` — reads `/app/VERSION` at runtime
+- `agent-go/Makefile` — reads `../VERSION` and injects via `-ldflags`
 
-## Docker Compose Services
-
-| Service | Description | Default Port |
-|---------|-------------|--------------|
-| `frontend` | nginx serving the React build | `8090` |
-| `backend` | FastAPI + WebSocket server | `8765` |
-| `rdpbridge` | FreeRDP + TigerVNC WebSocket bridge | `8080` (internal) |
-
-Agent binaries in `agent-go/dist/` are mounted read-only into the backend container at `/app/agent-bins`.
+To bump the version, edit `VERSION` and rebuild.
 
 ---
 
@@ -329,11 +391,55 @@ cd agent-go
 make all      # Builds linux-amd64, linux-arm64, and windows-amd64
 ```
 
-The Makefile reads the version from `../VERSION` automatically.
-
 Individual targets: `make linux`, `make windows`, `make deb`, `make rpm`
 
 Requires **Go 1.24+** installed on the build machine.
+
+---
+
+## Project Structure
+
+```
+ServerCTL/
+├── frontend/                 # React app (Vite)
+│   ├── public/
+│   │   └── logo.png          # Default logo
+│   └── src/
+│       ├── Dashboard.jsx     # Main UI component
+│       ├── main.jsx          # App entry point
+│       ├── index.css         # Design system, CSS variables, base styles
+│       ├── themes/           # Accent color theme definitions
+│       └── novnc/            # noVNC ESM source (downloaded at build time)
+├── backend/                  # FastAPI backend
+│   ├── main.py               # API routes, WebSocket hub, agent installer scripts
+│   ├── config.py             # Settings (pydantic-settings, reads from .env)
+│   ├── database.py           # SQLite database layer
+│   ├── server_registry.py    # In-memory server registry with SQLite persistence
+│   ├── users.py              # User management, JWT auth
+│   ├── rdp_handler.py        # RDP WebSocket proxy (FreeRDP bridge)
+│   ├── ssh_handler.py        # SSH WebSocket proxy
+│   ├── scanner.py            # Network subnet scanner
+│   └── requirements.txt
+├── rdpbridge/                # FreeRDP + TigerVNC RDP bridge
+│   ├── Dockerfile
+│   └── manager.py            # WebSocket → VNC session manager
+├── agent-go/                 # Go agent (cross-platform)
+│   ├── main.go               # Agent source code
+│   ├── go.mod
+│   ├── Makefile              # Build targets: linux, windows, deb, rpm
+│   └── dist/                 # Pre-compiled binaries
+├── deploy-agent.yml          # Ansible playbook — bulk agent deployment
+├── update-token.yml          # Ansible playbook — rotate agent tokens
+├── gen-inventory.py          # Generate Ansible inventory from server registry
+├── scan.py                   # Network scanner — discover and import hosts
+├── setup.sh                  # First-time setup (Docker or Native mode)
+├── update.sh                 # Update to latest version with backup
+├── uninstall.sh              # Complete removal
+├── docker-compose.yml
+├── VERSION                   # Single source of truth for app version
+├── .env.example
+└── LICENSE                   # CC BY-ND 4.0
+```
 
 ---
 
@@ -356,8 +462,9 @@ npm run dev
 ## Security Notes
 
 - All agent commands go through an explicit allowlist — no shell injection possible
-- Agent tokens are per-server and stored in the backend registry
-- HTTPS is not handled by ServerCTL — use a reverse proxy (nginx, Caddy, Traefik) in production
+- Agent tokens are per-server and stored in the backend database
+- Agents connect outbound only — no inbound ports needed on managed servers
+- HTTPS is supported via setup.sh (self-signed or Let's Encrypt) or a reverse proxy
 - The backend port should not be exposed directly to the internet
 - `DASHBOARD_TOKEN` is a legacy fallback — prefer named user accounts
 - Change the default `admin` / `admin` credentials immediately after first login
@@ -366,7 +473,7 @@ npm run dev
 
 ## Documentation
 
-Full documentation for all features, buttons, and controls: **[DOCS.md](DOCS.md)**
+Full documentation for all features, tabs, and controls: **[DOCS.md](DOCS.md)**
 
 ---
 
