@@ -161,8 +161,8 @@ async def handle_session(websocket):
         rdp_proc = await asyncio.create_subprocess_exec(
             *rdp_cmd,
             env=env,
-            stdout=asyncio.subprocess.DEVNULL,
-            stderr=asyncio.subprocess.DEVNULL,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
         )
 
         # Brief pause so FreeRDP can authenticate and draw its first frame
@@ -170,7 +170,11 @@ async def handle_session(websocket):
 
         # Check that FreeRDP didn't exit immediately (auth failure, etc.)
         if rdp_proc.returncode is not None:
+            stdout_data = await rdp_proc.stdout.read() if rdp_proc.stdout else b""
+            stderr_data = await rdp_proc.stderr.read() if rdp_proc.stderr else b""
             log.error(f"[:{display_num}] xfreerdp exited with code {rdp_proc.returncode}")
+            log.error(f"[:{display_num}] xfreerdp stdout: {stdout_data.decode(errors='replace')}")
+            log.error(f"[:{display_num}] xfreerdp stderr: {stderr_data.decode(errors='replace')}")
             await websocket.close(1011, f"xfreerdp exited: {rdp_proc.returncode}")
             return
 
