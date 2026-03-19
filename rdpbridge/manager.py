@@ -68,7 +68,9 @@ async def _wait_for_port(host: str, port: int, timeout: float = 15.0) -> bool:
 
 
 async def handle_session(websocket):
-    parsed = urlparse(websocket.path)
+    # websockets v13+ moved .path to .request.path
+    ws_path = getattr(websocket, 'path', None) or str(websocket.request.path)
+    parsed = urlparse(ws_path)
     params = parse_qs(parsed.query)
 
     def p(key, default=""):
