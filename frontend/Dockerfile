@@ -18,7 +18,8 @@ ENV VITE_DASHBOARD_TOKEN=$VITE_DASHBOARD_TOKEN
 ENV VITE_APP_VERSION=$VITE_APP_VERSION
 RUN npm run build
 
-FROM nginx:1.27-alpine
+FROM nginx:1.27-alpine AS runtime
+RUN apk upgrade --no-cache
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY nginx-ssl.conf /etc/nginx/conf.d/ssl.conf.disabled

@@ -97,10 +97,16 @@ Browser
 
 ## Quick Start
 
+**One-line install** (recommended):
+```bash
+sudo bash -c "$(curl -sSL https://raw.githubusercontent.com/vladII987/ServerCTL/main/install.sh)"
+```
+
+**Or manual install:**
 ```bash
 git clone https://github.com/vladII987/ServerCTL.git
 cd ServerCTL
-bash setup.sh
+sudo bash setup.sh
 ```
 
 Dashboard will be available at:
