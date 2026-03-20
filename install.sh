@@ -134,6 +134,9 @@ if ! git clone "$REPO_URL" "$INSTALL_DIR" 2>/dev/null; then
 fi
 ok "Repository cloned."
 
+# Fix "dubious ownership" when cloned as root but later used by another user
+git config --global --add safe.directory "$INSTALL_DIR" 2>/dev/null || true
+
 # ── Restore backup if exists ─────────────────────────────────
 if [[ -f /tmp/serverctl-backup/.env ]]; then
     cp /tmp/serverctl-backup/.env "$INSTALL_DIR/.env"

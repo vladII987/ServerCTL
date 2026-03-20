@@ -65,6 +65,9 @@ echo ""
 
 # ── Pull latest code ─────────────────────────────────────────
 cd "$DIR"
+
+# Fix "dubious ownership" when repo was cloned as root but git runs as another user
+git config --global --add safe.directory "$DIR" 2>/dev/null || true
 REMOTE_URL=$(git remote get-url origin 2>/dev/null)
 REPO_PATH=$(echo "$REMOTE_URL" | sed 's|.*github.com[:/]||' | sed 's|\.git$||')
 
