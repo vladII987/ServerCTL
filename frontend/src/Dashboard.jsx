@@ -2476,19 +2476,19 @@ const Dashboard = () => {
       <nav className="sidebar-nav" style={{ width: sidebarCollapsed ? '64px' : '232px', position: 'fixed', top: 0, bottom: 0, left: 0, background: 'var(--sidebar-bg)', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', zIndex: 500, overflowY: 'auto', transition: 'width 0.22s cubic-bezier(0.4, 0, 0.2, 1)', color: 'var(--text-primary)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
 
         {/* Brand */}
-        <div style={{ padding: sidebarCollapsed ? '18px 0' : '18px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '12px', minHeight: '64px', boxSizing: 'border-box', position: 'relative', justifyContent: sidebarCollapsed ? 'center' : 'flex-start' }}>
+        <div style={{ padding: sidebarCollapsed ? '18px 0' : '18px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', flexDirection: sidebarCollapsed ? 'row' : 'column', alignItems: 'center', gap: sidebarCollapsed ? '0' : '8px', minHeight: sidebarCollapsed ? '64px' : '100px', boxSizing: 'border-box', position: 'relative', justifyContent: 'center' }}>
           {sidebarCollapsed ? (
             customLogo
-              ? <img src={customLogo} alt="logo" style={{ maxHeight: '30px', maxWidth: '30px', objectFit: 'contain', borderRadius: '8px' }} />
-              : <div style={{ width: '34px', height: '34px', background: 'linear-gradient(135deg, #ffb812, #065d6b)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(6,93,107,0.25)' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="3"/><line x1="9" y1="2" x2="9" y2="22"/></svg>
+              ? <img src={customLogo} alt="logo" style={{ maxHeight: '40px', maxWidth: '40px', objectFit: 'contain', borderRadius: '8px' }} />
+              : <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #ffb812, #065d6b)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(6,93,107,0.25)' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="3"/><line x1="9" y1="2" x2="9" y2="22"/></svg>
                 </div>
           ) : (
             <>
               {customLogo
-                ? <img src={customLogo} alt="logo" style={{ maxHeight: '28px', maxWidth: '120px', objectFit: 'contain', borderRadius: '6px' }} />
-                : <div style={{ width: '34px', height: '34px', background: 'linear-gradient(135deg, #ffb812, #065d6b)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(6,93,107,0.25)' }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="3"/><line x1="9" y1="2" x2="9" y2="22"/></svg>
+                ? <img src={customLogo} alt="logo" style={{ maxHeight: '48px', maxWidth: '160px', objectFit: 'contain', borderRadius: '6px' }} />
+                : <div style={{ width: '58px', height: '58px', background: 'linear-gradient(135deg, #ffb812, #065d6b)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(6,93,107,0.25)' }}>
+                    <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="3"/><line x1="9" y1="2" x2="9" y2="22"/></svg>
                   </div>
               }
               {!customLogo && <span style={{ fontWeight: '700', fontSize: '16px', letterSpacing: '-0.03em', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{customTabTitle || (<>Server<span style={{ color: '#ffb812' }}>CTL</span></>)}</span>}
