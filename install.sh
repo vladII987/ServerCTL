@@ -132,10 +132,14 @@ ok "Repository cloned."
 
 # Fix "dubious ownership" when cloned as root but later used by another user
 git config --global --add safe.directory "$INSTALL_DIR" 2>/dev/null || true
+REAL_USER="${SUDO_USER:-$USER}"
+if [[ -n "$REAL_USER" ]] && [[ "$REAL_USER" != "root" ]]; then
+    # Also set safe.directory for the real user (not just root)
+    su - "$REAL_USER" -c "git config --global --add safe.directory '$INSTALL_DIR'" 2>/dev/null || true
+fi
 
 # ── Set permissions ───────────────────────────────────────────
 # If run via sudo, give ownership to the real user so they can work with the files
-REAL_USER="${SUDO_USER:-$USER}"
 if [[ -n "$REAL_USER" ]] && [[ "$REAL_USER" != "root" ]]; then
     info "Setting ownership to ${REAL_USER}..."
     chown -R "$REAL_USER":"$REAL_USER" "$INSTALL_DIR"
