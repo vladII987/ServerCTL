@@ -33,36 +33,30 @@ INSTALL_DIR="${INSTALL_DIR_IN:-$DEFAULT_DIR}"
 # ── Check if already installed ────────────────────────────────
 if [[ -d "$INSTALL_DIR/.git" ]]; then
     warn "ServerCTL already exists at ${INSTALL_DIR}"
-    echo -e "  ${W}1)${NC} Update existing installation (git pull + setup)"
-    echo -e "  ${W}2)${NC} Fresh install (removes existing and re-clones)"
-    echo -e "  ${W}3)${NC} Cancel"
+    echo -e "  ${W}1)${NC} Reinstall (backup config, fresh clone, run setup)"
+    echo -e "  ${W}2)${NC} Cancel"
     echo ""
-    read -rp "  Choice [1/2/3]: " EXIST_CHOICE
+    read -rp "  Choice [1/2]: " EXIST_CHOICE
     case "$EXIST_CHOICE" in
         1)
-            info "Updating existing installation..."
-            cd "$INSTALL_DIR"
-            # Ensure remote is HTTPS (SSH may not work as root)
-            git remote set-url origin "https://github.com/vladII987/ServerCTL.git" 2>/dev/null
-            git pull || err "git pull failed."
-            ok "Repository updated."
-            echo ""
-            info "Running setup..."
-            bash setup.sh
-            exit 0
-            ;;
-        2)
-            warn "Removing ${INSTALL_DIR}..."
-            # Preserve .env and data if they exist
-            if [[ -f "$INSTALL_DIR/.env" ]]; then
-                mkdir -p /tmp/serverctl-backup
-                cp "$INSTALL_DIR/.env" /tmp/serverctl-backup/.env 2>/dev/null
-                cp -r "$INSTALL_DIR/data" /tmp/serverctl-backup/data 2>/dev/null
-                ok "Backed up .env and data to /tmp/serverctl-backup/"
+            info "Backing up config and data..."
+            mkdir -p /tmp/serverctl-backup
+            cp "$INSTALL_DIR/.env" /tmp/serverctl-backup/.env 2>/dev/null
+            cp -r "$INSTALL_DIR/data" /tmp/serverctl-backup/data 2>/dev/null
+            ok "Backed up .env and data to /tmp/serverctl-backup/"
+            # Stop running services/containers
+            if command -v docker >/dev/null 2>&1 && [[ -f "$INSTALL_DIR/docker-compose.yml" ]]; then
+                info "Stopping Docker containers..."
+                cd "$INSTALL_DIR" && docker compose down 2>/dev/null || true
+            fi
+            if systemctl is-active --quiet serverctl-backend 2>/dev/null; then
+                info "Stopping native services..."
+                systemctl stop serverctl-backend serverctl-rdpbridge 2>/dev/null || true
             fi
             rm -rf "$INSTALL_DIR"
+            ok "Old installation removed."
             ;;
-        3) exit 0 ;;
+        2) exit 0 ;;
         *) err "Unknown choice." ;;
     esac
 fi
