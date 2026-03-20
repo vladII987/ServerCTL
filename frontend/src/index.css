@@ -336,4 +336,37 @@ div, span, p, pre, td, th { overflow-wrap: break-word; word-wrap: break-word; }
 }
 .nav-item:hover {
   background: var(--bg-card-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ─── Global font overrides ─── */
+*:not(.xterm *):not(.xterm) {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'DM Sans', sans-serif !important;
+}
+code, pre, .mono, .terminal-output {
+  font-family: 'JetBrains Mono', monospace !important;
+}
+.xterm, .xterm * {
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* ─── Probe info tooltip ─── */
+.probe-info-wrap:hover .probe-info-icon {
+  background: var(--color-primary) !important;
+  color: #fff !important;
+}
+.probe-info-wrap:hover .probe-tooltip {
+  display: block !important;
+}
+
+/* ─── Color scheme for inputs ─── */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  color-scheme: dark;
+}
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+  color-scheme: light;
 }

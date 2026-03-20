@@ -2465,17 +2465,9 @@ const Dashboard = () => {
     { key: 'settings',   icon: '⚙',   label: 'Settings' },
   ];
 
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', color: 'var(--text-primary)', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "DM Sans", -apple-system, sans-serif', background: 'var(--bg-primary)', position: 'relative' }}>
-      <style dangerouslySetInnerHTML={{ __html: `
-        *:not(.xterm *):not(.xterm) { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif !important; }
-        code, pre, .mono, .terminal-output { font-family: 'JetBrains Mono', monospace !important; }
-        .xterm, .xterm * { font-family: 'JetBrains Mono', monospace !important; }
-        .probe-info-wrap:hover .probe-info-icon { background: var(--color-primary) !important; color: #fff !important; }
-        .probe-info-wrap:hover .probe-tooltip { display: block !important; }
-        input, select, textarea { color-scheme: ${darkMode ? 'dark' : 'light'}; }
-        .nav-item:hover { background: var(--bg-card-hover) !important; color: var(--text-primary) !important; }
-      `}} />
 
       {/* Ambient background */}
       <div className={darkMode ? 'grid-bg-dark' : 'grid-bg-light'} style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} />
