@@ -1722,7 +1722,7 @@ const Dashboard = () => {
         setBulkProgress(prev => prev.map(p => p.id === item.id ? {
           ...p,
           status: data.status === 'completed' ? 'done' : 'error',
-          output: isSSHError ? `SSH konekcija nije uspjela. Update mora biti urađen ručno.\n\n${data.detail || ''}` : (data.output || (data.detail ? String(data.detail) : '')),
+          output: isSSHError ? `SSH connection failed. Update must be done manually.\n\n${data.detail || ''}` : (data.output || (data.detail ? String(data.detail) : '')),
         } : p));
 
         // After upgrade, immediately refresh pending-updates count + reboot flag
@@ -2592,15 +2592,15 @@ const Dashboard = () => {
       {serverQuickFilter !== 'all' && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', padding: '10px 16px', borderRadius: '8px', background: serverQuickFilter === 'needs_reboot' ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)', border: `1px solid ${serverQuickFilter === 'needs_reboot' ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)'}` }}>
           <span style={{ fontSize: '13px', fontWeight: '600', color: serverQuickFilter === 'needs_reboot' ? '#ef4444' : '#f59e0b' }}>
-            {serverQuickFilter === 'needs_reboot' ? `⚠ ${filteredServers.length} server(a) zahtijeva reboot` : `↑ ${filteredServers.length} server(a) ima dostupne update-e`}
+            {serverQuickFilter === 'needs_reboot' ? `⚠ ${filteredServers.length} server(s) require reboot` : `↑ ${filteredServers.length} server(s) have updates available`}
           </span>
           {serverQuickFilter === 'needs_reboot' && (
             <button onClick={() => promptReboot(filteredServers.map(s => ({ id: s.id, name: s.name, host: s.host, pending_updates: s.pending_updates })))}
               style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '7px', padding: '5px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
-              ↺ Rebootuj sve
+              ↺ Reboot All
             </button>
           )}
-          <button onClick={() => setServerQuickFilter('all')} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '13px', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '6px' }}>✕ Resetuj filter</button>
+          <button onClick={() => setServerQuickFilter('all')} style={{ marginLeft: 'auto', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '13px', color: 'var(--text-muted)', padding: '2px 8px', borderRadius: '6px' }}>✕ Reset Filter</button>
         </div>
       )}
 
@@ -3285,40 +3285,40 @@ const Dashboard = () => {
                 if (!r) return null;
                 // HTTP status codes
                 const httpDesc = {
-                  200: 'OK — Zahtjev uspješan.',
-                  201: 'Created — Resurs uspješno kreiran.',
-                  204: 'No Content — Zahtjev uspješan, nema tijela odgovora.',
-                  301: 'Moved Permanently — Resurs trajno premješten na novu URL adresu.',
-                  302: 'Found — Privremeni redirect na drugu URL adresu.',
-                  304: 'Not Modified — Resurs nije promijenjen od zadnjeg zahtjeva (cache).',
-                  400: 'Bad Request — Server nije razumio zahtjev (loša sintaksa ili parametri).',
-                  401: 'Unauthorized — Autentifikacija je obavezna. Niste prijavljeni ili token nije validan.',
-                  403: 'Forbidden — Pristup zabranjen. Server razumije zahtjev ali odbija da ga izvrši.',
-                  404: 'Not Found — Traženi resurs ne postoji na serveru.',
-                  405: 'Method Not Allowed — HTTP metoda nije podržana za ovaj endpoint.',
-                  408: 'Request Timeout — Server nije dobio kompletan zahtjev na vrijeme.',
-                  409: 'Conflict — Zahtjev je u konfliktu sa trenutnim stanjem resursa.',
-                  429: 'Too Many Requests — Prekoračen limit zahtjeva (rate limiting).',
-                  500: 'Internal Server Error — Neočekivana greška na serveru.',
-                  502: 'Bad Gateway — Server je primio nevažeći odgovor od upstream servera (reverse proxy problem).',
-                  503: 'Service Unavailable — Server privremeno nedostupan (preopterećen ili u maintenance).',
-                  504: 'Gateway Timeout — Upstream server nije odgovorio na vrijeme (proxy timeout).',
-                  505: 'HTTP Version Not Supported — Server ne podržava korištenu HTTP verziju.',
+                  200: 'OK — Request successful.',
+                  201: 'Created — Resource successfully created.',
+                  204: 'No Content — Request successful, no response body.',
+                  301: 'Moved Permanently — Resource permanently moved to a new URL.',
+                  302: 'Found — Temporary redirect to another URL.',
+                  304: 'Not Modified — Resource has not changed since last request (cache).',
+                  400: 'Bad Request — Server could not understand the request (bad syntax or parameters).',
+                  401: 'Unauthorized — Authentication required. Not logged in or token is invalid.',
+                  403: 'Forbidden — Access denied. Server understands the request but refuses to execute it.',
+                  404: 'Not Found — Requested resource does not exist on the server.',
+                  405: 'Method Not Allowed — HTTP method is not supported for this endpoint.',
+                  408: 'Request Timeout — Server did not receive the complete request in time.',
+                  409: 'Conflict — Request conflicts with the current state of the resource.',
+                  429: 'Too Many Requests — Rate limit exceeded.',
+                  500: 'Internal Server Error — Unexpected error on the server.',
+                  502: 'Bad Gateway — Server received an invalid response from the upstream server (reverse proxy issue).',
+                  503: 'Service Unavailable — Server temporarily unavailable (overloaded or in maintenance).',
+                  504: 'Gateway Timeout — Upstream server did not respond in time (proxy timeout).',
+                  505: 'HTTP Version Not Supported — Server does not support the HTTP version used.',
                 };
                 // TCP/UDP/Ping status
                 const statusDesc = {
-                  up:            'Ping uspješan — host odgovara na ICMP echo zahtjev.',
-                  timeout:       'Timeout — host nije odgovorio u zadanom roku. Firewall može blokirati ICMP/TCP/UDP.',
-                  refused:       'Connection Refused — port je zatvoren, servis ne radi ili firewall aktivno odbija vezu (TCP RST).',
-                  'open|filtered': 'Open ili Filtered — UDP port nije vratio ICMP "port unreachable". Port je vjerovatno otvoren ali ne šalje odgovor, ili ga firewall filtrira.',
-                  closed:        'Closed — Primljen ICMP "port unreachable". UDP port je zatvoren.',
-                  open:          'Open — veza uspješno uspostavljena. Port je otvoren i servis prima konekcije.',
-                  unreachable:   'Unreachable — host nije dostupan. Provjeri IP adresu, routing i firewall pravila.',
-                  error:         r.error ? `Greška: ${r.error}` : 'Nepoznata greška tokom probe-a.',
+                  up:            'Ping successful — host is responding to ICMP echo requests.',
+                  timeout:       'Timeout — host did not respond within the time limit. Firewall may be blocking ICMP/TCP/UDP.',
+                  refused:       'Connection Refused — port is closed, service is not running, or firewall is actively rejecting the connection (TCP RST).',
+                  'open|filtered': 'Open or Filtered — UDP port did not return ICMP "port unreachable". Port is likely open but not sending a response, or firewall is filtering it.',
+                  closed:        'Closed — Received ICMP "port unreachable". UDP port is closed.',
+                  open:          'Open — connection successfully established. Port is open and service is accepting connections.',
+                  unreachable:   'Unreachable — host is not reachable. Check IP address, routing, and firewall rules.',
+                  error:         r.error ? `Error: ${r.error}` : 'Unknown error during probe.',
                 };
                 if (r.http_status) {
                   const code = r.http_status;
-                  return httpDesc[code] || `HTTP ${code} — ${code < 400 ? 'Uspješan odgovor.' : code < 500 ? 'Client greška.' : 'Server greška.'}`;
+                  return httpDesc[code] || `HTTP ${code} — ${code < 400 ? 'Successful response.' : code < 500 ? 'Client error.' : 'Server error.'}`;
                 }
                 return statusDesc[r.status] || null;
               };
@@ -5335,16 +5335,16 @@ const Dashboard = () => {
             <div style={{ padding: '20px 24px', borderBottom: `1px solid var(--border-color)`, display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#ef444420', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>↺</div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: '700', fontSize: '15px' }}>Odaberi servere za reboot</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>Odznači servere koje ne želiš restartovati</div>
+                <div style={{ fontWeight: '700', fontSize: '15px' }}>Select servers to reboot</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>Uncheck servers you don't want to restart</div>
               </div>
               {/* Select all / none */}
               <div style={{ display: 'flex', gap: '6px' }}>
                 <button onClick={() => setRebootSelected(new Set(rebootTargets.map(s => s.id)))}
-                  style={{ fontSize: '11px', color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>Sve</button>
+                  style={{ fontSize: '11px', color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>All</button>
                 <span style={{ color: 'var(--border-color)' }}>|</span>
                 <button onClick={() => setRebootSelected(new Set())}
-                  style={{ fontSize: '11px', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>Ništa</button>
+                  style={{ fontSize: '11px', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>None</button>
               </div>
             </div>
             {/* Server list with checkboxes */}
@@ -5365,7 +5365,7 @@ const Dashboard = () => {
                       <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontFamily: '"JetBrains Mono", monospace' }}>{s.host}</div>
                     </div>
                     <span style={{ fontSize: '11px', background: checked ? '#ef444420' : 'var(--bg-card-hover)', color: checked ? '#ef4444' : 'var(--text-muted)', padding: '2px 8px', borderRadius: '8px', fontWeight: '600' }}>
-                      {checked ? 'reboot' : 'preskoči'}
+                      {checked ? 'reboot' : 'skip'}
                     </span>
                   </label>
                 );
@@ -5373,12 +5373,12 @@ const Dashboard = () => {
             </div>
             {/* Footer */}
             <div style={{ padding: '16px 24px', borderTop: `1px solid var(--border-color)`, display: 'flex', gap: '10px', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{rebootSelected.size} od {rebootTargets.length} selektovano</span>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{rebootSelected.size} of {rebootTargets.length} selected</span>
               <div style={{ display: 'flex', gap: '10px' }}>
-                <button onClick={() => setShowRebootConfirm(false)} style={{ ...styles.btn, ...styles.btnSecondary, padding: '8px 20px' }}>Otkaži</button>
+                <button onClick={() => setShowRebootConfirm(false)} style={{ ...styles.btn, ...styles.btnSecondary, padding: '8px 20px' }}>Cancel</button>
                 <button onClick={executeReboot} disabled={rebootSelected.size === 0}
                   style={{ background: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 20px', fontWeight: '600', cursor: rebootSelected.size === 0 ? 'not-allowed' : 'pointer', fontSize: '13px', opacity: rebootSelected.size === 0 ? 0.4 : 1 }}>
-                  ↺ Rebootuj ({rebootSelected.size})
+                  ↺ Reboot ({rebootSelected.size})
                 </button>
               </div>
             </div>
