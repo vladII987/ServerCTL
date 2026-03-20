@@ -42,6 +42,8 @@ if [[ -d "$INSTALL_DIR/.git" ]]; then
         1)
             info "Updating existing installation..."
             cd "$INSTALL_DIR"
+            # Ensure remote is HTTPS (SSH may not work as root)
+            git remote set-url origin "https://github.com/vladII987/ServerCTL.git" 2>/dev/null
             git pull || err "git pull failed."
             ok "Repository updated."
             echo ""
