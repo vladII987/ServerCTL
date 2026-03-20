@@ -133,6 +133,16 @@ ok "Repository cloned."
 # Fix "dubious ownership" when cloned as root but later used by another user
 git config --global --add safe.directory "$INSTALL_DIR" 2>/dev/null || true
 
+# ── Set permissions ───────────────────────────────────────────
+# If run via sudo, give ownership to the real user so they can work with the files
+REAL_USER="${SUDO_USER:-$USER}"
+if [[ -n "$REAL_USER" ]] && [[ "$REAL_USER" != "root" ]]; then
+    info "Setting ownership to ${REAL_USER}..."
+    chown -R "$REAL_USER":"$REAL_USER" "$INSTALL_DIR"
+    ok "Permissions set for ${REAL_USER}."
+fi
+chmod -R u+rw "$INSTALL_DIR"
+
 # ── Restore backup if exists ─────────────────────────────────
 if [[ -f /tmp/serverctl-backup/.env ]]; then
     cp /tmp/serverctl-backup/.env "$INSTALL_DIR/.env"
