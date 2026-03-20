@@ -267,6 +267,10 @@ async def agent_connect(websocket: WebSocket, token: str = Query(...)):
             elif msg.get("type") == "report":
                 if msg.get("metrics"):
                     agent_metrics[host] = msg["metrics"]
+                    # Update platform with detailed OS info from metrics (e.g. "Ubuntu 24.04")
+                    os_info = msg["metrics"].get("os", "")
+                    if os_info and server and os_info != server.get("platform", ""):
+                        registry.update_platform(server["id"], os_info)
                 if msg.get("pending_updates") is not None:
                     pu = msg["pending_updates"]
                     registry.update_pending_updates(host, pu.get("count", 0), pu.get("packages", []), pu.get("reboot_required", False))

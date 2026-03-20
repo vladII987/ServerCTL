@@ -1526,11 +1526,19 @@ func connect(url string, cfg *Config, pm *pkgManager, state *updateState) error 
 	log.Printf("[agent] connected")
 
 	// Send register message first — backend expects this as the first message
+	// Use detailed OS info (e.g. "Ubuntu 24.04", "Windows Server 2022") instead of just "linux"/"windows"
+	osPlatform := runtime.GOOS
+	if hostStat, err := host.Info(); err == nil && hostStat.Platform != "" {
+		osPlatform = hostStat.Platform
+		if hostStat.PlatformVersion != "" {
+			osPlatform += " " + hostStat.PlatformVersion
+		}
+	}
 	registerMsg := map[string]string{
 		"type":     "register",
 		"ip":       localIP(),
 		"hostname": hostname(),
-		"platform": runtime.GOOS,
+		"platform": osPlatform,
 		"version":  agentVersion,
 	}
 	regData, _ := json.Marshal(registerMsg)
