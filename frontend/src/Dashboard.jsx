@@ -2491,7 +2491,7 @@ const Dashboard = () => {
                     <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="3"/><line x1="9" y1="2" x2="9" y2="22"/></svg>
                   </div>
               }
-              <span style={{ fontWeight: '700', fontSize: '15px', letterSpacing: '-0.03em', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{customTabTitle || (<>Server<span style={{ color: '#ffb812' }}>CTL</span></>)}</span>
+              <span style={{ fontWeight: '700', fontSize: '18px', letterSpacing: '-0.03em', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{customTabTitle || (<>Server<span style={{ color: '#ffb812' }}>CTL</span></>)}</span>
             </>
           )}
           {!sidebarCollapsed && (
