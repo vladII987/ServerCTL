@@ -646,13 +646,16 @@ const Dashboard = () => {
         const hData = await hRes.json();
         if (hData.agent_version) setLatestAgentVersion(hData.agent_version);
       } catch {}
-      list.filter(s => s.online).forEach(async s => {
-        try {
+      const metricsResults = await Promise.allSettled(
+        list.filter(s => s.online).map(async s => {
           const r = await fetch(`/api/metrics/${s.id}`, { headers: { ...authHeader } });
           const d = await r.json();
-          if (d.metrics) setServerMetricsMap(prev => ({ ...prev, [s.id]: d.metrics }));
-        } catch {}
-      });
+          return d.metrics ? { id: s.id, metrics: d.metrics } : null;
+        })
+      );
+      const batch = {};
+      metricsResults.forEach(r => { if (r.status === 'fulfilled' && r.value) batch[r.value.id] = r.value.metrics; });
+      if (Object.keys(batch).length) setServerMetricsMap(prev => ({ ...prev, ...batch }));
     } catch (err) {
       console.error("Error loading servers:", err);
       setLoading(false);
