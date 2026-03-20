@@ -1,7 +1,7 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────
 # ServerCTL — One-Line Installer
-# Usage:  curl -sSL https://raw.githubusercontent.com/vladII987/ServerCTL/main/install.sh | sudo bash
+# Usage:  sudo bash -c "$(curl -sSL https://raw.githubusercontent.com/vladII987/ServerCTL/main/install.sh)"
 # ─────────────────────────────────────────────────────────────────
 
 set -e
@@ -13,11 +13,6 @@ warn() { echo -e "${Y}[!]${NC} $1"; }
 err()  { echo -e "${R}[✗]${NC} $1"; exit 1; }
 ask()  { echo -e "${W}[?]${NC} $1"; }
 
-# When piped via curl|bash, stdin is the script itself — read from /dev/tty for user input
-prompt() {
-    read -rp "$1" "$2" </dev/tty
-}
-
 echo ""
 echo -e "${W}╔══════════════════════════════════════════════════╗${NC}"
 echo -e "${W}║${NC}      ${B}ServerCTL — One-Line Installer${NC}              ${W}║${NC}"
@@ -26,13 +21,13 @@ echo ""
 
 # ── Must run as root ──────────────────────────────────────────
 if [[ "$EUID" -ne 0 ]]; then
-    err "Please run as root: sudo bash install.sh"
+    err "Please run as root: sudo bash -c \"\$(curl -sSL https://raw.githubusercontent.com/vladII987/ServerCTL/main/install.sh)\""
 fi
 
 # ── Choose install location ───────────────────────────────────
 DEFAULT_DIR="/opt/ServerCTL"
 ask "Install directory [${DEFAULT_DIR}]: "
-prompt "  → " INSTALL_DIR_IN
+read -rp "  → " INSTALL_DIR_IN
 INSTALL_DIR="${INSTALL_DIR_IN:-$DEFAULT_DIR}"
 
 # ── Check if already installed ────────────────────────────────
@@ -42,7 +37,7 @@ if [[ -d "$INSTALL_DIR/.git" ]]; then
     echo -e "  ${W}2)${NC} Fresh install (removes existing and re-clones)"
     echo -e "  ${W}3)${NC} Cancel"
     echo ""
-    prompt "  Choice [1/2/3]: " EXIST_CHOICE
+    read -rp "  Choice [1/2/3]: " EXIST_CHOICE
     case "$EXIST_CHOICE" in
         1)
             info "Updating existing installation..."
@@ -115,20 +110,20 @@ if ! git clone "$REPO_URL" "$INSTALL_DIR" 2>/dev/null; then
     echo -e "  ${W}2)${NC} GitHub username & password"
     echo -e "  ${W}3)${NC} Cancel"
     echo ""
-    prompt "  Choice [1/2/3]: " AUTH_CHOICE
+    read -rp "  Choice [1/2/3]: " AUTH_CHOICE
     case "$AUTH_CHOICE" in
         1)
             ask "GitHub token: "
-            prompt "  → " GH_TOKEN
+            read -rp "  → " GH_TOKEN
             [[ -z "$GH_TOKEN" ]] && err "No token provided."
             git clone "https://${GH_TOKEN}@github.com/vladII987/ServerCTL.git" "$INSTALL_DIR" \
                 || err "Clone failed with token. Check that the token has repo access."
             ;;
         2)
             ask "GitHub username: "
-            prompt "  → " GH_USER
+            read -rp "  → " GH_USER
             ask "GitHub password/token: "
-            prompt "  → " GH_PASS
+            read -rp "  → " GH_PASS
             [[ -z "$GH_USER" ]] && err "No username provided."
             git clone "https://${GH_USER}:${GH_PASS}@github.com/vladII987/ServerCTL.git" "$INSTALL_DIR" \
                 || err "Clone failed with credentials."
