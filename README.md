@@ -9,7 +9,7 @@
   Monitor, manage, and remotely access your servers from a single web interface — no VPN, no inbound ports required.
 </p>
 
-<p align="center">
+<p align="left">
   <img src="https://img.shields.io/badge/version-1.5.0-green" alt="Version"/>
   <img src="https://img.shields.io/badge/License-CC%20BY--ND%204.0-lightgrey.svg" alt="License"/>
   <img src="https://img.shields.io/badge/backend-FastAPI-009688" alt="FastAPI"/>
@@ -46,15 +46,15 @@
 
 ## Screenshots
 
-<p align="left">
+<p align="center">
   <img src="screenshots/Screenshot 2026-03-20 192848.png" width="48%" alt="Dashboard"/>
   <img src="screenshots/Screenshot 2026-03-20 192901.png" width="48%" alt="Servers"/>
 </p>
-<p align="left">
+<p align="center">
   <img src="screenshots/Screenshot 2026-03-20 193147.png" width="48%" alt="Server Detail"/>
   <img src="screenshots/Screenshot 2026-03-20 192948.png" width="48%" alt="SSH Terminal"/>
 </p>
-<p align="left">
+<p align="center">
   <img src="screenshots/Screenshot 2026-03-20 193023.png" width="48%" alt="RDP Remote Desktop"/>
   <img src="screenshots/Screenshot 2026-03-20 192918.png" width="48%" alt="Logs"/>
 </p>
