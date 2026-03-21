@@ -258,6 +258,14 @@ The installer downloads a single static Go binary, writes config, and creates a 
 
 ---
 
+## Bulk Agent Deployment (Ansible)
+
+Edit `inventory/hosts.ini` with your server IPs, then run:
+
+```bash
+ansible-playbook -i inventory/hosts.ini deploy-agent.yml --ask-pass
+```
+
 ---
 
 ## Updating Agents
@@ -381,8 +389,8 @@ ServerCTL/
 │   ├── Makefile              # Build targets: linux, windows, deb, rpm
 │   └── dist/                 # Pre-compiled binaries
 ├── deploy-agent.yml          # Ansible playbook — bulk agent deployment
-├── update-token.yml          # Ansible playbook — rotate agent tokens
-├── gen-inventory.py          # Generate Ansible inventory from server registry
+├── inventory/                # Ansible inventory
+│   └── hosts.ini             # Target hosts for bulk deployment
 ├── scan.py                   # Network scanner — discover and import hosts
 ├── setup.sh                  # First-time setup (Docker or Native mode)
 ├── update.sh                 # Update to latest version with backup
