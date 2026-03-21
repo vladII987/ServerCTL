@@ -44,16 +44,6 @@
 
 ---
 
-## Screenshots
-
-<p align="left">
-  <img src="screenshots/Screenshot 2026-03-20 192848.png" width="48%" alt="Dashboard"/>
-  <img src="screenshots/Screenshot 2026-03-20 193147.png" width="48%" alt="Server Detail"/>
-  <img src="screenshots/Screenshot 2026-03-20 192948.png" width="48%" alt="SSH Terminal"/>
-</p>
-
----
-
 ## Architecture
 
 ```
