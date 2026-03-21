@@ -49,9 +49,6 @@
 <p align="center">
   <img src="screenshots/Screenshot 2026-03-20 192848.png" width="48%" alt="Dashboard"/>
   <img src="screenshots/Screenshot 2026-03-20 192901.png" width="48%" alt="Servers"/>
-  <img src="screenshots/Screenshot 2026-03-20 193147.png" width="48%" alt="Server Detail"/>
-  <img src="screenshots/Screenshot 2026-03-20 192948.png" width="48%" alt="SSH Terminal"/>
-  <img src="screenshots/Screenshot 2026-03-20 193023.png" width="48%" alt="RDP Remote Desktop"/>
   <img src="screenshots/Screenshot 2026-03-20 192918.png" width="48%" alt="Logs"/>
 </p>
 
